@@ -32,7 +32,7 @@ func clean(_ *cobra.Command, _ []string) {
 	}
 
 	if len(images) > 0 {
-		fmt.Printf(color.Warning, "gcloud container images delete gcr.io/<PROJECT-ID>/<IMAGE_PATH>@<DIGEST>\n")
+		fmt.Printf(color.Warning, "gcloud container images delete gcr.io/<PROJECT_ID>/<IMAGE_PATH>@<DIGEST>\n")
 		delBar := pb.StartNew(len(images))
 		for _, image := range images {
 			err := gcloud.DeleteContainerImage(image)
