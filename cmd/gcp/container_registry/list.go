@@ -37,8 +37,12 @@ func list(_ *cobra.Command, _ []string) {
 	table.SetHeader([]string{"Timestamp", "Repository", "Tags", "Digest"})
 	table.SetBorder(false)
 	for _, image := range images {
-		for _, tag := range image.Tags {
-			table.Append([]string{image.Timestamp.Datetime, image.Repository, tag, image.Digest})
+		if len(image.Tags) > 0 {
+			for _, tag := range image.Tags {
+				table.Append([]string{image.Timestamp.Datetime.Format("02-01-2006 15:04"), image.Repository, tag, image.Digest})
+			}
+		} else {
+			table.Append([]string{image.Timestamp.Datetime.Format("02-01-2006 15:04"), image.Repository, "", image.Digest})
 		}
 	}
 	table.Render()
