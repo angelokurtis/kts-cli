@@ -6,6 +6,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/angelokurtis/kts-cli/internal/color"
 	"github.com/cheggaaa/pb/v3"
+	"strings"
 	"time"
 )
 
@@ -30,7 +31,28 @@ func SelectContainerRepositories() ([]string, error) {
 }
 
 func ListContainerRepositories() ([]string, error) {
-	out, err := run("container", "images", "list")
+	projects, err := ListProjects()
+	if err != nil {
+		return nil, err
+	}
+
+	repos := make([]string, 0)
+	for _, project := range projects {
+		r, err := listContainerRepositories(project)
+		if err != nil {
+			if !strings.Contains(err.Error(), "Bad status during token exchange: 403") {
+				return nil, err
+			}
+			fmt.Printf(color.Error, "[WARN] You don't have permissions to list container images on project '"+project.Name+"'\n")
+		}
+		repos = append(repos, r...)
+	}
+
+	return repos, nil
+}
+
+func listContainerRepositories(project *Project) ([]string, error) {
+	out, err := run("container", "images", "list", "--repository=gcr.io/"+project.ID)
 	if err != nil {
 		return nil, err
 	}

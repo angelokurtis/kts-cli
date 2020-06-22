@@ -12,7 +12,7 @@ import (
 )
 
 func list(_ *cobra.Command, _ []string) {
-	fmt.Printf(color.Warning, "gcloud container images list\n")
+	fmt.Printf(color.Warning, "gcloud container images list --repository=gcr.io/<PROJECT_ID>\n")
 	repositories, err := gcloud.SelectContainerRepositories()
 	if err != nil {
 		common.Exit(err)
