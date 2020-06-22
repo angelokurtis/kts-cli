@@ -8,10 +8,11 @@ import (
 var Command = &cobra.Command{
 	Use:   "container-registry",
 	Short: "Utility function of Docker images on Google Cloud Platform",
-	Run: common.Help,
+	Run:   common.Help,
 }
 
 func init() {
 	Command.AddCommand(&cobra.Command{Use: "list", Run: list})
+	Command.AddCommand(&cobra.Command{Use: "untag", Run: untag})
 	Command.AddCommand(&cobra.Command{Use: "clean", Run: clean})
 }
