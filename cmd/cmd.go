@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/angelokurtis/kts-cli/cmd/common"
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
+	"github.com/angelokurtis/kts-cli/cmd/git"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -49,5 +50,6 @@ func init() {
 
 	cmd.AddCommand(gcp.Command)
 	cmd.AddCommand(kubernetes.Command)
+	cmd.AddCommand(git.Command)
 	cmd.AddCommand(completion)
 }

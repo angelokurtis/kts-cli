@@ -73,7 +73,7 @@ func (s *Services) Namespaces(labels map[string][]string) []string {
 		for _, v := range values {
 			label := k + "=" + v
 			ns := m[label]
-			namespaces = dedupe(namespaces, ns...)
+			namespaces = dedupeStr(namespaces, ns...)
 		}
 	}
 	return namespaces
@@ -84,7 +84,7 @@ func (s *Services) Labels() map[string][]string {
 	for _, service := range s.Items {
 		for k, v := range service.Metadata.Labels {
 			values := labels[k]
-			values = dedupe(values, v)
+			values = dedupeStr(values, v)
 			labels[k] = values
 		}
 	}
@@ -95,46 +95,24 @@ func (s *Services) LabelKeys() []string {
 	keys := make([]string, 0)
 	for _, service := range s.Items {
 		for k := range service.Metadata.Labels {
-			keys = dedupe(keys, k)
+			keys = dedupeStr(keys, k)
 		}
 	}
 	sort.Strings(keys)
 	return keys
 }
 
-type Metadata struct {
-	Labels    map[string]string `json:"labels"`
-	Name      string            `json:"name"`
-	Namespace string            `json:"namespace"`
-}
-
-type Port struct {
-	Name     string `json:"name"`
-	Port     int    `json:"port"`
-	Protocol string `json:"protocol"`
-}
-
-type Spec struct {
-	Ports []Port `json:"ports"`
-}
-
 type Service struct {
-	Metadata Metadata `json:"metadata"`
-	Spec     Spec     `json:"spec"`
-}
-
-func dedupe(a []string, b ...string) []string {
-
-	check := make(map[string]int)
-	d := append(a, b...)
-	res := make([]string, 0)
-	for _, val := range d {
-		check[val] = 1
-	}
-
-	for letter, _ := range check {
-		res = append(res, letter)
-	}
-
-	return res
+	Metadata struct {
+		Labels    map[string]string `json:"labels"`
+		Name      string            `json:"name"`
+		Namespace string            `json:"namespace"`
+	} `json:"metadata"`
+	Spec struct {
+		Ports []struct {
+			Name     string `json:"name"`
+			Port     int    `json:"port"`
+			Protocol string `json:"protocol"`
+		} `json:"ports"`
+	} `json:"spec"`
 }
