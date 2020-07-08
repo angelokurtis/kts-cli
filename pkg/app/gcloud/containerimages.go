@@ -120,7 +120,7 @@ func DeleteContainerImage(image *ContainerImage) error {
 }
 
 func SelectTags() ([]string, error) {
-	fmt.Printf(color.Warning, "gcloud container images list\n")
+	fmt.Printf(color.Notice, "gcloud container images list\n")
 	repositories, err := SelectContainerRepositories()
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func SelectTags() ([]string, error) {
 
 	tags := make([]string, 0, 0)
 	if len(repositories) > 0 {
-		fmt.Printf(color.Warning, "gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH>\n")
+		fmt.Printf(color.Notice, "gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH>\n")
 		bar := pb.StartNew(len(repositories))
 		for _, repository := range repositories {
 			images, err := ListContainerImages(repository)

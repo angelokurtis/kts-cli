@@ -9,7 +9,7 @@ import (
 )
 
 func runAndLog(args ...string) (out []byte, err error) {
-	fmt.Printf(color.Warning, "kubectl "+strings.Join(args, " ")+"\n")
+	fmt.Printf(color.Notice, "kubectl "+strings.Join(args, " ")+"\n")
 	return run(args...)
 }
 

@@ -10,7 +10,7 @@ import (
 
 func untag(_ *cobra.Command, _ []string) {
 	tags, err := gcloud.SelectTags()
-	fmt.Printf(color.Warning, "gcloud container images untag gcr.io/<PROJECT_ID>/<IMAGE_PATH>:<TAG>\n")
+	fmt.Printf(color.Notice, "gcloud container images untag gcr.io/<PROJECT_ID>/<IMAGE_PATH>:<TAG>\n")
 	err = gcloud.UntagImages(tags)
 	if err != nil {
 		common.Exit(err)

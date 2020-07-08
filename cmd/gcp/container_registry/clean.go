@@ -10,7 +10,7 @@ import (
 )
 
 func clean(_ *cobra.Command, _ []string) {
-	fmt.Printf(color.Warning, "gcloud container images list\n")
+	fmt.Printf(color.Notice, "gcloud container images list\n")
 	repositories, err := gcloud.SelectContainerRepositories()
 	if err != nil {
 		common.Exit(err)
@@ -18,7 +18,7 @@ func clean(_ *cobra.Command, _ []string) {
 
 	images := make([]*gcloud.ContainerImage, 0, 0)
 	if len(repositories) > 0 {
-		fmt.Printf(color.Warning, "gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH> --filter=\"NOT tags:*\"\n")
+		fmt.Printf(color.Notice, "gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH> --filter=\"NOT tags:*\"\n")
 		tagBar := pb.StartNew(len(repositories))
 		for _, repository := range repositories {
 			img, err := gcloud.ListContainerImagesWithoutTags(repository)
@@ -32,7 +32,7 @@ func clean(_ *cobra.Command, _ []string) {
 	}
 
 	if len(images) > 0 {
-		fmt.Printf(color.Warning, "gcloud container images delete gcr.io/<PROJECT_ID>/<IMAGE_PATH>@<DIGEST>\n")
+		fmt.Printf(color.Notice, "gcloud container images delete gcr.io/<PROJECT_ID>/<IMAGE_PATH>@<DIGEST>\n")
 		delBar := pb.StartNew(len(images))
 		for _, image := range images {
 			err := gcloud.DeleteContainerImage(image)
