@@ -5,8 +5,8 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/common"
 	"github.com/angelokurtis/kts-cli/internal/color"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/angelokurtis/kts-cli/pkg/app/kubectl/portforward"
 	"github.com/spf13/cobra"
+	"strconv"
 )
 
 func forwarding(cmd *cobra.Command, args []string) {
@@ -14,18 +14,16 @@ func forwarding(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.Exit(err)
 	}
-	labels, err := pods.SelectLabels()
+	pod, err := pods.SelectOne()
 	if err != nil {
 		common.Exit(err)
 	}
-	namespace, err := pods.SelectNamespace(labels)
+	port, err := pod.SelectContainerPort()
 	if err != nil {
 		common.Exit(err)
 	}
-	port, err := pods.SelectContainerPort(namespace, labels)
-	if err != nil {
-		common.Exit(err)
-	}
-	command := portforward.NewCommand(namespace, labels, port)
-	fmt.Printf(color.Warning, command.String()+"\n")
+	n := pod.Metadata.Name
+	ns := pod.Metadata.Namespace
+	p := strconv.Itoa(port)
+	fmt.Printf(color.Notice, "kubectl port-forward "+n+" "+p+":"+p+" -n "+ns+"\n")
 }
