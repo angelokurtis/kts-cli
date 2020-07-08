@@ -6,6 +6,7 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
 	"github.com/angelokurtis/kts-cli/cmd/git"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes"
+	"github.com/angelokurtis/kts-cli/cmd/sensedia"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -49,7 +50,8 @@ func init() {
 	cmd.PersistentFlags().StringVar(&cfg, "config", "", "config file (default is $HOME/.kurtis.yaml)")
 
 	cmd.AddCommand(gcp.Command)
-	cmd.AddCommand(kubernetes.Command)
 	cmd.AddCommand(git.Command)
+	cmd.AddCommand(kubernetes.Command)
+	cmd.AddCommand(sensedia.Command)
 	cmd.AddCommand(completion)
 }
