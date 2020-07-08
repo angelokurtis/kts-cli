@@ -155,6 +155,61 @@ func (s *Pods) Pods(namespace string, labels map[string][]string) []*Pod {
 	return pods
 }
 
+func (s *Pods) SelectMany() ([]*Pod, error) {
+	pods := make(map[string]*Pod, 0)
+	names := make([]string, 0, 0)
+	for _, pod := range s.Items {
+		name := pod.Metadata.Namespace + "/" + pod.Metadata.Name
+		pods[name] = pod
+		names = append(names, name)
+	}
+
+	var selects []string
+	prompt := &survey.MultiSelect{
+		Message: "Select the pods:",
+		Options: names,
+	}
+
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*Pod, 0, 0)
+	for _, s := range selects {
+		result = append(result, pods[s])
+	}
+
+	return result, nil
+}
+
+func (s *Pods) SelectOne() (*Pod, error) {
+	pods := make(map[string]*Pod, 0)
+	names := make([]string, 0, 0)
+	for _, pod := range s.Items {
+		name := pod.Metadata.Namespace + "/" + pod.Metadata.Name
+		pods[name] = pod
+		names = append(names, name)
+	}
+
+	if len(s.Items) == 1 {
+		return s.Items[0], nil
+	}
+
+	var selected string
+	prompt := &survey.Select{
+		Message: "Select the pod:",
+		Options: names,
+	}
+
+	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+	if err != nil {
+		return nil, err
+	}
+
+	return pods[selected], nil
+}
+
 type Containers struct {
 	Name  string `json:"name"`
 	Ports []*struct {
@@ -194,4 +249,30 @@ func (p *Pod) ContainsLabels(labels map[string][]string) bool {
 		}
 	}
 	return false
+}
+
+func (p *Pod) SelectContainerPort() (int, error) {
+	ports := make([]string, 0, 0)
+	for _, container := range p.Spec.Containers {
+		for _, port := range container.Ports {
+			ports = dedupeStr(ports, strconv.Itoa(port.ContainerPort))
+		}
+	}
+
+	if len(ports) == 1 {
+		return strconv.Atoi(ports[0])
+	}
+
+	var selected string
+	prompt := &survey.Select{
+		Message: "Select the container port:",
+		Options: ports,
+	}
+
+	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+	if err != nil {
+		return 0, err
+	}
+
+	return strconv.Atoi(selected)
 }

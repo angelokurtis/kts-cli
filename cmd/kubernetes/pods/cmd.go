@@ -13,4 +13,5 @@ var Command = &cobra.Command{
 
 func init() {
 	Command.AddCommand(&cobra.Command{Use: "forwarding", Run: forwarding})
+	Command.AddCommand(&cobra.Command{Use: "logs", Run: logs})
 }
