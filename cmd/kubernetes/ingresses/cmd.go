@@ -1,4 +1,4 @@
-package servicemesh
+package ingresses
 
 import (
 	"github.com/angelokurtis/kts-cli/cmd/common"
@@ -6,12 +6,11 @@ import (
 )
 
 var Command = &cobra.Command{
-	Use:   "service-mesh",
-	Short: "Sensedia ServiceMesh utilities",
+	Use:   "ingresses",
+	Short: "Utility functions for Kubernetes Ingresses",
 	Run:   common.Help,
 }
 
 func init() {
 	Command.AddCommand(&cobra.Command{Use: "hosts", Run: hosts})
-	Command.AddCommand(&cobra.Command{Use: "login", Run: login})
 }

@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"github.com/angelokurtis/kts-cli/cmd/common"
+	"github.com/angelokurtis/kts-cli/cmd/kubernetes/ingresses"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/pods"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/resources"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/services"
@@ -15,6 +16,7 @@ var Command = &cobra.Command{
 }
 
 func init() {
+	Command.AddCommand(ingresses.Command)
 	Command.AddCommand(pods.Command)
 	Command.AddCommand(resources.Command)
 	Command.AddCommand(services.Command)

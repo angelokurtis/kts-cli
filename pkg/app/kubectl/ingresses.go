@@ -2,8 +2,22 @@ package kubectl
 
 import "encoding/json"
 
+func ListAllIngresses() (*Ingresses, error) {
+	out, err := run("get", "ingress", "--all-namespaces", "-o=json", "--request-timeout=5s")
+	if err != nil {
+		return nil, err
+	}
+
+	var ingresses *Ingresses
+	if err := json.Unmarshal(out, &ingresses); err != nil {
+		return nil, err
+	}
+
+	return ingresses, nil
+}
+
 func SearchIngress(label string) (*Ingresses, error) {
-	out, err := run("get", "ingress", "--all-namespaces", "-l", label)
+	out, err := run("get", "ingress", "--all-namespaces", "-l", label, "-o=json")
 	if err != nil {
 		return nil, err
 	}
@@ -17,7 +31,7 @@ func SearchIngress(label string) (*Ingresses, error) {
 }
 
 type Ingresses struct {
-	Items []Ingress `json:"items"`
+	Items []*Ingress `json:"items"`
 }
 
 type Metadata struct {
@@ -26,12 +40,20 @@ type Metadata struct {
 	Namespace string            `json:"namespace"`
 }
 
+type Rule struct {
+	Host string `json:"host"`
+}
+
+type Spec struct {
+	Rules []*Rule `json:"rules"`
+}
+
 type IngressIP struct {
 	IP string `json:"ip"`
 }
 
 type LoadBalancer struct {
-	Ingress []IngressIP `json:"ingress"`
+	Ingresses []*IngressIP `json:"ingress"`
 }
 
 type Status struct {
@@ -40,5 +62,6 @@ type Status struct {
 
 type Ingress struct {
 	Metadata Metadata `json:"metadata"`
+	Spec     Spec     `json:"spec"`
 	Status   Status   `json:"status"`
 }
