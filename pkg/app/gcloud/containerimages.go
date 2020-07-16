@@ -40,7 +40,8 @@ func ListContainerRepositories() ([]string, error) {
 	for _, project := range projects {
 		r, err := listContainerRepositories(project)
 		if err != nil {
-			if !strings.Contains(err.Error(), "Bad status during token exchange: 403") {
+			if !strings.Contains(err.Error(), "Bad status during token exchange: 403") &&
+				!strings.Contains(err.Error(), "Access denied:") {
 				return nil, err
 			}
 			fmt.Printf(color.Error, "[WARN] You don't have permissions to list container images on project '"+project.Name+"'\n")

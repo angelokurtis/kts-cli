@@ -1,4 +1,4 @@
-package ingresses
+package kubernetes
 
 import (
 	"fmt"
@@ -21,22 +21,29 @@ func hosts(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.Exit(err)
 	}
-	log.Printf("found %d ingresses\n", len(ingresses.Items))
+	log.Printf("found %d ingresses\n", len(ingresses))
+
+	gateways, err := kubectl.ListAllIstioGateways()
+	if err != nil {
+		common.Exit(err)
+	}
+	log.Printf("found %d gateways\n", len(gateways))
 
 	hosts, err := linux.LoadHostsFile()
 	if err != nil {
 		common.Exit(err)
 	}
-	log.Println("loaded hosts file")
+	err = hosts.Add(context, ingresses, gateways)
+	if err != nil {
+		common.Exit(err)
+	}
 
-	hosts.Add(context, ingresses)
-	//fmt.Print(hosts.String())
 	err = hosts.Write()
 	if err != nil {
 		if !strings.Contains(err.Error(), "open /etc/hosts: permission denied") {
 			common.Exit(err)
 		}
-		fmt.Printf("This command requires superuser privileges to run. These\nprivileges are required to add IP address aliases to your\nloopback interface.\n\nTry:\n - sudo -E kts kubernetes ingresses hosts\n")
+		fmt.Printf("This command requires superuser privileges to run. These\nprivileges are required to add IP address aliases to your\nloopback interface.\n\nTry:\n - sudo -E kts kubernetes hosts\n")
 	} else {
 		log.Println("/etc/hosts file has been rewritten!")
 	}

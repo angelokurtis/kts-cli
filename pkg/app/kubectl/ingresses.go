@@ -2,7 +2,7 @@ package kubectl
 
 import "encoding/json"
 
-func ListAllIngresses() (*Ingresses, error) {
+func ListAllIngresses() ([]*Ingress, error) {
 	out, err := run("get", "ingress", "--all-namespaces", "-o=json", "--request-timeout=5s")
 	if err != nil {
 		return nil, err
@@ -13,7 +13,7 @@ func ListAllIngresses() (*Ingresses, error) {
 		return nil, err
 	}
 
-	return ingresses, nil
+	return ingresses.Items, nil
 }
 
 func SearchIngress(label string) (*Ingresses, error) {

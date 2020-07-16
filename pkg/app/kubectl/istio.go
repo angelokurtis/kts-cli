@@ -1,12 +1,13 @@
 package kubectl
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 )
 
 func IstioIngress() (string, error) {
-	out, err := runAndLog("get", "service", "--all-namespaces", "-l", "app=istio-ingressgateway", "-o=jsonpath='{.items[*].status.loadBalancer.ingress[*].ip}'")
+	out, err := run("get", "service", "--all-namespaces", "-l", "app=istio-ingressgateway", "-o=jsonpath='{.items[*].status.loadBalancer.ingress[*].ip}'")
 	if err != nil {
 		return "", err
 	}
@@ -20,4 +21,38 @@ func IstioIngress() (string, error) {
 		return "", errors.New("found multiple Istio ingresses addresses")
 	}
 	return "", nil
+}
+
+func ListAllIstioGateways() ([]*IstioGateway, error) {
+	out, err := run("get", "gateways.networking.istio.io", "--all-namespaces", "-o=json", "--request-timeout=5s")
+	if err != nil {
+		if strings.Contains(err.Error(), "the server doesn't have a resource type") {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var gateways *IstioGateways
+	if err := json.Unmarshal(out, &gateways); err != nil {
+		return nil, err
+	}
+
+	return gateways.Items, nil
+}
+
+type IstioGateways struct {
+	Items []*IstioGateway `json:"items"`
+}
+
+type IstioGateway struct {
+	Metadata struct {
+		Name      string `json:"name"`
+		Namespace string `json:"namespace"`
+	} `json:"metadata"`
+	Spec struct {
+		Selector map[string]string `json:"selector"`
+		Servers  []struct {
+			Hosts []string `json:"hosts"`
+		} `json:"servers"`
+	} `json:"spec"`
 }
