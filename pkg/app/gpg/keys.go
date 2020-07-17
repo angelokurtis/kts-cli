@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
 	"strings"
 )
 
@@ -28,7 +29,7 @@ func SelectSecretKey() (*SecretKey, error) {
 
 	err = survey.AskOne(prompt, &k)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return m[k], nil

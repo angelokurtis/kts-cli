@@ -1,9 +1,8 @@
 package sensedia
 
 import (
-	"errors"
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/cmd/common"
+	"github.com/pkg/errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -25,7 +24,7 @@ func SelectGateway() (string, error) {
 
 	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 	return selected, nil
 }
@@ -53,7 +52,7 @@ func SelectGatewayUser() (string, string, error) {
 
 	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
 	if err != nil {
-		return "", "", err
+		return "", "", errors.WithStack(err)
 	}
 	return selected, users[selected], nil
 }
@@ -72,7 +71,7 @@ func Login(gateway string, login string, password string) (string, string, error
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		common.Exit(err)
+		return "", "", errors.WithStack(err)
 	}
 	defer resp.Body.Close()
 

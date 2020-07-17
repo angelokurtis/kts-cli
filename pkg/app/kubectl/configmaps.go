@@ -13,7 +13,7 @@ func SearchConfigMap(label string) (*ConfigMaps, error) {
 
 	var configMaps *ConfigMaps
 	if err := json.Unmarshal(out, &configMaps); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return configMaps, nil

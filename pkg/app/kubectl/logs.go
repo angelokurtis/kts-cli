@@ -3,6 +3,7 @@ package kubectl
 import (
 	"fmt"
 	"github.com/angelokurtis/kts-cli/internal/color"
+	"github.com/pkg/errors"
 	"os"
 	"os/exec"
 	"strings"
@@ -34,7 +35,7 @@ func saveLogs(pod string, container string, namespace string) error {
 	dir := fmt.Sprintf("./logs/%s/%s", namespace, pod)
 	err := os.MkdirAll(dir, os.ModePerm)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	//cmd := exec.Command("kubectl", "logs", pod, "-c", container, "-n", namespace, ">", dir+"/"+container+".log")
 	cmd := exec.Command("kubectl", "logs", pod, "-c", container, "-n", namespace)
@@ -43,14 +44,14 @@ func saveLogs(pod string, container string, namespace string) error {
 	// open the out file for writing
 	outfile, err := os.Create(dir + "/" + container + ".log")
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	defer outfile.Close()
 	cmd.Stdout = outfile
 
 	err = cmd.Start()
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	cmd.Wait()
 	return nil

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -117,7 +118,7 @@ func (h *HostsFile) Write() error {
 	content := []byte(h.String())
 	err := ioutil.WriteFile("/etc/hosts", content, 0644)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	return nil
 }

@@ -1,6 +1,9 @@
 package kubectl
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/pkg/errors"
+)
 
 func ListAllIngresses() ([]*Ingress, error) {
 	out, err := run("get", "ingress", "--all-namespaces", "-o=json", "--request-timeout=5s")
@@ -10,7 +13,7 @@ func ListAllIngresses() ([]*Ingress, error) {
 
 	var ingresses *Ingresses
 	if err := json.Unmarshal(out, &ingresses); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return ingresses.Items, nil
@@ -24,7 +27,7 @@ func SearchIngress(label string) (*Ingresses, error) {
 
 	var ingresses *Ingresses
 	if err := json.Unmarshal(out, &ingresses); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return ingresses, nil

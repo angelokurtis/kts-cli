@@ -2,6 +2,7 @@ package gcloud
 
 import (
 	"encoding/json"
+	"github.com/pkg/errors"
 	"time"
 )
 
@@ -13,7 +14,7 @@ func ListProjects() ([]*Project, error) {
 
 	var projects []*Project
 	if err := json.Unmarshal(out, &projects); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return projects, nil

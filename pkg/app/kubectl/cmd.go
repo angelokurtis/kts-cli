@@ -1,9 +1,9 @@
 package kubectl
 
 import (
-	"errors"
 	"fmt"
 	"github.com/angelokurtis/kts-cli/internal/color"
+	"github.com/pkg/errors"
 	"os/exec"
 	"strings"
 )
@@ -17,7 +17,7 @@ func run(args ...string) (out []byte, err error) {
 	command := exec.Command("kubectl", args...)
 	out, err = command.CombinedOutput()
 	if err != nil {
-		return nil, errors.New(err.Error() + ":\n" + string(out))
+		return nil, errors.WithStack(err)
 	}
 	return out, nil
 }

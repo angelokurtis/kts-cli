@@ -2,6 +2,7 @@ package gcloud
 
 import (
 	"encoding/json"
+	"github.com/pkg/errors"
 	"time"
 )
 
@@ -32,7 +33,7 @@ func ListClusters(project *Project) ([]*Cluster, error) {
 
 	var clusters []*Cluster
 	if err := json.Unmarshal(out, &clusters); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return clusters, nil

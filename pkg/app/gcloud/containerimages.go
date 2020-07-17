@@ -6,6 +6,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/angelokurtis/kts-cli/internal/color"
 	"github.com/cheggaaa/pb/v3"
+	"github.com/pkg/errors"
 	"strings"
 	"time"
 )
@@ -24,7 +25,7 @@ func SelectContainerRepositories() ([]string, error) {
 
 	err = survey.AskOne(prompt, &selects, survey.WithPageSize(25))
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return selects, nil
@@ -60,7 +61,7 @@ func listContainerRepositories(project *Project) ([]string, error) {
 
 	var decoded []map[string]string
 	if err := json.Unmarshal(out, &decoded); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	images := make([]string, 0, len(decoded))
@@ -77,13 +78,13 @@ func ListContainerImages(repository string) ([]*ContainerImage, error) {
 	}
 	var tags []*ContainerImage
 	if err := json.Unmarshal(out, &tags); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	for _, tag := range tags {
 		timestamp := &tag.Timestamp
 		location, err := time.LoadLocation("America/Sao_Paulo")
 		if err != nil {
-			return nil, err
+			return nil, errors.WithStack(err)
 		}
 		timestamp.Datetime = time.Date(timestamp.Year, time.Month(timestamp.Month), timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second, 0, location)
 		tag.Repository = repository
@@ -99,7 +100,7 @@ func ListContainerImagesWithoutTags(repository string) ([]*ContainerImage, error
 	}
 	var tags []*ContainerImage
 	if err := json.Unmarshal(out, &tags); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	images := make([]*ContainerImage, 0, 0)
 	for _, tag := range tags {
@@ -154,7 +155,7 @@ func SelectTags() ([]string, error) {
 
 	err = survey.AskOne(prompt, &selects, survey.WithPageSize(25))
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return selects, nil

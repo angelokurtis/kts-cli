@@ -34,7 +34,7 @@ func ListAllIstioGateways() ([]*IstioGateway, error) {
 
 	var gateways *IstioGateways
 	if err := json.Unmarshal(out, &gateways); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return gateways.Items, nil

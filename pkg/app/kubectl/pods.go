@@ -3,6 +3,7 @@ package kubectl
 import (
 	"encoding/json"
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 )
@@ -15,7 +16,7 @@ func ListAllPods() (*Pods, error) {
 
 	var pods *Pods
 	if err := json.Unmarshal(out, &pods); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return pods, nil
@@ -53,7 +54,7 @@ func (s *Pods) SelectLabels() (map[string][]string, error) {
 
 	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	labels := make(map[string][]string, 0)
@@ -106,7 +107,7 @@ func (s *Pods) SelectNamespace(labels map[string][]string) (string, error) {
 
 	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 
 	return selected, nil
@@ -135,7 +136,7 @@ func (s *Pods) SelectContainerPort(namespace string, labels map[string][]string)
 
 	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
 	if err != nil {
-		return 0, err
+		return 0, errors.WithStack(err)
 	}
 
 	return strconv.Atoi(selected)
@@ -172,7 +173,7 @@ func (s *Pods) SelectMany() ([]*Pod, error) {
 
 	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	result := make([]*Pod, 0, 0)
@@ -204,7 +205,7 @@ func (s *Pods) SelectOne() (*Pod, error) {
 
 	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return pods[selected], nil
@@ -271,7 +272,7 @@ func (p *Pod) SelectContainerPort() (int, error) {
 
 	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
 	if err != nil {
-		return 0, err
+		return 0, errors.WithStack(err)
 	}
 
 	return strconv.Atoi(selected)

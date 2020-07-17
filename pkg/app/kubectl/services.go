@@ -3,6 +3,7 @@ package kubectl
 import (
 	"encoding/json"
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
 	"sort"
 	"strings"
 )
@@ -15,7 +16,7 @@ func ListAllServices() (*Services, error) {
 
 	var services *Services
 	if err := json.Unmarshal(out, &services); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return services, nil
@@ -41,7 +42,7 @@ func (s *Services) SelectLabels() (map[string][]string, error) {
 
 	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	labels := make(map[string][]string, 0)
