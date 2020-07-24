@@ -2,7 +2,7 @@ package kubectl
 
 import (
 	"encoding/json"
-	"errors"
+	"github.com/pkg/errors"
 	"strings"
 )
 

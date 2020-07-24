@@ -18,7 +18,7 @@ func run(args ...string) (out []byte, err error) {
 	command := exec.Command("gcloud", args...)
 	out, err = command.CombinedOutput()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.WithMessage(err, string(out))
 	}
 	return out, nil
 }
