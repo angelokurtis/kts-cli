@@ -2,6 +2,7 @@ package git
 
 import (
 	"github.com/angelokurtis/kts-cli/pkg/app/gpg"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"strings"
 )
 
@@ -17,18 +18,26 @@ func ConfigureSecretKey(sk *gpg.SecretKey) error {
 
 	key := strings.Split(sk.Sec, "/")[1]
 
-	_, err := runAndLog("config", "user.name", `"`+name+`"`)
+	if wordCount(name) > 1 {
+		name = "'" + name + "'"
+	}
+	_, err := bash.RunAndLog("git config user.name " + name)
 	if err != nil {
 		return err
 	}
-	_, err = runAndLog("config", "user.email", `"`+email+`"`)
+	_, err = bash.RunAndLog("git config user.email " + email)
 	if err != nil {
 		return err
 	}
-	_, err = runAndLog("config", "user.signingKey", key)
+	_, err = bash.RunAndLog("git config user.signingKey " + key)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func wordCount(s string) int {
+	words := strings.Fields(s)
+	return len(words)
 }
