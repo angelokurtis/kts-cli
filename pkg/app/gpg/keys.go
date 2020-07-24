@@ -13,6 +13,11 @@ func SelectSecretKey() (*SecretKey, error) {
 	if err != nil {
 		return nil, err
 	}
+	if keys == nil || len(keys.Items) == 0 {
+		return nil, nil
+	} else if len(keys.Items) == 1 {
+		return keys.Items[0], nil
+	}
 
 	options := make([]string, 0, 0)
 	m := make(map[string]*SecretKey)
@@ -36,7 +41,7 @@ func SelectSecretKey() (*SecretKey, error) {
 }
 
 func ListSecretKeys() (*Keys, error) {
-	out, err := run("--list-secret-keys", "--keyid-format", "LONG")
+	out, err := runAndLog("--list-secret-keys", "--keyid-format", "LONG")
 	if err != nil {
 		return nil, err
 	}

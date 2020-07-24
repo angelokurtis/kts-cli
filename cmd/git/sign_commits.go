@@ -12,6 +12,9 @@ func signCommits(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.Exit(err)
 	}
+	if key == nil {
+		return
+	}
 	err = git.ConfigureSecretKey(key)
 	if err != nil {
 		common.Exit(err)
