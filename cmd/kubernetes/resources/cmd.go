@@ -19,4 +19,5 @@ func init() {
 	Command.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If present, list the requested object(s) across all namespaces. Namespace in current\ncontext is ignored even if specified with --namespace.")
 	Command.PersistentFlags().StringVar(&group, "group", "", "")
 	Command.AddCommand(&cobra.Command{Use: "list", Run: list})
+	Command.AddCommand(&cobra.Command{Use: "manifests", Run: manifests})
 }

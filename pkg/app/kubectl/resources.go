@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/angelokurtis/kts-cli/pkg/app/yq"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"strings"
 )
 
@@ -50,7 +53,7 @@ func SelectResources(resources string, allNamespaces bool) ([]*resource, error) 
 		if allNamespaces {
 			key = key + r.Namespace + "/"
 		}
-		key = key + r.Kind + "/" + r.Name
+		key = key + r.FullKindName + "/" + r.Name
 		links[key] = r
 		options = append(options, key)
 	}
@@ -74,10 +77,105 @@ func SelectResources(resources string, allNamespaces bool) ([]*resource, error) 
 	return res, nil
 }
 
+func SaveResourcesManifests(resources []*resource) error {
+	for _, r := range resources {
+		err := saveResourceManifest(r)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func saveResourceManifest(resource *resource) error {
+	cmd := "kubectl get " + resource.FullKindName + " " + resource.Name + " -n " + resource.Namespace + " -o yaml"
+	out, err := bash.Run(cmd)
+	if err != nil {
+		return err
+	}
+
+	yamlFile := resource.Name + ".yaml"
+	yamlPath := ""
+	if resource.Group != "" {
+		yamlPath = "./" + resource.Namespace + "/" + resource.Group + "/" + resource.Kind
+	} else {
+		yamlPath = "./" + resource.Namespace + "/" + resource.Kind
+	}
+
+	_, err = bash.Run("mkdir -p " + yamlPath)
+	if err != nil {
+		return err
+	}
+
+	color.Primary.Println(cmd + " > " + yamlPath + "/" + yamlFile)
+	if err = ioutil.WriteFile(yamlPath+"/"+yamlFile, out, 0644); err != nil {
+		return errors.WithStack(err)
+	}
+
+	if err := deleteGeneratedFields(yamlPath + "/" + yamlFile); err != nil {
+		return err
+	}
+	return nil
+}
+
+func deleteGeneratedFields(manifestPath string) error {
+	if err := yq.DeleteNode(manifestPath, "metadata.selfLink"); err != nil {
+		return err
+	}
+	if err := yq.DeleteNode(manifestPath, "metadata.annotations[kubectl.kubernetes.io/last-applied-configuration]"); err != nil {
+		return err
+	}
+	if err := yq.DeleteNode(manifestPath, "metadata.creationTimestamp"); err != nil {
+		return err
+	}
+	if err := yq.DeleteNode(manifestPath, "metadata.resourceVersion"); err != nil {
+		return err
+	}
+	if err := yq.DeleteNode(manifestPath, "metadata.uid"); err != nil {
+		return err
+	}
+	if err := yq.DeleteNode(manifestPath, "status"); err != nil {
+		return err
+	}
+	if err := yq.DeleteNode(manifestPath, "metadata.annotations[cloud.google.com/neg]"); err != nil {
+		return err
+	}
+	kind, err := yq.ReadNodeValue(manifestPath, "kind")
+	if err != nil {
+		return err
+	}
+	if kind == "Service" {
+		if err := yq.DeleteNode(manifestPath, "spec.clusterIP"); err != nil {
+			return err
+		}
+		sessionAffinity, err := yq.ReadNodeValue(manifestPath, "spec.sessionAffinity")
+		if err != nil {
+			return err
+		}
+		if sessionAffinity == "None" {
+			if err := yq.DeleteNode(manifestPath, "spec.sessionAffinity"); err != nil {
+				return err
+			}
+		}
+	}
+	annotations, err := yq.ReadNodeValue(manifestPath, "metadata.annotations")
+	if err != nil {
+		return err
+	}
+	if annotations == "{}" {
+		if err := yq.DeleteNode(manifestPath, "metadata.annotations"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type resource struct {
-	Name      string
-	Kind      string
-	Namespace string
+	Name         string
+	FullKindName string
+	Kind         string
+	Group        string
+	Namespace    string
 }
 
 func newResource(l string) (*resource, error) {
@@ -85,15 +183,18 @@ func newResource(l string) (*resource, error) {
 	size := len(splitted)
 	if size == 8 {
 		return &resource{
-			Name:      splitted[7],
-			Kind:      splitted[6] + "." + splitted[2],
-			Namespace: splitted[5],
+			Name:         splitted[7],
+			Kind:         splitted[6],
+			Group:        splitted[2],
+			FullKindName: splitted[6] + "." + splitted[2],
+			Namespace:    splitted[5],
 		}, nil
 	} else if size == 7 {
 		return &resource{
-			Name:      splitted[6],
-			Kind:      splitted[5],
-			Namespace: splitted[4],
+			Name:         splitted[6],
+			FullKindName: splitted[5],
+			Kind:         splitted[5],
+			Namespace:    splitted[4],
 		}, nil
 	}
 	return nil, errors.New("unrecognized selfLink format")
