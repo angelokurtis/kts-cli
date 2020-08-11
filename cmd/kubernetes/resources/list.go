@@ -14,7 +14,7 @@ func list(cmd *cobra.Command, args []string) {
 		if err != nil {
 			common.Exit(err)
 		}
-		rd = rd.FilterVerbs("get")
+		rd = rd.FilterVerbs("list")
 		if !allNamespaces {
 			rd = rd.FilterNamespaced()
 		}
