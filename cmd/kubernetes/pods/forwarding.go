@@ -24,5 +24,5 @@ func forwarding(cmd *cobra.Command, args []string) {
 	n := pod.Metadata.Name
 	ns := pod.Metadata.Namespace
 	p := strconv.Itoa(port)
-	color.Comment.Println("kubectl port-forward " + n + " " + p + ":" + p + " -n " + ns)
+	color.Secondary.Println("kubectl port-forward " + n + " " + p + ":" + p + " -n " + ns)
 }

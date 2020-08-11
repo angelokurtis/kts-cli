@@ -19,5 +19,5 @@ func forwarding(cmd *cobra.Command, args []string) {
 	}
 	namespaces := services.Namespaces(labels)
 	command := kubefwd.NewCommand(labels, namespaces)
-	color.Comment.Println(command.String())
+	color.Secondary.Println(command.String())
 }

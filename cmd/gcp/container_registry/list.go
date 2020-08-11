@@ -11,7 +11,7 @@ import (
 )
 
 func list(_ *cobra.Command, _ []string) {
-	color.Comment.Println("gcloud container images list --repository=gcr.io/<PROJECT_ID>")
+	color.Secondary.Println("gcloud container images list --repository=gcr.io/<PROJECT_ID>")
 	repositories, err := gcloud.SelectContainerRepositories()
 	if err != nil {
 		common.Exit(err)
@@ -19,7 +19,7 @@ func list(_ *cobra.Command, _ []string) {
 
 	images := make([]*gcloud.ContainerImage, 0, 0)
 	if len(repositories) > 0 {
-		color.Comment.Println("gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH>")
+		color.Secondary.Println("gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH>")
 		bar := pb.StartNew(len(repositories))
 		for _, repository := range repositories {
 			img, err := gcloud.ListContainerImages(repository)

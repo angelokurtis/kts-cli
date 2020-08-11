@@ -7,7 +7,7 @@ import (
 )
 
 func RunAndLogRead(cmd string) (out []byte, err error) {
-	color.Comment.Println(cmd)
+	color.Secondary.Println(cmd)
 	return Run(cmd)
 }
 

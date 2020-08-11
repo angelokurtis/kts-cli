@@ -8,7 +8,7 @@ import (
 )
 
 func runAndLogRead(args ...string) (out []byte, err error) {
-	color.Comment.Println("kubectl " + strings.Join(args, " "))
+	color.Secondary.Println("kubectl " + strings.Join(args, " "))
 	return run(args...)
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 func clean(_ *cobra.Command, _ []string) {
-	color.Comment.Println("gcloud container images list")
+	color.Secondary.Println("gcloud container images list")
 	repositories, err := gcloud.SelectContainerRepositories()
 	if err != nil {
 		common.Exit(err)
@@ -17,7 +17,7 @@ func clean(_ *cobra.Command, _ []string) {
 
 	images := make([]*gcloud.ContainerImage, 0, 0)
 	if len(repositories) > 0 {
-		color.Comment.Println("gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH> --filter=\"NOT tags:*\"")
+		color.Secondary.Println("gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH> --filter=\"NOT tags:*\"")
 		tagBar := pb.StartNew(len(repositories))
 		for _, repository := range repositories {
 			img, err := gcloud.ListContainerImagesWithoutTags(repository)
