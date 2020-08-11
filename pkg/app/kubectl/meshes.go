@@ -5,7 +5,7 @@ import (
 )
 
 func MeshesHosts() ([]string, error) {
-	out, err := runAndLog("get", "--all-namespaces", "meshes.management.sensedia.com", "-o=jsonpath='{.items[*].spec.host}'")
+	out, err := runAndLogRead("get", "--all-namespaces", "meshes.management.sensedia.com", "-o=jsonpath='{.items[*].spec.host}'")
 	if err != nil {
 		return nil, err
 	}

@@ -1,15 +1,19 @@
 package kubectl
 
 import (
-	"fmt"
-	"github.com/angelokurtis/kts-cli/internal/color"
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	"os/exec"
 	"strings"
 )
 
-func runAndLog(args ...string) (out []byte, err error) {
-	fmt.Printf(color.Notice, "kubectl "+strings.Join(args, " ")+"\n")
+func runAndLogRead(args ...string) (out []byte, err error) {
+	color.Comment.Println("kubectl " + strings.Join(args, " "))
+	return run(args...)
+}
+
+func runAndLogWrite(args ...string) (out []byte, err error) {
+	color.Primary.Println("kubectl " + strings.Join(args, " "))
 	return run(args...)
 }
 

@@ -1,16 +1,15 @@
 package container_registry
 
 import (
-	"fmt"
 	"github.com/angelokurtis/kts-cli/cmd/common"
-	"github.com/angelokurtis/kts-cli/internal/color"
 	"github.com/angelokurtis/kts-cli/pkg/app/gcloud"
 	"github.com/cheggaaa/pb/v3"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 )
 
 func clean(_ *cobra.Command, _ []string) {
-	fmt.Printf(color.Notice, "gcloud container images list\n")
+	color.Comment.Println("gcloud container images list")
 	repositories, err := gcloud.SelectContainerRepositories()
 	if err != nil {
 		common.Exit(err)
@@ -18,7 +17,7 @@ func clean(_ *cobra.Command, _ []string) {
 
 	images := make([]*gcloud.ContainerImage, 0, 0)
 	if len(repositories) > 0 {
-		fmt.Printf(color.Notice, "gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH> --filter=\"NOT tags:*\"\n")
+		color.Comment.Println("gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH> --filter=\"NOT tags:*\"")
 		tagBar := pb.StartNew(len(repositories))
 		for _, repository := range repositories {
 			img, err := gcloud.ListContainerImagesWithoutTags(repository)
@@ -32,7 +31,7 @@ func clean(_ *cobra.Command, _ []string) {
 	}
 
 	if len(images) > 0 {
-		fmt.Printf(color.Notice, "gcloud container images delete gcr.io/<PROJECT_ID>/<IMAGE_PATH>@<DIGEST>\n")
+		color.Primary.Println("gcloud container images delete gcr.io/<PROJECT_ID>/<IMAGE_PATH>@<DIGEST>")
 		delBar := pb.StartNew(len(images))
 		for _, image := range images {
 			err := gcloud.DeleteContainerImage(image)

@@ -21,19 +21,22 @@ func ConfigureSecretKey(sk *gpg.SecretKey) error {
 	if wordCount(name) > 1 {
 		name = "'" + name + "'"
 	}
-	_, err := bash.RunAndLog("git config user.name " + name)
+	_, err := bash.RunAndLogWrite("git config user.name " + name)
 	if err != nil {
 		return err
 	}
-	_, err = bash.RunAndLog("git config user.email " + email)
+	_, err = bash.RunAndLogWrite("git config user.email " + email)
 	if err != nil {
 		return err
 	}
-	_, err = bash.RunAndLog("git config user.signingKey " + key)
+	_, err = bash.RunAndLogWrite("git config user.signingKey " + key)
 	if err != nil {
 		return err
 	}
-
+	_, err = bash.RunAndLogWrite("git config commit.gpgsign true")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

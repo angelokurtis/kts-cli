@@ -41,7 +41,7 @@ func SelectSecretKey() (*SecretKey, error) {
 }
 
 func ListSecretKeys() (*Keys, error) {
-	out, err := runAndLog("--list-secret-keys", "--keyid-format", "LONG")
+	out, err := runAndLogRead("--list-secret-keys", "--keyid-format", "LONG")
 	if err != nil {
 		return nil, err
 	}

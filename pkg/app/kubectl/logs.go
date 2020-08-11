@@ -2,7 +2,7 @@ package kubectl
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/internal/color"
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	"os"
 	"os/exec"
@@ -39,7 +39,7 @@ func saveLogs(pod string, container string, namespace string) error {
 	}
 	//cmd := exec.Command("kubectl", "logs", pod, "-c", container, "-n", namespace, ">", dir+"/"+container+".log")
 	cmd := exec.Command("kubectl", "logs", pod, "-c", container, "-n", namespace)
-	fmt.Printf(color.Notice, strings.Join(cmd.Args, " ")+" > "+dir+"/"+container+".log"+"\n")
+	color.Primary.Println(strings.Join(cmd.Args, " ") + " > " + dir + "/" + container + ".log")
 
 	// open the out file for writing
 	outfile, err := os.Create(dir + "/" + container + ".log")

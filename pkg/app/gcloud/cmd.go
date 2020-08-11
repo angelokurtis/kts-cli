@@ -1,15 +1,19 @@
 package gcloud
 
 import (
-	"fmt"
-	"github.com/angelokurtis/kts-cli/internal/color"
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	"os/exec"
 	"strings"
 )
 
-func runAndLog(args ...string) (out []byte, err error) {
-	fmt.Printf(color.Notice, "gcloud "+strings.Join(args, " ")+"\n")
+func runAndLogRead(args ...string) (out []byte, err error) {
+	color.Comment.Println("gcloud " + strings.Join(args, " "))
+	return run(args...)
+}
+
+func runAndLogWrite(args ...string) (out []byte, err error) {
+	color.Primary.Println("gcloud " + strings.Join(args, " "))
 	return run(args...)
 }
 

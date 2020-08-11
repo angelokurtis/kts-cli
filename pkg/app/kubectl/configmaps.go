@@ -6,7 +6,7 @@ import (
 )
 
 func SearchConfigMap(label string) (*ConfigMaps, error) {
-	out, err := runAndLog("get", "ConfigMap", "-o=json", "--all-namespaces", "-l", label)
+	out, err := runAndLogRead("get", "ConfigMap", "-o=json", "--all-namespaces", "-l", label)
 	if err != nil {
 		return nil, err
 	}

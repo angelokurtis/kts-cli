@@ -1,14 +1,18 @@
 package bash
 
 import (
-	"fmt"
-	"github.com/angelokurtis/kts-cli/internal/color"
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	"os/exec"
 )
 
-func RunAndLog(cmd string) (out []byte, err error) {
-	fmt.Printf(color.Notice, cmd+"\n")
+func RunAndLogRead(cmd string) (out []byte, err error) {
+	color.Comment.Println(cmd)
+	return Run(cmd)
+}
+
+func RunAndLogWrite(cmd string) (out []byte, err error) {
+	color.Primary.Println(cmd)
 	return Run(cmd)
 }
 

@@ -1,11 +1,10 @@
 package services
 
 import (
-	"fmt"
 	"github.com/angelokurtis/kts-cli/cmd/common"
-	"github.com/angelokurtis/kts-cli/internal/color"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubefwd"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 )
 
@@ -20,5 +19,5 @@ func forwarding(cmd *cobra.Command, args []string) {
 	}
 	namespaces := services.Namespaces(labels)
 	command := kubefwd.NewCommand(labels, namespaces)
-	fmt.Printf(color.Notice, command.String()+"\n")
+	color.Comment.Println(command.String())
 }

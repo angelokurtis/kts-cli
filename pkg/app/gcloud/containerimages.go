@@ -2,10 +2,9 @@ package gcloud
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/internal/color"
 	"github.com/cheggaaa/pb/v3"
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	"strings"
 	"time"
@@ -45,7 +44,7 @@ func ListContainerRepositories() ([]string, error) {
 				!strings.Contains(err.Error(), "Access denied:") {
 				return nil, err
 			}
-			fmt.Printf(color.Error, "[WARN] You don't have permissions to list container images on project '"+project.Name+"'\n")
+			color.Danger.Println("[WARN] You don't have permissions to list container images on project '" + project.Name + "'")
 		}
 		repos = append(repos, r...)
 	}
@@ -122,7 +121,7 @@ func DeleteContainerImage(image *ContainerImage) error {
 }
 
 func SelectTags() ([]string, error) {
-	fmt.Printf(color.Notice, "gcloud container images list\n")
+	color.Comment.Println("gcloud container images list")
 	repositories, err := SelectContainerRepositories()
 	if err != nil {
 		return nil, err
@@ -130,7 +129,7 @@ func SelectTags() ([]string, error) {
 
 	tags := make([]string, 0, 0)
 	if len(repositories) > 0 {
-		fmt.Printf(color.Notice, "gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH>\n")
+		color.Comment.Println("gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH>")
 		bar := pb.StartNew(len(repositories))
 		for _, repository := range repositories {
 			images, err := ListContainerImages(repository)
