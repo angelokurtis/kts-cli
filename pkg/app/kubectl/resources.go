@@ -66,7 +66,7 @@ func SelectResources(resources string, allNamespaces bool) ([]*resource, error) 
 
 	err = survey.AskOne(prompt, &selects, survey.WithPageSize(10))
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	res := make([]*resource, 0, len(selects))
@@ -88,7 +88,10 @@ func SaveResourcesManifests(resources []*resource) error {
 }
 
 func saveResourceManifest(resource *resource) error {
-	cmd := "kubectl get " + resource.FullKindName + " " + resource.Name + " -n " + resource.Namespace + " -o yaml"
+	cmd := "kubectl get " + resource.FullKindName + " " + resource.Name + " -o yaml"
+	if resource.Namespace != "" {
+		cmd = cmd + " -n " + resource.Namespace
+	}
 	out, err := bash.Run(cmd)
 	if err != nil {
 		return err
@@ -96,10 +99,15 @@ func saveResourceManifest(resource *resource) error {
 
 	yamlFile := resource.Name + ".yaml"
 	yamlPath := ""
-	if resource.Group != "" {
+	if resource.Namespace != "" && resource.Group != "" {
 		yamlPath = "./" + resource.Namespace + "/" + resource.Group + "/" + resource.Kind
 	} else {
 		yamlPath = "./" + resource.Namespace + "/" + resource.Kind
+	}
+	if resource.Namespace == "" && resource.Group != "" {
+		yamlPath = "./" + resource.Group + "/" + resource.Kind
+	} else {
+		yamlPath = "./" + resource.Kind
 	}
 
 	_, err = bash.Run("mkdir -p " + yamlPath)
@@ -119,6 +127,9 @@ func saveResourceManifest(resource *resource) error {
 }
 
 func deleteGeneratedFields(manifestPath string) error {
+	if err := yq.DeleteNode(manifestPath, "metadata.generation"); err != nil {
+		return err
+	}
 	if err := yq.DeleteNode(manifestPath, "metadata.selfLink"); err != nil {
 		return err
 	}
@@ -156,6 +167,14 @@ func deleteGeneratedFields(manifestPath string) error {
 			if err := yq.DeleteNode(manifestPath, "spec.sessionAffinity"); err != nil {
 				return err
 			}
+		}
+	}
+	if kind == "Deployment" {
+		if err := yq.DeleteNode(manifestPath, "metadata.annotations[deployment.kubernetes.io/revision]"); err != nil {
+			return err
+		}
+		if err := yq.DeleteNode(manifestPath, "spec.template.metadata.creationTimestamp"); err != nil {
+			return err
 		}
 	}
 	annotations, err := yq.ReadNodeValue(manifestPath, "metadata.annotations")
@@ -196,6 +215,13 @@ func newResource(l string) (*resource, error) {
 			Kind:         splitted[5],
 			Namespace:    splitted[4],
 		}, nil
+	} else if size == 5 {
+		return &resource{
+			Name:         splitted[4],
+			FullKindName: splitted[3],
+			Kind:         splitted[3],
+			Namespace:    "",
+		}, nil
 	}
-	return nil, errors.New("unrecognized selfLink format")
+	return nil, errors.New("unrecognized selfLink format: " + l)
 }
