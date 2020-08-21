@@ -25,7 +25,7 @@ func list(cmd *cobra.Command, args []string) {
 	} else {
 		resources = args[0]
 	}
-	results, err := kubectl.ListResources(resources, allNamespaces)
+	results, err := kubectl.ListResources(resources, namespace, allNamespaces)
 	if err != nil {
 		common.Exit(err)
 	}

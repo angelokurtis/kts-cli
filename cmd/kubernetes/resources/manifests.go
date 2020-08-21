@@ -24,7 +24,7 @@ func manifests(cmd *cobra.Command, args []string) {
 	} else {
 		resources = args[0]
 	}
-	results, err := kubectl.SelectResources(resources, allNamespaces)
+	results, err := kubectl.SelectResources(resources, namespace, allNamespaces)
 	if err != nil {
 		common.Exit(err)
 	}

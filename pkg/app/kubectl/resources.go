@@ -12,10 +12,12 @@ import (
 	"strings"
 )
 
-func ListResources(resources string, allNamespaces bool) ([]string, error) {
+func ListResources(resources string, namespace string, allNamespaces bool) ([]string, error) {
 	cmd := []string{"get", resources}
 	if allNamespaces {
 		cmd = append(cmd, "--all-namespaces")
+	} else if namespace != "" {
+		cmd = append(cmd, "-n", namespace)
 	}
 	out, err := runAndLogRead(cmd...)
 	if err != nil {
@@ -32,10 +34,12 @@ func ListResources(resources string, allNamespaces bool) ([]string, error) {
 	return res, nil
 }
 
-func SelectResources(resources string, allNamespaces bool) ([]*resource, error) {
+func SelectResources(resources string, namespace string, allNamespaces bool) ([]*resource, error) {
 	cmd := "kubectl get " + resources + " -o=jsonpath='{.items[*].metadata.selfLink}'"
 	if allNamespaces {
 		cmd = cmd + " --all-namespaces"
+	} else if namespace != "" {
+		cmd = cmd + " -n " + namespace
 	}
 	out, err := bash.RunAndLogRead(cmd)
 	if err != nil {
