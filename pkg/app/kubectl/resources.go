@@ -101,10 +101,9 @@ func saveResourceManifest(resource *resource) error {
 	yamlPath := ""
 	if resource.Namespace != "" && resource.Group != "" {
 		yamlPath = "./" + resource.Namespace + "/" + resource.Group + "/" + resource.Kind
-	} else {
+	} else if resource.Namespace != "" && resource.Group == "" {
 		yamlPath = "./" + resource.Namespace + "/" + resource.Kind
-	}
-	if resource.Namespace == "" && resource.Group != "" {
+	} else if resource.Namespace == "" && resource.Group != "" {
 		yamlPath = "./" + resource.Group + "/" + resource.Kind
 	} else {
 		yamlPath = "./" + resource.Kind
