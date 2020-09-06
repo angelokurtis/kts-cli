@@ -1,7 +1,7 @@
 package container_registry
 
 import (
-	"github.com/angelokurtis/kts-cli/cmd/common"
+	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/gcloud"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/gookit/color"
@@ -12,7 +12,7 @@ func clean(_ *cobra.Command, _ []string) {
 	color.Secondary.Println("gcloud container images list")
 	repositories, err := gcloud.SelectContainerRepositories()
 	if err != nil {
-		common.Exit(err)
+		system.Exit(err)
 	}
 
 	images := make([]*gcloud.ContainerImage, 0, 0)
@@ -22,7 +22,7 @@ func clean(_ *cobra.Command, _ []string) {
 		for _, repository := range repositories {
 			img, err := gcloud.ListContainerImagesWithoutTags(repository)
 			if err != nil {
-				common.Exit(err)
+				system.Exit(err)
 			}
 			images = append(images, img...)
 			tagBar.Increment()
@@ -36,7 +36,7 @@ func clean(_ *cobra.Command, _ []string) {
 		for _, image := range images {
 			err := gcloud.DeleteContainerImage(image)
 			if err != nil {
-				common.Exit(err)
+				system.Exit(err)
 			}
 			delBar.Increment()
 		}

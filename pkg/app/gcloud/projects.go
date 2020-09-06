@@ -7,7 +7,7 @@ import (
 )
 
 func ListProjects() ([]*Project, error) {
-	out, err := run("projects", "list")
+	out, err := runAndLogRead("projects", "list")
 	if err != nil {
 		return nil, err
 	}

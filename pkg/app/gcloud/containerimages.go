@@ -44,7 +44,7 @@ func ListContainerRepositories() ([]string, error) {
 				!strings.Contains(err.Error(), "Access denied:") {
 				return nil, err
 			}
-			color.Danger.Println("[WARN] You don't have permissions to list container images on project '" + project.Name + "'")
+			color.Yellow.Println("[WARN] You don't have permissions to list container images on project '" + project.Name + "'")
 		}
 		repos = append(repos, r...)
 	}

@@ -1,14 +1,14 @@
 package container_registry
 
 import (
-	"github.com/angelokurtis/kts-cli/cmd/common"
+	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/spf13/cobra"
 )
 
 var Command = &cobra.Command{
 	Use:   "container-registry",
 	Short: "Utility function of Docker images on Google Cloud Platform",
-	Run:   common.Help,
+	Run:   system.Help,
 }
 
 func init() {

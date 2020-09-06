@@ -2,18 +2,31 @@ package gcloud
 
 import (
 	"encoding/json"
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"time"
 )
 
-func ListAllClusters() ([]*Cluster, error) {
+func ListGKEClustersNames() ([]string, error) {
+	clusters, err := ListGKEClusters()
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, 0, len(clusters))
+	for _, cluster := range clusters {
+		names = append(names, cluster.Name)
+	}
+	return names, nil
+}
+
+func ListGKEClusters() ([]*Cluster, error) {
 	projects, err := ListProjects()
 	if err != nil {
 		return nil, err
 	}
 	clusters := make([]*Cluster, 0, 0)
 	for _, project := range projects {
-		cts, err := ListClusters(project)
+		cts, err := ListGKEClustersByProject(project)
 		if err != nil {
 			return nil, err
 		}
@@ -25,8 +38,40 @@ func ListAllClusters() ([]*Cluster, error) {
 	return clusters, nil
 }
 
-func ListClusters(project *Project) ([]*Cluster, error) {
-	out, err := run("container", "clusters", "list", "--project", project.ID)
+func SelectGKECluster() (*Cluster, error) {
+	clusters, err := ListGKEClusters()
+	if err != nil {
+		return nil, err
+	}
+	if clusters == nil || len(clusters) == 0 {
+		return nil, nil
+	} else if len(clusters) == 1 {
+		return clusters[0], nil
+	}
+
+	options := make([]string, 0, 0)
+	m := make(map[string]*Cluster)
+	for _, cluster := range clusters {
+		options = append(options, cluster.Name)
+		m[cluster.Name] = cluster
+	}
+
+	var k string
+	prompt := &survey.Select{
+		Message: "Select the Google Cluster:",
+		Options: options,
+	}
+
+	err = survey.AskOne(prompt, &k)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return m[k], nil
+}
+
+func ListGKEClustersByProject(project *Project) ([]*Cluster, error) {
+	out, err := runAndLogRead("container", "clusters", "list", "--project", project.ID)
 	if err != nil {
 		return nil, err
 	}
