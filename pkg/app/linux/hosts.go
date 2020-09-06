@@ -3,6 +3,7 @@ package linux
 import (
 	"bufio"
 	"fmt"
+	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 	"github.com/pkg/errors"
 	"io/ioutil"
@@ -116,6 +117,7 @@ func (h *HostsFile) Add(context string, ingresses []*kubectl.Ingress, gateways [
 
 func (h *HostsFile) Write() error {
 	content := []byte(h.String())
+	log.Debugf("\n%s", content)
 	err := ioutil.WriteFile("/etc/hosts", content, 0644)
 	if err != nil {
 		return errors.WithStack(err)

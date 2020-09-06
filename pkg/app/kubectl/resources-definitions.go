@@ -12,6 +12,8 @@ import (
 
 var emptyChar int32 = 32
 
+const ignoreEventsResource = true
+
 func ListResourceDefinitions() (*ResourcesDefinitions, error) {
 	out, err := run("api-resources", "--cached=true", "-o=wide")
 	if err != nil {
@@ -32,6 +34,9 @@ func ListResourceDefinitions() (*ResourcesDefinitions, error) {
 			rd, err := NewResourceDefinition(line, columns)
 			if err != nil {
 				return nil, err
+			}
+			if ignoreEventsResource && rd.Name == "events" {
+				continue
 			}
 			resources.add(rd)
 			continue

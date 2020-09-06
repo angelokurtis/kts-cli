@@ -2,7 +2,7 @@ package resources
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/cmd/common"
+	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 	"github.com/spf13/cobra"
 )
@@ -12,7 +12,7 @@ func list(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		rd, err := kubectl.ListResourceDefinitions()
 		if err != nil {
-			common.Exit(err)
+			system.Exit(err)
 		}
 		rd = rd.FilterVerbs("list")
 		if !allNamespaces {
@@ -27,7 +27,7 @@ func list(cmd *cobra.Command, args []string) {
 	}
 	results, err := kubectl.ListResources(resources, namespace, allNamespaces)
 	if err != nil {
-		common.Exit(err)
+		system.Exit(err)
 	}
 	for _, result := range results {
 		fmt.Println(result)

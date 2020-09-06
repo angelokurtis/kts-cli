@@ -8,6 +8,26 @@ import (
 	"strings"
 )
 
+func ListPods(namespace string, allNamespaces bool) (*Pods, error) {
+	cmd := []string{"get", "pods", "-o=json"}
+	if allNamespaces {
+		cmd = append(cmd, "--all-namespaces")
+	} else if namespace != "" {
+		cmd = append(cmd, "-n", namespace)
+	}
+	out, err := run(cmd...)
+	if err != nil {
+		return nil, err
+	}
+
+	var pods *Pods
+	if err := json.Unmarshal(out, &pods); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return pods, nil
+}
+
 func ListAllPods() (*Pods, error) {
 	out, err := run("get", "pods", "--all-namespaces", "-o=json")
 	if err != nil {
@@ -211,15 +231,6 @@ func (s *Pods) SelectOne() (*Pod, error) {
 	return pods[selected], nil
 }
 
-type Containers struct {
-	Name  string `json:"name"`
-	Ports []*struct {
-		ContainerPort int    `json:"containerPort"`
-		Name          string `json:"name"`
-		Protocol      string `json:"protocol"`
-	} `json:"ports"`
-}
-
 type Pod struct {
 	Metadata struct {
 		Labels    map[string]string `json:"labels"`
@@ -227,7 +238,8 @@ type Pod struct {
 		Namespace string            `json:"namespace"`
 	} `json:"metadata"`
 	Spec struct {
-		Containers []*Containers `json:"containers"`
+		Containers     []*Container `json:"containers"`
+		InitContainers []*Container `json:"initContainers"`
 	} `json:"spec"`
 }
 

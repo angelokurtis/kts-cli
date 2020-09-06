@@ -1,7 +1,7 @@
 package resources
 
 import (
-	"github.com/angelokurtis/kts-cli/cmd/common"
+	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 	"github.com/spf13/cobra"
 )
@@ -11,7 +11,7 @@ func manifests(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		rd, err := kubectl.ListResourceDefinitions()
 		if err != nil {
-			common.Exit(err)
+			system.Exit(err)
 		}
 		rd = rd.FilterVerbs("list")
 		if !allNamespaces {
@@ -26,10 +26,10 @@ func manifests(cmd *cobra.Command, args []string) {
 	}
 	results, err := kubectl.SelectResources(resources, namespace, allNamespaces)
 	if err != nil {
-		common.Exit(err)
+		system.Exit(err)
 	}
 	err = kubectl.SaveResourcesManifests(results)
 	if err != nil {
-		common.Exit(err)
+		system.Exit(err)
 	}
 }

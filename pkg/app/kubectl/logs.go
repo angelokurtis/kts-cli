@@ -2,31 +2,37 @@ package kubectl
 
 import (
 	"fmt"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 )
 
-func SaveLogs(pod *Pod) error {
-	pn := pod.Metadata.Name
-	ns := pod.Metadata.Namespace
+func SaveLogs(container *Container) error {
+	p := container.Pod
+	ns := container.Namespace
+	c := container.Name
 
-	if len(pod.Spec.Containers) == 1 {
-		cn := pod.Spec.Containers[0].Name
-		err := saveLogs(pn, cn, ns)
-		if err != nil {
-			return err
-		}
-		return nil
+	dir := fmt.Sprintf("./logs/%s/%s", ns, p)
+	filename := fmt.Sprintf("%s/%s.log", dir, c)
+	cmd := fmt.Sprintf("kubectl logs %s -c %s -n %s", p, c, ns)
+
+	color.Primary.Printf("%s > %s\n", cmd, filename)
+	logs, err := bash.Run(cmd)
+	if err != nil {
+		return err
 	}
-	for _, container := range pod.Spec.Containers {
-		cn := container.Name
-		err := saveLogs(pn, cn, ns)
-		if err != nil {
-			return err
-		}
+
+	err = os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	err = ioutil.WriteFile(filename, logs, os.ModePerm)
+	if err != nil {
+		return errors.WithStack(err)
 	}
 	return nil
 }

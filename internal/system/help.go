@@ -1,4 +1,4 @@
-package common
+package system
 
 import (
 	"github.com/spf13/cobra"
