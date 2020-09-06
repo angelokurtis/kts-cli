@@ -2,10 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/cmd/common"
+	"github.com/angelokurtis/kts-cli/cmd/aws"
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
 	"github.com/angelokurtis/kts-cli/cmd/git"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes"
+	"github.com/angelokurtis/kts-cli/cmd/terraform"
+	"github.com/angelokurtis/kts-cli/cmd/zup"
+	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -16,13 +19,13 @@ var (
 	cmd = &cobra.Command{
 		Use:   "kts",
 		Short: "kts is a Kurtis CLI with many daily utility functions",
-		Run:   common.Help,
+		Run:   system.Help,
 	}
 )
 
 func Execute() {
 	if err := cmd.Execute(); err != nil {
-		common.Exit(err)
+		system.Exit(err)
 	}
 }
 
@@ -33,7 +36,7 @@ func init() {
 		} else {
 			home, err := homedir.Dir()
 			if err != nil {
-				common.Exit(err)
+				system.Exit(err)
 			}
 
 			viper.AddConfigPath(home)
@@ -48,8 +51,11 @@ func init() {
 	})
 	cmd.PersistentFlags().StringVar(&cfg, "config", "", "config file (default is $HOME/.kurtis.yaml)")
 
+	cmd.AddCommand(aws.Command)
+	cmd.AddCommand(completion)
 	cmd.AddCommand(gcp.Command)
 	cmd.AddCommand(git.Command)
 	cmd.AddCommand(kubernetes.Command)
-	cmd.AddCommand(completion)
+	cmd.AddCommand(terraform.Command)
+	cmd.AddCommand(zup.Command)
 }
