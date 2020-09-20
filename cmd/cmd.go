@@ -7,6 +7,8 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/git"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes"
 	"github.com/angelokurtis/kts-cli/cmd/terraform"
+	"github.com/angelokurtis/kts-cli/cmd/terraformer"
+	"github.com/angelokurtis/kts-cli/cmd/yaml"
 	"github.com/angelokurtis/kts-cli/cmd/zup"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/mitchellh/go-homedir"
@@ -51,11 +53,13 @@ func init() {
 	})
 	cmd.PersistentFlags().StringVar(&cfg, "config", "", "config file (default is $HOME/.kurtis.yaml)")
 
-	cmd.AddCommand(aws.Command)
 	cmd.AddCommand(completion)
+	cmd.AddCommand(aws.Command)
 	cmd.AddCommand(gcp.Command)
 	cmd.AddCommand(git.Command)
 	cmd.AddCommand(kubernetes.Command)
 	cmd.AddCommand(terraform.Command)
+	cmd.AddCommand(terraformer.Command)
+	cmd.AddCommand(yaml.Command)
 	cmd.AddCommand(zup.Command)
 }

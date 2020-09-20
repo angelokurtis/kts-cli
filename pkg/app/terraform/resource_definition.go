@@ -1,7 +1,7 @@
 package terraform
 
 import (
-	changeCase "github.com/ku/go-change-case"
+	"github.com/pkg/errors"
 	"github.com/rodaine/hclencoder"
 )
 
@@ -22,19 +22,18 @@ type (
 	}
 )
 
-func newResource(t string) *Resource {
-	return &Resource{ResourceDefinition: ResourceDefinition{Type: t}}
-}
-
-func (r *Resource) set(s ResourceSpec) {
-	r.Name = changeCase.Snake(s.GetName())
-	r.ResourceSpec = s
+func NewResource(s ResourceSpec) *Resource {
+	return &Resource{ResourceDefinition: ResourceDefinition{
+		Type:         s.GetType(),
+		Name:         s.GetName(),
+		ResourceSpec: s,
+	}}
 }
 
 func (r *Resource) Encode() ([]byte, error) {
 	hcl, err := hclencoder.Encode(r)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	return hcl, nil
 }

@@ -11,10 +11,13 @@ import (
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 var (
 	provider = ""
+	filename = ""
 	Command  = &cobra.Command{
 		Use:   "resources",
 		Short: "Utility functions to deal with Resources in the Terraform Registry",
@@ -25,6 +28,34 @@ var (
 func init() {
 	Command.PersistentFlags().StringVarP(&provider, "provider", "p", "", "")
 	Command.AddCommand(&cobra.Command{Use: "import", Run: importCmd})
+	convertCMD := &cobra.Command{Use: "convert", Run: convert}
+	convertCMD.PersistentFlags().StringVarP(&filename, "filename", "f", "", "")
+	Command.AddCommand(convertCMD)
+}
+
+func convert(cmd *cobra.Command, args []string) {
+	var files []string
+
+	err := filepath.Walk(filename, func(path string, info os.FileInfo, err error) error {
+		files = append(files, path)
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	for _, file := range files {
+		if strings.HasSuffix(file, ".yaml") || strings.HasSuffix(file, ".yml") {
+			out, err := terraform.YAMLDecode(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			filename := strings.Replace(file, ".yaml", ".tf", -1)
+			filename = strings.Replace(filename, ".yml", ".tf", -1)
+			if err = ioutil.WriteFile(filename, out, 0644); err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
 }
 
 func importCmd(cmd *cobra.Command, args []string) {

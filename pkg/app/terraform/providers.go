@@ -9,11 +9,11 @@ import (
 func ListProviders() []string {
 	return []string{
 		"aws",
-		"azurerm",
+		//"azurerm",
 		"google",
 		"helm",
 		"kubernetes",
-		"vault",
+		//"vault",
 	}
 }
 
