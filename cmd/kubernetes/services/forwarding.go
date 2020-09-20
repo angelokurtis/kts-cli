@@ -9,7 +9,7 @@ import (
 )
 
 func forwarding(cmd *cobra.Command, args []string) {
-	services, err := kubectl.ListAllServices()
+	services, err := kubectl.ListServices()
 	if err != nil {
 		system.Exit(err)
 	}

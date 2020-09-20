@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/clusters"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/containers"
+	"github.com/angelokurtis/kts-cli/cmd/kubernetes/ingresses"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/resources"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/services"
 	"github.com/angelokurtis/kts-cli/internal/system"
@@ -16,9 +17,9 @@ var Command = &cobra.Command{
 }
 
 func init() {
-	Command.AddCommand(&cobra.Command{Use: "hosts", Run: hosts})
 	Command.AddCommand(clusters.Command)
 	Command.AddCommand(containers.Command)
 	Command.AddCommand(resources.Command)
+	Command.AddCommand(ingresses.Command)
 	Command.AddCommand(services.Command)
 }

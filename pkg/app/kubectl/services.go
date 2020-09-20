@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func ListAllServices() (*Services, error) {
+func ListServices() (*Services, error) {
 	out, err := run("get", "services", "--all-namespaces", "-o=json")
 	if err != nil {
 		return nil, err
@@ -24,6 +24,16 @@ func ListAllServices() (*Services, error) {
 
 type Services struct {
 	Items []*Service `json:"items"`
+}
+
+func (s *Services) FilterByType(t string) *Services {
+	items := make([]*Service, 0, 0)
+	for _, item := range s.Items {
+		if item.Spec.Type == t {
+			items = append(items, item)
+		}
+	}
+	return &Services{Items: items}
 }
 
 func (s *Services) SelectLabels() (map[string][]string, error) {
@@ -111,9 +121,31 @@ type Service struct {
 	} `json:"metadata"`
 	Spec struct {
 		Ports []struct {
-			Name     string `json:"name"`
+			NodePort int    `json:"nodePort"`
 			Port     int    `json:"port"`
 			Protocol string `json:"protocol"`
 		} `json:"ports"`
+		Selector map[string]string `json:"selector"`
+		Type     string            `json:"type"`
 	} `json:"spec"`
+	Status struct {
+		LoadBalancer struct {
+			Ingresses []struct {
+				Hostname string `json:"hostname"`
+				IP       string `json:"ip"`
+			} `json:"ingress"`
+		} `json:"loadBalancer"`
+	} `json:"status"`
+}
+
+func (s *Service) ExternalIP() string {
+	for _, ingress := range s.Status.LoadBalancer.Ingresses {
+		if ingress.Hostname != "" {
+			return ingress.Hostname
+		}
+		if ingress.IP != "" {
+			return ingress.IP
+		}
+	}
+	return ""
 }

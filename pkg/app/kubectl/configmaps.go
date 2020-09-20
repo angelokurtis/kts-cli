@@ -2,8 +2,24 @@ package kubectl
 
 import (
 	"encoding/json"
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/pkg/errors"
 )
+
+func ListConfigMaps() (*ConfigMaps, error) {
+	out, err := bash.RunAndLogRead("kubectl get configmap --all-namespaces -o=json")
+	if err != nil {
+		return nil, err
+	}
+
+	var configMaps *ConfigMaps
+	if err := json.Unmarshal(out, &configMaps); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return configMaps, nil
+}
 
 func SearchConfigMap(label string) (*ConfigMaps, error) {
 	out, err := runAndLogRead("get", "ConfigMap", "-o=json", "--all-namespaces", "-l", label)
@@ -21,6 +37,45 @@ func SearchConfigMap(label string) (*ConfigMaps, error) {
 
 type ConfigMaps struct {
 	Items []*ConfigMap `json:"items"`
+}
+
+func (m *ConfigMaps) Names() []string {
+	configMaps := m.Items
+	names := make([]string, 0, len(configMaps))
+	for _, release := range configMaps {
+		names = append(names, release.Metadata.Namespace+"/"+release.Metadata.Name)
+	}
+	return names
+}
+
+func (m *ConfigMaps) Get(name string) *ConfigMap {
+	for _, configMap := range m.Items {
+		if configMap.Metadata.Namespace+"/"+configMap.Metadata.Name == name {
+			return configMap
+		}
+	}
+	return nil
+}
+
+func (m *ConfigMaps) SelectOne() (*ConfigMap, error) {
+	names := m.Names()
+
+	if len(names) == 1 {
+		return m.Get(names[0]), nil
+	}
+
+	var selected string
+	prompt := &survey.Select{
+		Message: "Select the ConfigMap:",
+		Options: names,
+	}
+
+	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return m.Get(selected), nil
 }
 
 func (m *ConfigMaps) SingleResult() (*ConfigMap, error) {

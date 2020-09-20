@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ListAllIngresses() ([]*Ingress, error) {
+func ListIngresses() ([]*Ingress, error) {
 	out, err := run("get", "ingress", "--all-namespaces", "-o=json", "--request-timeout=5s")
 	if err != nil {
 		return nil, err
@@ -52,7 +52,8 @@ type Spec struct {
 }
 
 type IngressIP struct {
-	IP string `json:"ip"`
+	Hostname string `json:"hostname"`
+	IP       string `json:"ip"`
 }
 
 type LoadBalancer struct {
@@ -67,4 +68,16 @@ type Ingress struct {
 	Metadata Metadata `json:"metadata"`
 	Spec     Spec     `json:"spec"`
 	Status   Status   `json:"status"`
+}
+
+func (i *Ingress) ExternalIP() string {
+	for _, ingress := range i.Status.LoadBalancer.Ingresses {
+		if ingress.Hostname != "" {
+			return ingress.Hostname
+		}
+		if ingress.IP != "" {
+			return ingress.IP
+		}
+	}
+	return ""
 }

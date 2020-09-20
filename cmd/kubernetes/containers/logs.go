@@ -18,8 +18,9 @@ func logs(cmd *cobra.Command, args []string) {
 		system.Exit(err)
 	}
 	for _, container := range selected.Items {
+		single := containers.CountByPod(container.Pod) == 1
 		if download {
-			err := kubectl.SaveLogs(container)
+			err := kubectl.SaveLogs(container, single)
 			if err != nil {
 				color.Yellow.Println("[WARN] " + err.Error())
 			}
@@ -28,10 +29,10 @@ func logs(cmd *cobra.Command, args []string) {
 			ns := container.Namespace
 			c := container.Name
 			cmd := ""
-			if containers.CountByPod(container.Pod) > 1 {
-				cmd = fmt.Sprintf("kubectl logs %s -c %s -n %s", p, c, ns)
-			} else {
+			if single {
 				cmd = fmt.Sprintf("kubectl logs %s -n %s", p, ns)
+			} else {
+				cmd = fmt.Sprintf("kubectl logs %s -c %s -n %s", p, c, ns)
 			}
 			color.Secondary.Println(cmd)
 		}

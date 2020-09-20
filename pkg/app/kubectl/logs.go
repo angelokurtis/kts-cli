@@ -11,14 +11,19 @@ import (
 	"strings"
 )
 
-func SaveLogs(container *Container) error {
+func SaveLogs(container *Container, single bool) error {
 	p := container.Pod
 	ns := container.Namespace
 	c := container.Name
 
 	dir := fmt.Sprintf("./logs/%s/%s", ns, p)
 	filename := fmt.Sprintf("%s/%s.log", dir, c)
-	cmd := fmt.Sprintf("kubectl logs %s -c %s -n %s", p, c, ns)
+	var cmd string
+	if single {
+		cmd = fmt.Sprintf("kubectl logs %s -n %s", p, ns)
+	} else {
+		cmd = fmt.Sprintf("kubectl logs %s -c %s -n %s", p, c, ns)
+	}
 
 	color.Primary.Printf("%s > %s\n", cmd, filename)
 	logs, err := bash.Run(cmd)

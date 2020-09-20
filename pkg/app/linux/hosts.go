@@ -62,15 +62,14 @@ func (h *HostsFile) Add(context string, ingresses []*kubectl.Ingress, gateways [
 		n := ing.Metadata.Name
 		ns := ing.Metadata.Namespace
 
-		for _, ingress := range ing.Status.LoadBalancer.Ingresses {
-			for _, rule := range ing.Spec.Rules {
-				name := rule.Host
-				if len(ingress.IP) > 0 && len(name) > 0 && name != "*" {
-					hosts[name] = &hostObj{
-						name:        name,
-						address:     ingress.IP,
-						description: fmt.Sprintf("Istio Gateway %s/%s", ns, n),
-					}
+		for _, rule := range ing.Spec.Rules {
+			name := rule.Host
+			eip := ing.ExternalIP()
+			if len(eip) > 0 && len(name) > 0 && name != "*" {
+				hosts[name] = &hostObj{
+					name:        name,
+					address:     eip,
+					description: fmt.Sprintf("Ingress %s/%s", ns, n),
 				}
 			}
 		}

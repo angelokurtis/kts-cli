@@ -2,9 +2,37 @@ package gcloud
 
 import (
 	"encoding/json"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/pkg/errors"
+	"strings"
 	"time"
 )
+
+func CurrentProject() (*Project, error) {
+	out, err := bash.RunAndLogRead("gcloud config get-value project")
+	if err != nil {
+		return nil, err
+	}
+	project, err := DescribeProject(strings.TrimSpace(string(out)))
+	if err != nil {
+		return nil, err
+	}
+	return project, nil
+}
+
+func DescribeProject(projectId string) (*Project, error) {
+	out, err := bash.RunAndLogRead("gcloud projects describe " + projectId + " --format=json")
+	if err != nil {
+		return nil, err
+	}
+
+	var project *Project
+	if err := json.Unmarshal(out, &project); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return project, nil
+}
 
 func ListProjects() ([]*Project, error) {
 	out, err := runAndLogRead("projects", "list")

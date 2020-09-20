@@ -22,7 +22,12 @@ func Run(cmd string) ([]byte, error) {
 	if err != nil {
 		if eerr, ok := err.(*exec.ExitError); ok {
 			msg := strings.TrimSpace(string(eerr.Stderr))
-			return nil, errors.New(msg)
+			def := strings.TrimSpace(string(out))
+			if msg == "" && def != "" {
+				return nil, errors.New(def)
+			} else {
+				return nil, errors.New(msg)
+			}
 		}
 		return nil, errors.Wrapf(err, "'%s' execution error", cmd)
 	}
