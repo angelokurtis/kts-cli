@@ -218,6 +218,14 @@ func newResource(l string) (*resource, error) {
 			Kind:         splitted[5],
 			Namespace:    splitted[4],
 		}, nil
+	} else if size == 6 {
+		return &resource{
+			Name:         splitted[5],
+			Kind:         splitted[4],
+			Group:        splitted[2],
+			FullKindName: splitted[4] + "." + splitted[2],
+			Namespace:    "",
+		}, nil
 	} else if size == 5 {
 		return &resource{
 			Name:         splitted[4],
