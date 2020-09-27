@@ -10,7 +10,7 @@ import (
 	"io/ioutil"
 )
 
-func ListResources(provider string) []string {
+func ListProviderResources(provider string) []string {
 	switch provider {
 	case "helm":
 		return []string{
@@ -65,7 +65,7 @@ func ListResources(provider string) []string {
 }
 
 func SelectResource(provider string) (*Resource, error) {
-	r := ListResources(provider)
+	r := ListProviderResources(provider)
 
 	var selected string
 	if len(r) == 0 {
