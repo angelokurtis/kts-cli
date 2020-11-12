@@ -6,35 +6,34 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
+// kube containers logs -s 2h
 func logs(cmd *cobra.Command, args []string) {
 	containers, err := kubectl.ListContainers(namespace, allNamespaces)
 	if err != nil {
 		system.Exit(err)
 	}
-	selected, err := containers.SelectMany()
+	containers, err = containers.SelectMany()
 	if err != nil {
 		system.Exit(err)
 	}
-	for _, container := range selected.Items {
-		single := containers.CountByPod(container.Pod) == 1
-		if download {
-			err := kubectl.SaveLogs(container, single)
-			if err != nil {
-				color.Yellow.Println("[WARN] " + err.Error())
-			}
-		} else {
-			p := container.Pod
-			ns := container.Namespace
-			c := container.Name
-			cmd := ""
-			if single {
-				cmd = fmt.Sprintf("kubectl logs %s -n %s", p, ns)
-			} else {
-				cmd = fmt.Sprintf("kubectl logs %s -c %s -n %s", p, c, ns)
-			}
-			color.Secondary.Println(cmd)
-		}
+	if download {
+		kubectl.SaveLogs(containers, since, previous)
+	} else {
+		stern(containers, since)
 	}
+}
+
+func stern(containers *kubectl.Containers, since string) {
+	ns := "--all-namespaces"
+	namespaces := containers.Namespaces()
+	if len(namespaces) == 1 {
+		ns = fmt.Sprintf("-n %s", namespaces[0])
+	}
+	c := containers.Names()
+	p := containers.Pods()
+	cmd := fmt.Sprintf("stern %s -c '%s' '%s' --since %s", ns, strings.Join(c, "|"), strings.Join(p, "|"), since)
+	color.Secondary.Println(cmd)
 }

@@ -176,7 +176,7 @@ func (s *Pods) Pods(namespace string, labels map[string][]string) []*Pod {
 	return pods
 }
 
-func (s *Pods) SelectMany() ([]*Pod, error) {
+func (s *Pods) SelectMany() (*Pods, error) {
 	pods := make(map[string]*Pod, 0)
 	names := make([]string, 0, 0)
 	for _, pod := range s.Items {
@@ -201,7 +201,7 @@ func (s *Pods) SelectMany() ([]*Pod, error) {
 		result = append(result, pods[s])
 	}
 
-	return result, nil
+	return &Pods{result}, nil
 }
 
 func (s *Pods) SelectOne() (*Pod, error) {

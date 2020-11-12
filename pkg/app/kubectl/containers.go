@@ -3,27 +3,37 @@ package kubectl
 import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 func ListContainers(namespace string, allNamespaces bool) (*Containers, error) {
-	containers := make([]*Container, 0, 0)
+	c := make([]*Container, 0, 0)
 	pods, err := ListPods(namespace, allNamespaces)
 	if err != nil {
 		return nil, err
 	}
 	for _, pod := range pods.Items {
+		podName := pod.Metadata.Name
+		podNamespace := pod.Metadata.Namespace
+		podTemplateHash := pod.Metadata.Labels["pod-template-hash"]
 		for _, container := range pod.Spec.Containers {
-			container.Pod = pod.Metadata.Name
-			container.Namespace = pod.Metadata.Namespace
-			containers = append(containers, container)
+			container.Pod = podName
+			container.Namespace = podNamespace
+			container.PodTemplateHash = podTemplateHash
+			c = append(c, container)
 		}
 		for _, container := range pod.Spec.InitContainers {
-			container.Pod = pod.Metadata.Name
-			container.Namespace = pod.Metadata.Namespace
-			containers = append(containers, container)
+			container.Pod = podName
+			container.Namespace = podNamespace
+			container.PodTemplateHash = podTemplateHash
+			c = append(c, container)
 		}
 	}
-	return &Containers{Items: containers}, nil
+	containers := &Containers{Items: c}
+	for _, container := range containers.Items {
+		container.Single = containers.CountByPod(container.Pod) == 1
+	}
+	return containers, nil
 }
 
 type (
@@ -31,10 +41,12 @@ type (
 		Items []*Container
 	}
 	Container struct {
-		Namespace string
-		Pod       string
-		Name      string `json:"name"`
-		Ports     []*struct {
+		Namespace       string
+		Pod             string
+		PodTemplateHash string
+		Single          bool
+		Name            string `json:"name"`
+		Ports           []*struct {
 			ContainerPort int    `json:"containerPort"`
 			Name          string `json:"name"`
 			Protocol      string `json:"protocol"`
@@ -77,6 +89,41 @@ type (
 	}
 )
 
+func (c *Containers) Contains(containerName string) bool {
+	for _, container := range c.Items {
+		if container.Name == containerName {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *Containers) Namespaces() []string {
+	ns := make([]string, 0, 0)
+	for _, container := range c.Items {
+		ns = dedupeStr(ns, container.Namespace)
+	}
+	return ns
+}
+
+func (c *Containers) Names() []string {
+	n := make([]string, 0, 0)
+	for _, container := range c.Items {
+		n = dedupeStr(n, container.Name)
+	}
+	return n
+}
+
+func (c *Containers) Pods() []string {
+	p := make([]string, 0, 0)
+	for _, container := range c.Items {
+		prefix := strings.Split(container.Pod, "-"+container.PodTemplateHash)[0]
+		p = dedupeStr(p, prefix)
+		//p = dedupeStr(p, container.Pod)
+	}
+	return p
+}
+
 func (c *Containers) CountByPod(pod string) int {
 	count := 0
 	for _, container := range c.Items {
@@ -91,9 +138,16 @@ func (c *Containers) SelectMany() (*Containers, error) {
 	containers := make(map[string]*Container, 0)
 	names := make([]string, 0, 0)
 	for _, container := range c.Items {
-		name := container.Namespace + "/" + container.Pod + "/" + container.Name
+		name := ""
+		if container.Namespace != "" {
+			name = container.Namespace + "/"
+		}
+		if container.Pod != "" {
+			name = container.Pod + "/"
+		}
+		name = name + container.Name
 		containers[name] = container
-		names = append(names, name)
+		names = dedupeStr(names, name)
 	}
 
 	var selects []string
