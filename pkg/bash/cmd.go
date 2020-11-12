@@ -1,6 +1,7 @@
 package bash
 
 import (
+	"fmt"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	"os/exec"
@@ -32,4 +33,26 @@ func Run(cmd string) ([]byte, error) {
 		return nil, errors.Wrapf(err, "'%s' execution error", cmd)
 	}
 	return out, nil
+}
+
+func Follow(command string) error {
+	color.Primary.Println(command)
+	cmdArgs := strings.Fields(command)
+
+	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+	stdout, _ := cmd.StdoutPipe()
+	err := cmd.Start()
+	if err != nil {
+		return err
+	}
+
+	oneByte := make([]byte, 1)
+	for {
+		_, err := stdout.Read(oneByte)
+		if err != nil {
+			break
+		}
+		fmt.Printf("%s", oneByte)
+	}
+	return nil
 }
