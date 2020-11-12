@@ -41,7 +41,7 @@ func (c *Deployment) Import() error {
 }
 
 func NewDeployment() (*Deployment, error) {
-	deployments, err := kubectl.ListDeployments()
+	deployments, err := kubectl.ListAllDeployments()
 	if err != nil {
 		return nil, err
 	}
