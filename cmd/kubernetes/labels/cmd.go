@@ -1,4 +1,4 @@
-package resources
+package labels
 
 import (
 	"github.com/angelokurtis/kts-cli/internal/system"
@@ -10,8 +10,8 @@ var (
 	group         = ""
 	namespace     = ""
 	Command       = &cobra.Command{
-		Use:   "resources",
-		Short: "Utility function to deal with Kubernetes API resources available on the server",
+		Use:   "labels",
+		Short: "Utility function to interact with Kubernetes Labels and Selectors",
 		Run:   system.Help,
 	}
 )
@@ -21,5 +21,5 @@ func init() {
 	Command.PersistentFlags().StringVar(&group, "group", "", "")
 	Command.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "")
 	Command.AddCommand(&cobra.Command{Use: "list", Run: list})
-	Command.AddCommand(&cobra.Command{Use: "manifests", Run: manifests})
+	Command.AddCommand(&cobra.Command{Use: "remove", Run: remove})
 }
