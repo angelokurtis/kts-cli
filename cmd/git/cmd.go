@@ -1,16 +1,25 @@
 package git
 
 import (
+	"github.com/angelokurtis/kts-cli/cmd/git/tags"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/spf13/cobra"
 )
 
-var Command = &cobra.Command{
-	Use:   "git",
-	Short: "git version-control utilities",
-	Run:   system.Help,
-}
+var (
+	open    = false
+	Command = &cobra.Command{
+		Use:   "git",
+		Short: "git version-control utilities",
+		Run:   system.Help,
+	}
+)
 
 func init() {
+	Command.AddCommand(tags.Command)
 	Command.AddCommand(&cobra.Command{Use: "sign-commits", Run: signCommits})
+
+	cloneCommand := &cobra.Command{Use: "clone", Run: clone}
+	cloneCommand.PersistentFlags().BoolVar(&open, "open", false, "")
+	Command.AddCommand(cloneCommand)
 }
