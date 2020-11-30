@@ -10,7 +10,7 @@ import (
 
 // kube containers forwarding
 func forwarding(cmd *cobra.Command, args []string) {
-	containers, err := kubectl.ListContainers(namespace, allNamespaces)
+	containers, err := kubectl.ListContainers(namespace, allNamespaces, "")
 	if err != nil {
 		system.Exit(err)
 	}

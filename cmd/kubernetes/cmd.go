@@ -6,6 +6,7 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/deployments"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/ingresses"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/labels"
+	"github.com/angelokurtis/kts-cli/cmd/kubernetes/pods"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/services"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/spf13/cobra"
@@ -29,6 +30,7 @@ func init() {
 	Command.AddCommand(services.Command)
 	Command.AddCommand(labels.Command)
 	Command.AddCommand(deployments.Command)
+	Command.AddCommand(pods.Command)
 
 	listCommand := &cobra.Command{Use: "resources", Run: resources}
 	listCommand.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If present, list the requested object(s) across all namespaces. Namespace in current\ncontext is ignored even if specified with --namespace.")

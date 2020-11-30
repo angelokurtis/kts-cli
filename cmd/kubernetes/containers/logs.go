@@ -11,7 +11,7 @@ import (
 
 // kube containers logs -s 2h
 func logs(cmd *cobra.Command, args []string) {
-	containers, err := kubectl.ListContainers(namespace, allNamespaces)
+	containers, err := kubectl.ListContainers(namespace, allNamespaces, "")
 	if err != nil {
 		system.Exit(err)
 	}

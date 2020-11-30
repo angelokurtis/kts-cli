@@ -20,7 +20,11 @@ func logs(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	if download {
-		//kubectl.SaveLogs(deploys, since, previous)
+		containers, err := kubectl.ListContainersByDeployment(deploy)
+		if err != nil {
+			log.Fatal(err)
+		}
+		kubectl.SaveLogs(containers, since, previous)
 	} else {
 		follow(deploy, since)
 	}

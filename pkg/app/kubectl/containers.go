@@ -1,39 +1,37 @@
 package kubectl
 
 import (
+	"encoding/json"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"strings"
 )
 
-func ListContainers(namespace string, allNamespaces bool) (*Containers, error) {
-	c := make([]*Container, 0, 0)
-	pods, err := ListPods(namespace, allNamespaces)
+func ListContainersByDeployment(deploy *Deployment) (*Containers, error) {
+	labels := make([]string, 0, 0)
+	for key, value := range deploy.Spec.Selector.MatchLabels {
+		labels = append(labels, key+"="+value)
+	}
+	cmd := []string{"get", "pods", "-o=json", "-n", deploy.Metadata.Namespace, "-l", strings.Join(labels, ", ")}
+	out, err := run(cmd...)
 	if err != nil {
 		return nil, err
 	}
-	for _, pod := range pods.Items {
-		podName := pod.Metadata.Name
-		podNamespace := pod.Metadata.Namespace
-		podTemplateHash := pod.Metadata.Labels["pod-template-hash"]
-		for _, container := range pod.Spec.Containers {
-			container.Pod = podName
-			container.Namespace = podNamespace
-			container.PodTemplateHash = podTemplateHash
-			c = append(c, container)
-		}
-		for _, container := range pod.Spec.InitContainers {
-			container.Pod = podName
-			container.Namespace = podNamespace
-			container.PodTemplateHash = podTemplateHash
-			c = append(c, container)
-		}
+
+	var pods *Pods
+	if err := json.Unmarshal(out, &pods); err != nil {
+		return nil, errors.WithStack(err)
 	}
-	containers := &Containers{Items: c}
-	for _, container := range containers.Items {
-		container.Single = containers.CountByPod(container.Pod) == 1
+
+	return pods.Containers(), nil
+}
+
+func ListContainers(namespace string, allNamespaces bool, selector string) (*Containers, error) {
+	pods, err := ListPods(namespace, allNamespaces, selector)
+	if err != nil {
+		return nil, err
 	}
-	return containers, nil
+	return pods.Containers(), nil
 }
 
 type (
@@ -86,8 +84,16 @@ type (
 			Name      string `json:"name"`
 			ReadOnly  bool   `json:"readOnly,omitempty"`
 		} `json:"volumeMounts"`
+		Status *ContainerStatus
 	}
 )
+
+func (c *Container) GetState() ContainerState {
+	if c.Status == nil {
+		return nil
+	}
+	return c.Status.GetState()
+}
 
 func (c *Containers) Contains(containerName string) bool {
 	for _, container := range c.Items {

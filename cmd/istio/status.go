@@ -9,7 +9,7 @@ import (
 
 // istio status
 func status(cmd *cobra.Command, args []string) {
-	pods, err := kubectl.ListPods(namespace, allNamespaces)
+	pods, err := kubectl.ListPods(namespace, allNamespaces, "")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
+	"github.com/enescakir/emoji"
 	"github.com/pkg/errors"
+	"sort"
 	"strings"
 	"time"
 )
@@ -192,56 +194,82 @@ func (d *Deployments) Rollout() error {
 	return err
 }
 
-type Deployment struct {
-	APIVersion string `json:"apiVersion"`
-	Kind       string `json:"kind"`
-	Metadata   struct {
-		Annotations struct {
-			DeploymentKubernetesIoRevision              string `json:"deployment.kubernetes.io/revision"`
-			KubectlKubernetesIoLastAppliedConfiguration string `json:"kubectl.kubernetes.io/last-applied-configuration"`
-		} `json:"annotations"`
-		CreationTimestamp time.Time `json:"creationTimestamp"`
-		Generation        int       `json:"generation"`
-		Labels            struct {
-			App     string `json:"app"`
-			Release string `json:"release"`
-			Version string `json:"version"`
-		} `json:"labels"`
-		Name            string `json:"name"`
-		Namespace       string `json:"namespace"`
-		ResourceVersion string `json:"resourceVersion"`
-		SelfLink        string `json:"selfLink"`
-		UID             string `json:"uid"`
-	} `json:"metadata"`
-	Spec struct {
-		Selector struct {
-			MatchLabels map[string]string `json:"matchLabels"`
-		} `json:"selector"`
-		Template struct {
-			Metadata struct {
-				Annotations map[string]string `json:"annotations"`
-				Labels      map[string]string `json:"labels"`
-			} `json:"metadata"`
-			Spec struct {
-				Containers []*Container `json:"containers"`
-			} `json:"spec"`
-		} `json:"template"`
-	} `json:"spec"`
-	Status struct {
-		AvailableReplicas int `json:"availableReplicas"`
-		Conditions        []struct {
-			LastTransitionTime time.Time `json:"lastTransitionTime"`
-			LastUpdateTime     time.Time `json:"lastUpdateTime"`
-			Message            string    `json:"message"`
-			Reason             string    `json:"reason"`
-			Status             string    `json:"status"`
-			Type               string    `json:"type"`
-		} `json:"conditions"`
-		ObservedGeneration int `json:"observedGeneration"`
-		ReadyReplicas      int `json:"readyReplicas"`
-		Replicas           int `json:"replicas"`
-		UpdatedReplicas    int `json:"updatedReplicas"`
-	} `json:"status"`
+type (
+	Deployment struct {
+		APIVersion string `json:"apiVersion"`
+		Kind       string `json:"kind"`
+		Metadata   struct {
+			Annotations struct {
+				DeploymentKubernetesIoRevision              string `json:"deployment.kubernetes.io/revision"`
+				KubectlKubernetesIoLastAppliedConfiguration string `json:"kubectl.kubernetes.io/last-applied-configuration"`
+			} `json:"annotations"`
+			CreationTimestamp time.Time `json:"creationTimestamp"`
+			Generation        int       `json:"generation"`
+			Labels            struct {
+				App     string `json:"app"`
+				Release string `json:"release"`
+				Version string `json:"version"`
+			} `json:"labels"`
+			Name            string `json:"name"`
+			Namespace       string `json:"namespace"`
+			ResourceVersion string `json:"resourceVersion"`
+			SelfLink        string `json:"selfLink"`
+			UID             string `json:"uid"`
+		} `json:"metadata"`
+		Spec struct {
+			Replicas int `json:"replicas"`
+			Selector struct {
+				MatchLabels map[string]string `json:"matchLabels"`
+			} `json:"selector"`
+			Template struct {
+				Metadata struct {
+					Annotations map[string]string `json:"annotations"`
+					Labels      map[string]string `json:"labels"`
+				} `json:"metadata"`
+				Spec struct {
+					Containers []*Container `json:"containers"`
+				} `json:"spec"`
+			} `json:"template"`
+		} `json:"spec"`
+		Status struct {
+			AvailableReplicas  int                `json:"availableReplicas"`
+			Conditions         []*StatusCondition `json:"conditions"`
+			ObservedGeneration int                `json:"observedGeneration"`
+			ReadyReplicas      int                `json:"readyReplicas"`
+			Replicas           int                `json:"replicas"`
+			UpdatedReplicas    int                `json:"updatedReplicas"`
+		} `json:"status"`
+	}
+	StatusCondition struct {
+		LastTransitionTime time.Time `json:"lastTransitionTime"`
+		LastUpdateTime     time.Time `json:"lastUpdateTime"`
+		Message            string    `json:"message"`
+		Reason             string    `json:"reason"`
+		Status             string    `json:"status"`
+		Type               string    `json:"type"`
+	}
+)
+
+func (d *Deployment) LatestStatusCondition() string {
+	conditions := d.Status.Conditions
+	if len(conditions) < 1 {
+		return ""
+	}
+	sort.Slice(conditions, func(i, j int) bool {
+		return conditions[i].LastTransitionTime.After(conditions[j].LastTransitionTime)
+	})
+	return conditions[0].Type
+}
+
+func (d *Deployment) StatusColor() string {
+	switch d.LatestStatusCondition() {
+	case "Available":
+		return emoji.GreenCircle.String()
+	case "Progressing":
+		return emoji.YellowCircle.String()
+	default:
+		return emoji.QuestionMark.String()
+	}
 }
 
 func (d *Deployment) HasIstioSidecar() bool {

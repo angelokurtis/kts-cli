@@ -159,7 +159,14 @@ func NewResourceDefinition(line string, indexes []int) (*ResourceDefinition, err
 		case 1:
 			shortNames = strings.TrimSpace(line[indexes[i-1]:index])
 		case 2:
-			apiGroup = strings.TrimSpace(line[indexes[i-1]:index])
+			g := strings.TrimSpace(line[indexes[i-1]:index])
+			if g == "v1" {
+				apiGroup = ""
+			} else if strings.Contains(g, "/") {
+				apiGroup = strings.Split(g, "/")[0]
+			} else {
+				apiGroup = g
+			}
 		case 3:
 			var err error
 			namespaced, err = strconv.ParseBool(strings.TrimSpace(line[indexes[i-1]:index]))

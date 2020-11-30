@@ -6,14 +6,18 @@ import (
 	"github.com/pkg/errors"
 	"strconv"
 	"strings"
+	"time"
 )
 
-func ListPods(namespace string, allNamespaces bool) (*Pods, error) {
+func ListPods(namespace string, allNamespaces bool, selector string) (*Pods, error) {
 	cmd := []string{"get", "pods", "-o=json"}
 	if allNamespaces {
 		cmd = append(cmd, "--all-namespaces")
 	} else if namespace != "" {
 		cmd = append(cmd, "-n", namespace)
+	}
+	if selector != "" {
+		cmd = append(cmd, "-l", selector)
 	}
 	out, err := run(cmd...)
 	if err != nil {
@@ -44,6 +48,34 @@ func ListAllPods() (*Pods, error) {
 
 type Pods struct {
 	Items []*Pod `json:"items"`
+}
+
+func (s *Pods) Containers() *Containers {
+	c := make([]*Container, 0, 0)
+	for _, pod := range s.Items {
+		podName := pod.Metadata.Name
+		podNamespace := pod.Metadata.Namespace
+		podTemplateHash := pod.Metadata.Labels["pod-template-hash"]
+		for _, container := range pod.Spec.Containers {
+			container.Pod = podName
+			container.Namespace = podNamespace
+			container.PodTemplateHash = podTemplateHash
+			container.Status = pod.GetContainerStatus(container.Name)
+			c = append(c, container)
+		}
+		for _, container := range pod.Spec.InitContainers {
+			container.Pod = podName
+			container.Namespace = podNamespace
+			container.PodTemplateHash = podTemplateHash
+			container.Status = pod.GetContainerStatus(container.Name)
+			c = append(c, container)
+		}
+	}
+	containers := &Containers{Items: c}
+	for _, container := range containers.Items {
+		container.Single = containers.CountByPod(container.Pod) == 1
+	}
+	return containers
 }
 
 func (s *Pods) Labels() map[string][]string {
@@ -241,6 +273,63 @@ type Pod struct {
 		Containers     []*Container `json:"containers"`
 		InitContainers []*Container `json:"initContainers"`
 	} `json:"spec"`
+	Status struct {
+		Conditions []struct {
+			LastTransitionTime time.Time `json:"lastTransitionTime"`
+			Status             string    `json:"status"`
+			Type               string    `json:"type"`
+		} `json:"conditions"`
+		ContainerStatuses     []*ContainerStatus `json:"containerStatuses"`
+		HostIP                string             `json:"hostIP"`
+		InitContainerStatuses []*ContainerStatus `json:"initContainerStatuses"`
+		Phase                 string             `json:"phase"`
+		PodIP                 string             `json:"podIP"`
+		PodIPs                []struct {
+			IP string `json:"ip"`
+		} `json:"podIPs"`
+		QosClass  string    `json:"qosClass"`
+		StartTime time.Time `json:"startTime"`
+	} `json:"status"`
+}
+
+type ContainerStatus struct {
+	ContainerID  string `json:"containerID"`
+	Image        string `json:"image"`
+	ImageID      string `json:"imageID"`
+	Name         string `json:"name"`
+	Ready        bool   `json:"ready"`
+	RestartCount int    `json:"restartCount"`
+	Started      bool   `json:"started"`
+	State        struct {
+		Running    *ContainerStateRunning    `json:"running"`
+		Terminated *ContainerStateTerminated `json:"terminated"`
+		Waiting    *ContainerStateWaiting    `json:"waiting"`
+	} `json:"state"`
+}
+
+func (cs *ContainerStatus) GetState() ContainerState {
+	if cs.State.Running != nil {
+		return cs.State.Running
+	} else if cs.State.Terminated != nil {
+		return cs.State.Terminated
+	} else if cs.State.Waiting != nil {
+		return cs.State.Waiting
+	}
+	return nil
+}
+
+func (p *Pod) GetContainerStatus(container string) *ContainerStatus {
+	for _, status := range p.Status.ContainerStatuses {
+		if status.Name == container {
+			return status
+		}
+	}
+	for _, status := range p.Status.InitContainerStatuses {
+		if status.Name == container {
+			return status
+		}
+	}
+	return nil
 }
 
 func (p *Pod) ContainsLabels(labels map[string][]string) bool {
