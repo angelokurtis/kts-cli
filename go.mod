@@ -6,9 +6,9 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.1.1
 	github.com/andanhm/go-prettytime v1.1.0
 	github.com/cheggaaa/pb/v3 v3.0.5
+	github.com/enescakir/emoji v1.0.0
 	github.com/gookit/color v1.3.0
 	github.com/ku/go-change-case v0.0.1
-	github.com/kyokomi/emoji v2.2.4+incompatible
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/pkg/errors v0.9.1
