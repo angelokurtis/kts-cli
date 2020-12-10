@@ -300,11 +300,27 @@ type ContainerStatus struct {
 	Ready        bool   `json:"ready"`
 	RestartCount int    `json:"restartCount"`
 	Started      bool   `json:"started"`
-	State        struct {
+	LastState    struct {
+		Running    *ContainerStateRunning    `json:"running"`
+		Terminated *ContainerStateTerminated `json:"terminated"`
+		Waiting    *ContainerStateWaiting    `json:"waiting"`
+	} `json:"lastState"`
+	State struct {
 		Running    *ContainerStateRunning    `json:"running"`
 		Terminated *ContainerStateTerminated `json:"terminated"`
 		Waiting    *ContainerStateWaiting    `json:"waiting"`
 	} `json:"state"`
+}
+
+func (cs *ContainerStatus) GetLastState() ContainerState {
+	if cs.LastState.Running != nil {
+		return cs.LastState.Running
+	} else if cs.LastState.Terminated != nil {
+		return cs.LastState.Terminated
+	} else if cs.LastState.Waiting != nil {
+		return cs.LastState.Waiting
+	}
+	return nil
 }
 
 func (cs *ContainerStatus) GetState() ContainerState {

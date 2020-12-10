@@ -6,6 +6,8 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/cartaobranco"
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
 	"github.com/angelokurtis/kts-cli/cmd/git"
+	"github.com/angelokurtis/kts-cli/cmd/ifood"
+	"github.com/angelokurtis/kts-cli/cmd/iptv"
 	"github.com/angelokurtis/kts-cli/cmd/istio"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes"
 	"github.com/angelokurtis/kts-cli/cmd/terraform"
@@ -56,7 +58,9 @@ func init() {
 
 	cmd.AddCommand(completion)
 	cmd.AddCommand(aws.Command)
+	cmd.AddCommand(iptv.Command)
 	cmd.AddCommand(gcp.Command)
+	cmd.AddCommand(ifood.Command)
 	cmd.AddCommand(git.Command)
 	cmd.AddCommand(kubernetes.Command)
 	cmd.AddCommand(terraform.Command)

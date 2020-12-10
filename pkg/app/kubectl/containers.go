@@ -5,6 +5,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"strings"
+	"time"
 )
 
 func ListContainersByDeployment(deploy *Deployment) (*Containers, error) {
@@ -87,6 +88,21 @@ type (
 		Status *ContainerStatus
 	}
 )
+
+func (c *Container) LastUpdateTime() *time.Time {
+	status := c.Status
+	if status == nil {
+		return nil
+	}
+	state := status.GetState()
+	if state == nil || state.GetStartTime() == nil {
+		state = status.GetLastState()
+	}
+	if state == nil {
+		return nil
+	}
+	return state.GetStartTime()
+}
 
 func (c *Container) GetState() ContainerState {
 	if c.Status == nil {

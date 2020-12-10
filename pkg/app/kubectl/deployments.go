@@ -250,26 +250,27 @@ type (
 	}
 )
 
-func (d *Deployment) LatestStatusCondition() string {
+func (d *Deployment) LastUpdateTime() *time.Time {
 	conditions := d.Status.Conditions
 	if len(conditions) < 1 {
-		return ""
+		return nil
 	}
 	sort.Slice(conditions, func(i, j int) bool {
 		return conditions[i].LastTransitionTime.After(conditions[j].LastTransitionTime)
 	})
-	return conditions[0].Type
+	return &conditions[0].LastUpdateTime
 }
 
 func (d *Deployment) StatusColor() string {
-	switch d.LatestStatusCondition() {
-	case "Available":
+	ready := d.Status.ReadyReplicas
+	desired := d.Spec.Replicas
+	if ready >= desired {
 		return emoji.GreenCircle.String()
-	case "Progressing":
-		return emoji.YellowCircle.String()
-	default:
-		return emoji.QuestionMark.String()
 	}
+	if ready > 0 {
+		return emoji.YellowCircle.String()
+	}
+	return emoji.RedCircle.String()
 }
 
 func (d *Deployment) HasIstioSidecar() bool {

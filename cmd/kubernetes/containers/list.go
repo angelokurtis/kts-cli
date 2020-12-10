@@ -17,6 +17,13 @@ func list(cmd *cobra.Command, args []string) {
 	if err != nil {
 		system.Exit(err)
 	}
+	if sortUpdated {
+		//sort.Slice(containers.Items, func(i, j int) bool {
+		//	it := containers.Items[i].LastUpdateTime()
+		//	jt := containers.Items[j].LastUpdateTime()
+		//	return it.Before(*jt)
+		//})
+	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.SetColumnSeparator("")
@@ -31,13 +38,13 @@ func list(cmd *cobra.Command, args []string) {
 		}
 		state := container.GetState()
 		color := ""
-		timeStr := ""
 		if state != nil {
 			color = state.Color()
-			startTime := state.GetStartTime()
-			if startTime != nil {
-				timeStr = prettytime.Format(*startTime)
-			}
+		}
+		timeStr := ""
+		updateTime := container.LastUpdateTime()
+		if updateTime != nil {
+			timeStr = prettytime.Format(*updateTime)
 		}
 		table.Append([]string{color, container.Name, strings.Join(ports, ","), container.Image, container.Pod, timeStr})
 	}
