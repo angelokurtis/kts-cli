@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	sortUpdated   = false
 	allNamespaces = false
 	namespace     = ""
 	filename      = ""
@@ -29,6 +30,7 @@ func init() {
 	Command.AddCommand(uninjectCmd)
 
 	listCmd := &cobra.Command{Use: "list", Run: list}
+	listCmd.PersistentFlags().BoolVar(&sortUpdated, "sort-updated", false, "")
 	listCmd.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If present, list the requested object(s) across all namespaces. Namespace in current\ncontext is ignored even if specified with --namespace.")
 	listCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "")
 	Command.AddCommand(listCmd)
