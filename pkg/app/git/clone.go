@@ -21,6 +21,6 @@ func Clone(repo string) error {
 	if dir.IsGithub() {
 		repo = dir.SSHAddress()
 	}
-	_, err = bash.RunAndLogWrite(fmt.Sprintf("git clone -q %s %s", repo, path))
+	_, err = bash.RunAndLogWrite(fmt.Sprintf("git clone %s %s", repo, path))
 	return errors.WithStack(err)
 }

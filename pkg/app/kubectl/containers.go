@@ -85,6 +85,20 @@ type (
 			Name      string `json:"name"`
 			ReadOnly  bool   `json:"readOnly,omitempty"`
 		} `json:"volumeMounts"`
+		LivenessProbe struct {
+			FailureThreshold    *int `json:"failureThreshold"`
+			InitialDelaySeconds *int `json:"initialDelaySeconds"`
+			PeriodSeconds       *int `json:"periodSeconds"`
+			SuccessThreshold    *int `json:"successThreshold"`
+			TimeoutSeconds      *int `json:"timeoutSeconds"`
+		} `json:"livenessProbe"`
+		ReadinessProbe struct {
+			FailureThreshold    *int `json:"failureThreshold"`
+			InitialDelaySeconds *int `json:"initialDelaySeconds"`
+			PeriodSeconds       *int `json:"periodSeconds"`
+			SuccessThreshold    *int `json:"successThreshold"`
+			TimeoutSeconds      *int `json:"timeoutSeconds"`
+		} `json:"readinessProbe"`
 		Status *ContainerStatus
 	}
 )
@@ -94,21 +108,27 @@ func (c *Container) LastUpdateTime() *time.Time {
 	if status == nil {
 		return nil
 	}
-	state := status.GetState()
-	if state == nil || state.GetStartTime() == nil {
-		state = status.GetLastState()
-	}
+	state := status.CurrentState()
 	if state == nil {
 		return nil
 	}
-	return state.GetStartTime()
+	return state.GetTime()
 }
 
-func (c *Container) GetState() ContainerState {
+func (c *Container) GetState() ContainerStateEvent {
 	if c.Status == nil {
 		return nil
 	}
-	return c.Status.GetState()
+	return c.Status.CurrentState()
+}
+
+func (c *Container) GetEnv(key string) string {
+	for _, v := range c.Env {
+		if key == v.Name {
+			return v.Value
+		}
+	}
+	return ""
 }
 
 func (c *Containers) Contains(containerName string) bool {

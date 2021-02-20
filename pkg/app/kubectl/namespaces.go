@@ -65,6 +65,29 @@ func (n *Namespaces) SelectOne() (*Namespace, error) {
 	return n.Get(selected), nil
 }
 
+func (n *Namespaces) SelectMany() (*Namespaces, error) {
+	if len(n.Items) == 0 {
+		return &Namespaces{}, nil
+	}
+	names := n.Names()
+	prompt := &survey.MultiSelect{
+		Message: "Select the Namespaces:",
+		Options: names,
+	}
+
+	var selects []string
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	ns := make([]*Namespace, 0, len(selects))
+	for _, name := range selects {
+		ns = append(ns, n.Get(name))
+	}
+	return &Namespaces{Items: ns}, nil
+}
+
 type Namespace struct {
 	APIVersion string `json:"apiVersion"`
 	Kind       string `json:"kind"`

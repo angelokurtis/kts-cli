@@ -14,7 +14,7 @@ func inject(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	deployments = deployments.FilterUninjected()
-	deployments = deployments.FilterInjectable()
+	//deployments = deployments.FilterInjectable()
 	deployments, err = deployments.SelectMany()
 	if err != nil {
 		log.Fatal(err)

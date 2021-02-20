@@ -39,7 +39,7 @@ func list(cmd *cobra.Command, args []string) {
 		state := container.GetState()
 		color := ""
 		if state != nil {
-			color = state.Color()
+			color = state.GetColor()
 		}
 		timeStr := ""
 		updateTime := container.LastUpdateTime()

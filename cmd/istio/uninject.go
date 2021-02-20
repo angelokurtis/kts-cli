@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// istio uninject
+// istio uninject -n testeistio
 func uninject(cmd *cobra.Command, args []string) {
 	deployments, err := kubectl.ListDeployments(namespace, allNamespaces)
 	if err != nil {

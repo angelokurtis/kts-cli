@@ -130,6 +130,9 @@ func saveResourceManifest(resource *resource) error {
 }
 
 func deleteGeneratedFields(manifestPath string) error {
+	if err := yq.DeleteNode(manifestPath, "metadata.managedFields"); err != nil {
+		return err
+	}
 	if err := yq.DeleteNode(manifestPath, "metadata.generation"); err != nil {
 		return err
 	}
