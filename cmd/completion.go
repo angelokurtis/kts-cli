@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"os"
+
+	"github.com/spf13/cobra"
 )
 
-var completion = &cobra.Command{
+var completionCmd = &cobra.Command{
 	Use:   "completion [bash|zsh|fish|powershell]",
 	Short: "Generate completion script",
 	Long: `To load completions:
@@ -54,4 +55,8 @@ $ kts completion fish > ~/.config/fish/completions/kts.fish
 			cmd.Root().GenPowerShellCompletion(os.Stdout)
 		}
 	},
+}
+
+func init() {
+	rootCmd.AddCommand(completionCmd)
 }
