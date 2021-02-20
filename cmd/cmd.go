@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/angelokurtis/kts-cli/cmd/aws"
-	"github.com/angelokurtis/kts-cli/cmd/cartaobranco"
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
 	"github.com/angelokurtis/kts-cli/cmd/git"
 	"github.com/angelokurtis/kts-cli/cmd/ifood"
@@ -66,6 +65,5 @@ func init() {
 	cmd.AddCommand(terraform.Command)
 	cmd.AddCommand(terraformer.Command)
 	cmd.AddCommand(yaml.Command)
-	cmd.AddCommand(cartaobranco.Command)
 	cmd.AddCommand(istio.Command)
 }
