@@ -26,6 +26,8 @@ func Run(cmd string) ([]byte, error) {
 			def := strings.TrimSpace(string(out))
 			if msg == "" && def != "" {
 				return nil, errors.New(def)
+			} else if msg == "" && def == "" {
+				return nil, nil
 			} else {
 				return nil, errors.New(msg)
 			}
