@@ -9,7 +9,7 @@ import (
 // gitSignCmd represents the git sign command
 var gitSignCmd = &cobra.Command{
 	Use:   "sign",
-	Short: "A brief description of your command",
+	Short: "Tells Git about your signing key to sign commits",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		key, err := gpg.SelectSecretKey()
 		if err != nil {

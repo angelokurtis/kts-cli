@@ -17,7 +17,7 @@ var (
 	// gitTagsCmd represents the git tags list command
 	gitTagsCmd = &cobra.Command{
 		Use:   "tags",
-		Short: "A brief description of your command",
+		Short: "List the existing tags in Git project",
 		RunE: func(_ *cobra.Command, _ []string) error {
 			tags, err := git.ListTags(path)
 			if err != nil {

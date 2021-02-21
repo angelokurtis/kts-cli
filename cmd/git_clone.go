@@ -9,7 +9,7 @@ import (
 // gitCloneCmd represents the git clone command
 var gitCloneCmd = &cobra.Command{
 	Use:   "clone",
-	Short: "A brief description of your command",
+	Short: "Clones a repository into a newly created directory",
 	Run:   system.Help,
 }
 
