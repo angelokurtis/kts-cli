@@ -1,62 +1,13 @@
 package iptv
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/internal/log"
-	"github.com/angelokurtis/kts-cli/internal/system"
 	changecase "github.com/ku/go-change-case"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"os"
 	"strings"
 )
-
-var Command = &cobra.Command{
-	Use:   "iptv",
-	Short: "IPTV functions utilities",
-	Run:   system.Help,
-}
-
-func init() {
-	Command.AddCommand(&cobra.Command{Use: "channels", Run: channels})
-}
-
-// iptv channels
-func channels(cmd *cobra.Command, args []string) {
-	file, err := os.Open("/home/tiagoangelo/Downloads/tv_channels_jrGF1_plus.m3u")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	extinf := ""
-	channels := make(Channels, 0, 0)
-	for scanner.Scan() {
-		txt := scanner.Text()
-		if strings.HasPrefix(txt, "#EXTINF:-1") {
-			extinf = txt
-		} else if extinf != "" {
-			channels = append(channels, NewChannel(extinf, txt))
-			extinf = ""
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	channels, err = channels.SelectMany()
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = channels.Write("/home/tiagoangelo/Downloads/channels.m3u")
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 type Channels []*Channel
 
