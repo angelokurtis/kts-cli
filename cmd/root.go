@@ -40,6 +40,5 @@ func initConfig() {
 
 	viper.AutomaticEnv()
 
-	err := viper.ReadInConfig()
-	cobra.CheckErr(err)
+	_ = viper.ReadInConfig()
 }
