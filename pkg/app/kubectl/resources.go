@@ -3,6 +3,7 @@ package kubectl
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/angelokurtis/kts-cli/pkg/app/yq"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -35,7 +36,7 @@ func ListResources(resources string, namespace string, allNamespaces bool) ([]st
 }
 
 func SelectResources(resources string, namespace string, allNamespaces bool) ([]*resource, error) {
-	cmd := "kubectl get " + resources + " -o=jsonpath='{.items[*].metadata.selfLink}'"
+	cmd := "kubectl get " + resources + " -o=json"
 	if allNamespaces {
 		cmd = cmd + " --all-namespaces"
 	} else if namespace != "" {
@@ -45,13 +46,29 @@ func SelectResources(resources string, namespace string, allNamespaces bool) ([]
 	if err != nil {
 		return nil, err
 	}
+	var col *collection
+	if err := json.Unmarshal(out, &col); err != nil {
+		return nil, errors.WithStack(err)
+	}
 
 	links := make(map[string]*resource, 0)
 	var options []string
-	for _, value := range strings.Fields(string(out)) {
-		r, err := newResource(value)
-		if err != nil {
-			return nil, err
+	for _, item := range col.Items {
+		split := strings.Split(item.APIVersion, "/")
+		var fullKindName, group string
+		if len(split) <= 1 {
+			group = ""
+			fullKindName = item.Kind
+		} else {
+			group = split[0]
+			fullKindName = item.Kind + "." + group
+		}
+		r := &resource{
+			Name:         item.Metadata.Name,
+			FullKindName: fullKindName,
+			Kind:         item.Kind,
+			Group:        group,
+			Namespace:    item.Metadata.Namespace,
 		}
 		key := ""
 		if allNamespaces {
@@ -238,4 +255,14 @@ func newResource(l string) (*resource, error) {
 		}, nil
 	}
 	return nil, errors.New("unrecognized selfLink format: " + l)
+}
+
+type collection struct {
+	Items []Item `json:"items"`
+}
+
+type Item struct {
+	APIVersion string   `json:"apiVersion"`
+	Kind       string   `json:"kind"`
+	Metadata   Metadata `json:"metadata"`
 }

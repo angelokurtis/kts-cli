@@ -38,9 +38,12 @@ type Ingresses struct {
 }
 
 type Metadata struct {
-	Labels    map[string]string `json:"labels"`
-	Name      string            `json:"name"`
-	Namespace string            `json:"namespace"`
+	Labels          map[string]string `json:"labels"`
+	Name            string            `json:"name"`
+	Namespace       string            `json:"namespace"`
+	Generation      int               `json:"generation"`
+	ResourceVersion string            `json:"resourceVersion"`
+	UID             string            `json:"uid"`
 }
 
 type Rule struct {

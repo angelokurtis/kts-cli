@@ -15,12 +15,12 @@ func IstioIngress() (string, error) {
 	str = str[1:]
 	str = str[:len(str)-1]
 	ingresses := strings.Split(str, " ")
-	if len(ingresses) == 1 {
+	if len(ingresses) == 1 && ingresses[0] != "" {
 		return ingresses[0], nil
 	} else if len(ingresses) > 1 {
 		return "", errors.New("found multiple Istio ingresses addresses")
 	}
-	return "", nil
+	return "127.0.0.1", nil
 }
 
 func ListAllIstioGateways() ([]*IstioGateway, error) {
