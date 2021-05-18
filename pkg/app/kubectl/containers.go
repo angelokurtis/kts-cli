@@ -50,14 +50,11 @@ type (
 			Name          string `json:"name"`
 			Protocol      string `json:"protocol"`
 		} `json:"ports"`
-		Args    []string `json:"args"`
-		Command []string `json:"command"`
-		Env     []*struct {
-			Name  string `json:"name"`
-			Value string `json:"value"`
-		} `json:"env"`
-		Image           string `json:"image"`
-		ImagePullPolicy string `json:"imagePullPolicy"`
+		Args            []string `json:"args"`
+		Command         []string `json:"command"`
+		Env             []*Env   `json:"env"`
+		Image           string   `json:"image"`
+		ImagePullPolicy string   `json:"imagePullPolicy"`
 		Resources       struct {
 			Limits struct {
 				CPU    string `json:"cpu"`
@@ -100,6 +97,20 @@ type (
 			TimeoutSeconds      *int `json:"timeoutSeconds"`
 		} `json:"readinessProbe"`
 		Status *ContainerStatus
+	}
+	Env struct {
+		Name      string     `json:"name,omitempty"`
+		Value     string     `json:"value,omitempty"`
+		ValueFrom *ValueFrom `json:"valueFrom,omitempty"`
+	}
+	ValueFrom struct {
+		ConfigMapKeyRef *KeyRef `json:"configMapKeyRef,omitempty"`
+		SecretKeyRef    *KeyRef `json:"secretKeyRef,omitempty"`
+	}
+	KeyRef struct {
+		Key      string `json:"key,omitempty"`
+		Name     string `json:"name,omitempty"`
+		Optional bool   `json:"optional,omitempty"`
 	}
 )
 

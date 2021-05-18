@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/angelokurtis/kts-cli/pkg/app/yq"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -121,13 +122,13 @@ func saveResourceManifest(resource *resource) error {
 	yamlFile := resource.Name + ".yaml"
 	yamlPath := ""
 	if resource.Namespace != "" && resource.Group != "" {
-		yamlPath = "./" + resource.Namespace + "/" + resource.Group + "/" + resource.Kind
+		yamlPath = fmt.Sprintf("./manifests/%s/%s.%s", resource.Namespace, resource.Kind, resource.Group)
 	} else if resource.Namespace != "" && resource.Group == "" {
-		yamlPath = "./" + resource.Namespace + "/" + resource.Kind
+		yamlPath = fmt.Sprintf("./manifests/%s/%s", resource.Namespace, resource.Kind)
 	} else if resource.Namespace == "" && resource.Group != "" {
-		yamlPath = "./" + resource.Group + "/" + resource.Kind
+		yamlPath = fmt.Sprintf("./manifests/%s.%s", resource.Kind, resource.Group)
 	} else {
-		yamlPath = "./" + resource.Kind
+		yamlPath = fmt.Sprintf("./manifests/%s", resource.Kind)
 	}
 
 	_, err = bash.Run("mkdir -p " + yamlPath)

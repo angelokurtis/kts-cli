@@ -498,6 +498,14 @@ func (p *Pod) LastUpdate() *time.Time {
 	return t
 }
 
+func (p *Pod) EnvironmentVariables() []*Env {
+	envvars := make([]*Env, 0, 0)
+	for _, container := range p.Spec.Containers {
+		envvars = append(envvars, container.Env...)
+	}
+	return envvars
+}
+
 func (p *Pod) IsJob() bool {
 	owners := p.Metadata.OwnerReferences
 	if owners == nil || len(owners) == 0 {

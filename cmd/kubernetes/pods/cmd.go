@@ -22,6 +22,8 @@ func init() {
 	Command.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "")
 	Command.AddCommand(&cobra.Command{Use: "selectors", Run: selectors})
 
+	Command.AddCommand(&cobra.Command{Use: "variables", Run: variables})
+
 	listCMD := &cobra.Command{Use: "list", Run: list}
 	listCMD.PersistentFlags().StringVarP(&selector, "selector", "l", "", "Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)")
 	listCMD.PersistentFlags().BoolVar(&sortUpdated, "sort-updated", false, "")

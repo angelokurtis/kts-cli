@@ -8,36 +8,36 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ListConfigMaps() (*ConfigMaps, error) {
-	out, err := bash.RunAndLogRead("kubectl get configmap --all-namespaces -o=json")
+func ListSecrets() (*Secrets, error) {
+	out, err := bash.RunAndLogRead("kubectl get secret --all-namespaces -o=json")
 	if err != nil {
 		return nil, err
 	}
 
-	var configMaps *ConfigMaps
-	if err := json.Unmarshal(out, &configMaps); err != nil {
+	var secrets *Secrets
+	if err := json.Unmarshal(out, &secrets); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	return configMaps, nil
+	return secrets, nil
 }
 
-func SearchConfigMap(label string) (*ConfigMaps, error) {
-	out, err := runAndLogRead("get", "ConfigMap", "-o=json", "--all-namespaces", "-l", label)
+func SearchSecret(label string) (*Secrets, error) {
+	out, err := runAndLogRead("get", "Secret", "-o=json", "--all-namespaces", "-l", label)
 	if err != nil {
 		return nil, err
 	}
 
-	var configMaps *ConfigMaps
-	if err := json.Unmarshal(out, &configMaps); err != nil {
+	var secrets *Secrets
+	if err := json.Unmarshal(out, &secrets); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	return configMaps, nil
+	return secrets, nil
 }
 
-func GetConfigMapKeyValue(ref *KeyRef, namespace string) (string, error) {
-	out, err := bash.Run(fmt.Sprintf("kubectl get configmap --namespace %s %s -o jsonpath=\"{.data.%s}\" | base64 --decode", namespace, ref.Name, ref.Key))
+func GetSecretKeyValue(ref *KeyRef, namespace string) (string, error) {
+	out, err := bash.Run(fmt.Sprintf("kubectl get secret --namespace %s %s -o jsonpath=\"{.data.%s}\" | base64 --decode", namespace, ref.Name, ref.Key))
 	if err != nil {
 		return "", err
 	}
@@ -45,20 +45,20 @@ func GetConfigMapKeyValue(ref *KeyRef, namespace string) (string, error) {
 	return string(out), nil
 }
 
-type ConfigMaps struct {
-	Items []*ConfigMap `json:"items"`
+type Secrets struct {
+	Items []*Secret `json:"items"`
 }
 
-func (m *ConfigMaps) Names() []string {
-	configMaps := m.Items
-	names := make([]string, 0, len(configMaps))
-	for _, release := range configMaps {
+func (m *Secrets) Names() []string {
+	secrets := m.Items
+	names := make([]string, 0, len(secrets))
+	for _, release := range secrets {
 		names = append(names, release.Metadata.Namespace+"/"+release.Metadata.Name)
 	}
 	return names
 }
 
-func (m *ConfigMaps) Get(name string) *ConfigMap {
+func (m *Secrets) Get(name string) *Secret {
 	for _, configMap := range m.Items {
 		if configMap.Metadata.Namespace+"/"+configMap.Metadata.Name == name {
 			return configMap
@@ -67,7 +67,7 @@ func (m *ConfigMaps) Get(name string) *ConfigMap {
 	return nil
 }
 
-func (m *ConfigMaps) SelectOne() (*ConfigMap, error) {
+func (m *Secrets) SelectOne() (*Secret, error) {
 	names := m.Names()
 
 	if len(names) == 1 {
@@ -76,7 +76,7 @@ func (m *ConfigMaps) SelectOne() (*ConfigMap, error) {
 
 	var selected string
 	prompt := &survey.Select{
-		Message: "Select the ConfigMap:",
+		Message: "Select the Secret:",
 		Options: names,
 	}
 
@@ -88,17 +88,17 @@ func (m *ConfigMaps) SelectOne() (*ConfigMap, error) {
 	return m.Get(selected), nil
 }
 
-func (m *ConfigMaps) SingleResult() (*ConfigMap, error) {
+func (m *Secrets) SingleResult() (*Secret, error) {
 	if len(m.Items) == 0 {
 		return nil, nil
 	}
 	if len(m.Items) == 1 {
 		return m.Items[0], nil
 	}
-	return nil, errors.New("found more than one ConfigMap")
+	return nil, errors.New("found more than one Secret")
 }
 
-type ConfigMap struct {
+type Secret struct {
 	Data     map[string]string `json:"data"`
 	Kind     string            `json:"kind"`
 	Metadata struct {
