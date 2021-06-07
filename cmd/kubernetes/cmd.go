@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	status        = false
 	allNamespaces = false
 	group         = ""
 	namespace     = ""
@@ -41,6 +42,7 @@ func init() {
 	manifestsCommand := &cobra.Command{Use: "manifests", Run: manifests}
 	manifestsCommand.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If present, resources the requested object(s) across all namespaces. Namespace in current\ncontext is ignored even if specified with --namespace.")
 	manifestsCommand.PersistentFlags().StringVar(&group, "group", "", "")
+	manifestsCommand.PersistentFlags().BoolVar(&status, "status", false, "")
 	manifestsCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "")
 	Command.AddCommand(manifestsCommand)
 }

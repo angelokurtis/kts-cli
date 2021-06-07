@@ -3,12 +3,13 @@ package linux
 import (
 	"bufio"
 	"fmt"
-	"github.com/angelokurtis/kts-cli/internal/log"
-	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/angelokurtis/kts-cli/internal/log"
+	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
+	"github.com/pkg/errors"
 )
 
 type HostsFile struct {
@@ -59,8 +60,8 @@ func (h *HostsFile) Add(context string, ingresses []*kubectl.Ingress, gateways [
 	hosts := make(map[string]*hostObj, 0)
 
 	for _, ing := range ingresses {
-		n := ing.Metadata.Name
-		ns := ing.Metadata.Namespace
+		n := ing.Name
+		ns := ing.Namespace
 
 		for _, rule := range ing.Spec.Rules {
 			name := rule.Host
@@ -117,7 +118,7 @@ func (h *HostsFile) Add(context string, ingresses []*kubectl.Ingress, gateways [
 func (h *HostsFile) Write() error {
 	content := []byte(h.String())
 	log.Debugf("\n%s", content)
-	err := ioutil.WriteFile("/etc/hosts", content, 0644)
+	err := ioutil.WriteFile("/etc/hosts", content, 0o644)
 	if err != nil {
 		return errors.WithStack(err)
 	}

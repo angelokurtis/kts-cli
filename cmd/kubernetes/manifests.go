@@ -29,7 +29,7 @@ func manifests(cmd *cobra.Command, args []string) {
 	if err != nil {
 		system.Exit(err)
 	}
-	err = kubectl.SaveResourcesManifests(results)
+	err = kubectl.SaveResourcesManifests(results, status)
 	if err != nil {
 		system.Exit(err)
 	}

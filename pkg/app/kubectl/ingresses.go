@@ -1,22 +1,28 @@
 package kubectl
 
 import (
+	"context"
 	"encoding/json"
+
+	"github.com/angelokurtis/kts-cli/internal/kube"
 	"github.com/pkg/errors"
+	extensions "k8s.io/api/extensions/v1beta1"
+	apis "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func ListIngresses() ([]*Ingress, error) {
-	out, err := run("get", "ingress", "--all-namespaces", "-o=json", "--request-timeout=5s")
+	ingresses, err := kube.GetClientset().ExtensionsV1beta1().Ingresses("").List(context.TODO(), apis.ListOptions{})
 	if err != nil {
-		return nil, err
-	}
-
-	var ingresses *Ingresses
-	if err := json.Unmarshal(out, &ingresses); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	return ingresses.Items, nil
+	items := make([]*Ingress, 0)
+	for _, ing := range ingresses.Items {
+		ingress := Ingress(ing)
+		items = append(items, &ingress)
+	}
+
+	return items, nil
 }
 
 func SearchIngress(label string) (*Ingresses, error) {
@@ -67,14 +73,10 @@ type Status struct {
 	LoadBalancer LoadBalancer `json:"loadBalancer"`
 }
 
-type Ingress struct {
-	Metadata Metadata `json:"metadata"`
-	Spec     Spec     `json:"spec"`
-	Status   Status   `json:"status"`
-}
+type Ingress extensions.Ingress
 
 func (i *Ingress) ExternalIP() string {
-	for _, ingress := range i.Status.LoadBalancer.Ingresses {
+	for _, ingress := range i.Status.LoadBalancer.Ingress {
 		if ingress.Hostname != "" {
 			return ingress.Hostname
 		}

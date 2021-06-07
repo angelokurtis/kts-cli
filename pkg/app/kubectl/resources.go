@@ -5,16 +5,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"strings"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/angelokurtis/kts-cli/pkg/app/yq"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
-	"io/ioutil"
-	"strings"
 )
 
-func ListResources(resources string, namespace string, allNamespaces bool) ([]string, error) {
+func ListResources(resources, namespace string, allNamespaces bool) ([]string, error) {
 	cmd := []string{"get", resources}
 	if allNamespaces {
 		cmd = append(cmd, "--all-namespaces")
@@ -36,7 +37,7 @@ func ListResources(resources string, namespace string, allNamespaces bool) ([]st
 	return res, nil
 }
 
-func SelectResources(resources string, namespace string, allNamespaces bool) ([]*resource, error) {
+func SelectResources(resources, namespace string, allNamespaces bool) ([]*resource, error) {
 	cmd := "kubectl get " + resources + " -o=json"
 	if allNamespaces {
 		cmd = cmd + " --all-namespaces"
@@ -99,9 +100,9 @@ func SelectResources(resources string, namespace string, allNamespaces bool) ([]
 	return res, nil
 }
 
-func SaveResourcesManifests(resources []*resource) error {
+func SaveResourcesManifests(resources []*resource, keepStatus bool) error {
 	for _, r := range resources {
-		err := saveResourceManifest(r)
+		err := saveResourceManifest(r, keepStatus)
 		if err != nil {
 			return err
 		}
@@ -109,7 +110,7 @@ func SaveResourcesManifests(resources []*resource) error {
 	return nil
 }
 
-func saveResourceManifest(resource *resource) error {
+func saveResourceManifest(resource *resource, keepStatus bool) error {
 	cmd := "kubectl get " + resource.FullKindName + " " + resource.Name + " -o yaml"
 	if resource.Namespace != "" {
 		cmd = cmd + " -n " + resource.Namespace
@@ -137,17 +138,22 @@ func saveResourceManifest(resource *resource) error {
 	}
 
 	color.Primary.Println(cmd + " > " + yamlPath + "/" + yamlFile)
-	if err = ioutil.WriteFile(yamlPath+"/"+yamlFile, out, 0644); err != nil {
+	if err = ioutil.WriteFile(yamlPath+"/"+yamlFile, out, 0o644); err != nil {
 		return errors.WithStack(err)
 	}
 
-	if err := deleteGeneratedFields(yamlPath + "/" + yamlFile); err != nil {
+	if err := deleteGeneratedFields(yamlPath+"/"+yamlFile, keepStatus); err != nil {
 		return err
 	}
 	return nil
 }
 
-func deleteGeneratedFields(manifestPath string) error {
+func deleteGeneratedFields(manifestPath string, keepStatus bool) error {
+	if !keepStatus {
+		if err := yq.DeleteNode(manifestPath, "status"); err != nil {
+			return err
+		}
+	}
 	if err := yq.DeleteNode(manifestPath, "metadata.managedFields"); err != nil {
 		return err
 	}
@@ -167,9 +173,6 @@ func deleteGeneratedFields(manifestPath string) error {
 		return err
 	}
 	if err := yq.DeleteNode(manifestPath, "metadata.uid"); err != nil {
-		return err
-	}
-	if err := yq.DeleteNode(manifestPath, "status"); err != nil {
 		return err
 	}
 	if err := yq.DeleteNode(manifestPath, "metadata.annotations[cloud.google.com/neg]"); err != nil {
