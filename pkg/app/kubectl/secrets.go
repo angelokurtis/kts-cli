@@ -3,10 +3,25 @@ package kubectl
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/pkg/errors"
 )
+
+func ListTLSSecrets() (*Secrets, error) {
+	out, err := bash.RunAndLogRead("kubectl get secret --field-selector type=kubernetes.io/tls --all-namespaces -o=json")
+	if err != nil {
+		return nil, err
+	}
+
+	var secrets *Secrets
+	if err := json.Unmarshal(out, &secrets); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return secrets, nil
+}
 
 func ListSecrets() (*Secrets, error) {
 	out, err := bash.RunAndLogRead("kubectl get secret --all-namespaces -o=json")
@@ -59,12 +74,44 @@ func (m *Secrets) Names() []string {
 }
 
 func (m *Secrets) Get(name string) *Secret {
-	for _, configMap := range m.Items {
-		if configMap.Metadata.Namespace+"/"+configMap.Metadata.Name == name {
-			return configMap
+	for _, secret := range m.Items {
+		if secret.Metadata.Namespace+"/"+secret.Metadata.Name == name {
+			return secret
 		}
 	}
 	return nil
+}
+
+func (m *Secrets) SelectMany() (*Secrets, error) {
+	if len(m.Items) == 0 {
+		return &Secrets{}, nil
+	}
+	names := m.FullNames()
+	prompt := &survey.MultiSelect{
+		Message: "Select the Secrets:",
+		Options: names,
+	}
+
+	var selects []string
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	secrets := make([]*Secret, 0, len(selects))
+	for _, name := range selects {
+		secrets = append(secrets, m.Get(name))
+	}
+	return &Secrets{Items: secrets}, nil
+}
+
+func (m *Secrets) FullNames() []string {
+	secrets := m.Items
+	names := make([]string, 0, len(secrets))
+	for _, release := range secrets {
+		names = append(names, release.Metadata.Namespace+"/"+release.Metadata.Name)
+	}
+	return names
 }
 
 func (m *Secrets) SelectOne() (*Secret, error) {

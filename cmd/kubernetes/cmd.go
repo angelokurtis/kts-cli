@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"github.com/angelokurtis/kts-cli/cmd/kubernetes/certificates"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/clusters"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/containers"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/deployments"
@@ -32,6 +33,7 @@ func init() {
 	Command.AddCommand(labels.Command)
 	Command.AddCommand(deployments.Command)
 	Command.AddCommand(pods.Command)
+	Command.AddCommand(certificates.Command)
 
 	listCommand := &cobra.Command{Use: "resources", Run: resources}
 	listCommand.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If present, list the requested object(s) across all namespaces. Namespace in current\ncontext is ignored even if specified with --namespace.")
