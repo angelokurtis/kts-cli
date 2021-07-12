@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/angelokurtis/kts-cli/cmd/aws"
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
 	"github.com/angelokurtis/kts-cli/cmd/git"
+	golang "github.com/angelokurtis/kts-cli/cmd/go"
 	"github.com/angelokurtis/kts-cli/cmd/ifood"
 	"github.com/angelokurtis/kts-cli/cmd/iptv"
 	"github.com/angelokurtis/kts-cli/cmd/istio"
@@ -66,4 +68,5 @@ func init() {
 	cmd.AddCommand(terraformer.Command)
 	cmd.AddCommand(yaml.Command)
 	cmd.AddCommand(istio.Command)
+	cmd.AddCommand(golang.Command)
 }
