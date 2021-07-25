@@ -2,14 +2,17 @@ package tags
 
 import (
 	"fmt"
-	"github.com/andanhm/go-prettytime"
-	"github.com/angelokurtis/kts-cli/internal/log"
-	"github.com/angelokurtis/kts-cli/pkg/app/git"
-	"github.com/olekukonko/tablewriter"
-	"github.com/spf13/cobra"
 	"os"
 	"sort"
 	"time"
+
+	"github.com/Masterminds/semver"
+	"github.com/andanhm/go-prettytime"
+	"github.com/olekukonko/tablewriter"
+	"github.com/spf13/cobra"
+
+	"github.com/angelokurtis/kts-cli/internal/log"
+	"github.com/angelokurtis/kts-cli/pkg/app/git"
 )
 
 var brazil *time.Location
@@ -30,7 +33,14 @@ func list(_ *cobra.Command, _ []string) {
 	}
 
 	sort.Slice(tags, func(i, j int) bool {
-		return tags[i].Time.After(*tags[j].Time)
+		a := tags[i]
+		b := tags[j]
+		av, aerr := semver.NewVersion(a.Name)
+		bv, berr := semver.NewVersion(b.Name)
+		if aerr != nil || berr != nil {
+			return a.Time.After(*b.Time)
+		}
+		return av.GreaterThan(bv)
 	})
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -43,5 +53,4 @@ func list(_ *cobra.Command, _ []string) {
 		table.Append([]string{tag.Name, tag.CommitID, t})
 	}
 	table.Render()
-
 }
