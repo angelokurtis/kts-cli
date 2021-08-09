@@ -3,7 +3,13 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"github.com/angelokurtis/kts-cli/cmd/aws"
+	"github.com/angelokurtis/kts-cli/cmd/digitalocean"
+	"github.com/angelokurtis/kts-cli/cmd/dockerhub"
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
 	"github.com/angelokurtis/kts-cli/cmd/git"
 	golang "github.com/angelokurtis/kts-cli/cmd/go"
@@ -15,9 +21,6 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/terraformer"
 	"github.com/angelokurtis/kts-cli/cmd/yaml"
 	"github.com/angelokurtis/kts-cli/internal/system"
-	"github.com/mitchellh/go-homedir"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -69,4 +72,6 @@ func init() {
 	cmd.AddCommand(yaml.Command)
 	cmd.AddCommand(istio.Command)
 	cmd.AddCommand(golang.Command)
+	cmd.AddCommand(digitalocean.Command)
+	cmd.AddCommand(dockerhub.Command)
 }

@@ -1,18 +1,20 @@
-package kubernetes
+package resources
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/internal/system"
-	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
+
 	"github.com/spf13/cobra"
+
+	"github.com/angelokurtis/kts-cli/internal/log"
+	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
-func resources(cmd *cobra.Command, args []string) {
+func list(cmd *cobra.Command, args []string) {
 	resources := ""
 	if len(args) == 0 {
 		rd, err := kubectl.ListResourceDefinitions()
 		if err != nil {
-			system.Exit(err)
+			log.Fatal(err)
 		}
 		rd = rd.FilterVerbs("list")
 		if !allNamespaces {
@@ -27,7 +29,7 @@ func resources(cmd *cobra.Command, args []string) {
 	}
 	results, err := kubectl.ListResources(resources, namespace, allNamespaces)
 	if err != nil {
-		system.Exit(err)
+		log.Fatal(err)
 	}
 	for _, result := range results {
 		fmt.Println(result)

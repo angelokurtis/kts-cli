@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/certificates"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/clusters"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/containers"
@@ -8,9 +10,9 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/ingresses"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/labels"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/pods"
+	"github.com/angelokurtis/kts-cli/cmd/kubernetes/resources"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/services"
 	"github.com/angelokurtis/kts-cli/internal/system"
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -34,12 +36,7 @@ func init() {
 	Command.AddCommand(deployments.Command)
 	Command.AddCommand(pods.Command)
 	Command.AddCommand(certificates.Command)
-
-	listCommand := &cobra.Command{Use: "resources", Run: resources}
-	listCommand.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If present, list the requested object(s) across all namespaces. Namespace in current\ncontext is ignored even if specified with --namespace.")
-	listCommand.PersistentFlags().StringVar(&group, "group", "", "")
-	listCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "")
-	Command.AddCommand(listCommand)
+	Command.AddCommand(resources.Command)
 
 	manifestsCommand := &cobra.Command{Use: "manifests", Run: manifests}
 	manifestsCommand.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If present, resources the requested object(s) across all namespaces. Namespace in current\ncontext is ignored even if specified with --namespace.")
