@@ -3,11 +3,12 @@ package kubectl
 import (
 	"bufio"
 	"bytes"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/pkg/errors"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
 )
 
 var emptyChar int32 = 32
@@ -21,7 +22,7 @@ func ListResourceDefinitions() (*ResourcesDefinitions, error) {
 	}
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	resources := &ResourcesDefinitions{}
 	columns := make([]int, 0, 0)
@@ -171,7 +172,7 @@ func NewResourceDefinition(line string, indexes []int) (*ResourceDefinition, err
 			var err error
 			namespaced, err = strconv.ParseBool(strings.TrimSpace(line[indexes[i-1]:index]))
 			if err != nil {
-				return nil, err
+				return nil, errors.WithStack(err)
 			}
 		case 4:
 			kind = strings.TrimSpace(line[indexes[i-1]:index])

@@ -9,10 +9,11 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/pkg/app/yq"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/app/yq"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListResources(resources, namespace string, allNamespaces bool) ([]string, error) {
@@ -28,7 +29,7 @@ func ListResources(resources, namespace string, allNamespaces bool) ([]string, e
 	}
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	res := make([]string, 0, 0)
 	for scanner.Scan() {
