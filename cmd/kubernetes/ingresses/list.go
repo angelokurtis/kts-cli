@@ -2,11 +2,13 @@ package ingresses
 
 import (
 	"os"
+	"strings"
+
+	"github.com/olekukonko/tablewriter"
+	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/olekukonko/tablewriter"
-	"github.com/spf13/cobra"
 )
 
 func list(cmd *cobra.Command, args []string) {
@@ -30,10 +32,18 @@ func list(cmd *cobra.Command, args []string) {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Kind", "Namespace", "Name", "External IP"})
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetColumnSeparator("")
 	table.SetBorder(false)
+	table.SetHeaderLine(false)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetHeader([]string{"Kind", "Namespace", "Name", "External IP", "Host"})
 	for _, ingress := range ingresses {
-		table.Append([]string{"Ingress", ingress.Namespace, ingress.Name, ingress.ExternalIP()})
+		hosts := make([]string, 0)
+		for _, rule := range ingress.Spec.Rules {
+			hosts = append(hosts, rule.Host)
+		}
+		table.Append([]string{"Ingress", ingress.Namespace, ingress.Name, ingress.ExternalIP(), strings.Join(hosts, "\n")})
 	}
 	for _, service := range services.Items {
 		m := service.Metadata
