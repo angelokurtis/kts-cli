@@ -4,7 +4,7 @@
 //go:build !wireinject
 // +build !wireinject
 
-package repositories
+package tags
 
 import (
 	"github.com/angelokurtis/kts-cli/pkg/app/dockerhub"

@@ -45,16 +45,7 @@ type Repository struct {
 }
 
 type Affiliation string
-
-const (
-	Owner Affiliation = "owner"
-)
-
 type RepositoryType string
-
-const (
-	Image RepositoryType = "image"
-)
 
 func (c *Client) ListRepositories(hubuser string) ([]*Repository, error) {
 	url := baseURL + "/v2/repositories/" + hubuser
