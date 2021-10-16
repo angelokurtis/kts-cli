@@ -56,8 +56,8 @@ const (
 	Image RepositoryType = "image"
 )
 
-func (c *Client) ListRepositories(namespace string) ([]*Repository, error) {
-	url := baseURL + "/v2/repositories/" + namespace
+func (c *Client) ListRepositories(hubuser string) ([]*Repository, error) {
+	url := baseURL + "/v2/repositories/" + hubuser
 	method := "GET"
 
 	req, err := http.NewRequest(method, url, nil)
