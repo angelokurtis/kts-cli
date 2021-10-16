@@ -25,7 +25,8 @@ func init() {
 
 // iptv channels
 func channels(cmd *cobra.Command, args []string) {
-	file, err := os.Open("/home/tiagoangelo/Downloads/tv_channels_jrGF1_plus.m3u")
+	dirname, err := os.UserHomeDir()
+	file, err := os.Open(dirname + "/Downloads/tv_channels_jrGF1_plus.m3u")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,7 +53,7 @@ func channels(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = channels.Write("/home/tiagoangelo/Downloads/channels.m3u")
+	err = channels.Write(dirname + "/Downloads/premiere.m3u")
 	if err != nil {
 		log.Fatal(err)
 	}
