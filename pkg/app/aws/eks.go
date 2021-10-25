@@ -44,18 +44,36 @@ func SelectEKSCluster() (string, error) {
 	return selected, nil
 }
 
-func ListEKSClusters() ([]string, error) {
-	out, err := bash.RunAndLogRead("aws eks list-clusters")
-	if err != nil {
-		return nil, err
+func ListEKSClusters(region ...string) ([]string, error) {
+	if len(region) == 0 {
+		out, err := bash.RunAndLogRead("aws eks list-clusters")
+		if err != nil {
+			return nil, err
+		}
+
+		var eks *eksClusterList
+		if err := json.Unmarshal(out, &eks); err != nil {
+			return nil, errors.WithStack(err)
+		}
+
+		return eks.Clusters, nil
 	}
 
-	var eks *eksClusterList
-	if err := json.Unmarshal(out, &eks); err != nil {
-		return nil, errors.WithStack(err)
-	}
+	clusters := make([]string, 0, 0)
+	for _, r := range region {
+		out, err := bash.RunAndLogRead("aws eks list-clusters --region " + r)
+		if err != nil {
+			return nil, err
+		}
 
-	return eks.Clusters, nil
+		var eks *eksClusterList
+		if err := json.Unmarshal(out, &eks); err != nil {
+			return nil, errors.WithStack(err)
+		}
+
+		clusters = append(clusters, eks.Clusters...)
+	}
+	return clusters, nil
 }
 
 func DescribeEKSCluster(cluster string) (*Cluster, error) {
