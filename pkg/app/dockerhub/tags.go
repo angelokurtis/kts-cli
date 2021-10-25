@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -57,11 +58,16 @@ type Image struct {
 	LastPushed   *time.Time  `json:"last_pushed"`
 }
 
-type OS string
-type Status string
-type LastUpdaterUsername string
+type (
+	OS                  string
+	Status              string
+	LastUpdaterUsername string
+)
 
 func (c *Client) ListTags(repository string) ([]*Tag, int64, error) {
+	if !strings.Contains(repository, "/") {
+		repository = "library/" + repository
+	}
 	url := baseURL + "/v2/repositories/" + repository + "/tags/?page_size=1000000&page=1"
 	method := "GET"
 
