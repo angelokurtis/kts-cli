@@ -65,8 +65,14 @@ func list(cmd *cobra.Command, args []string) {
 
 	sort.Slice(images, func(i, j int) bool {
 		it := images[i].Pushed
+		if it == nil {
+			it = new(time.Time)
+		}
 		jt := images[j].Pushed
-		return it.After(jt)
+		if jt == nil {
+			jt = new(time.Time)
+		}
+		return it.After(*jt)
 	})
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -79,7 +85,12 @@ func list(cmd *cobra.Command, args []string) {
 
 	table.SetHeader([]string{"IMAGE", "TAG", "DIGEST", "SIZE", "UPDATED"})
 	for _, img := range images {
-		table.Append([]string{repo, strings.Join(img.TagNames(), ", "), img.Digest, ByteCount(img.Size), prettytime.Format(img.Pushed)})
+		var updated string
+		if img.Pushed != nil {
+			t := *img.Pushed
+			updated = fmt.Sprintf("%s (%s)", t.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(t))
+		}
+		table.Append([]string{repo, strings.Join(img.TagNames(), ", "), img.Digest, ByteCount(img.Size), updated})
 	}
 
 	table.Render()
@@ -108,7 +119,7 @@ func ByteCount(b int64) string {
 
 type Image struct {
 	Tags         []*Tag
-	Pushed       time.Time
+	Pushed       *time.Time
 	Size         int64
 	Architecture string
 	Digest       string

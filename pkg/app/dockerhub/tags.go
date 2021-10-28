@@ -54,7 +54,7 @@ type Image struct {
 	Size         int64       `json:"size"`
 	Status       Status      `json:"status"`
 	LastPulled   string      `json:"last_pulled"`
-	LastPushed   time.Time   `json:"last_pushed"`
+	LastPushed   *time.Time  `json:"last_pushed"`
 }
 
 type OS string

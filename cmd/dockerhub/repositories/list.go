@@ -45,12 +45,12 @@ func list(cmd *cobra.Command, args []string) {
 	table.SetColWidth(100)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 	for _, repo := range repos {
-		t, err := time.Parse(time.RFC3339, repo.LastUpdated)
-		if err != nil {
-			log.Fatal(err)
-		}
 		repository := fmt.Sprintf("%s/%s", repo.Namespace, repo.Name)
-		updated := fmt.Sprintf("%s (%s)", t.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(t))
+		var updated string
+		if repo.LastUpdated != nil {
+			t := *repo.LastUpdated
+			updated = fmt.Sprintf("%s (%s)", t.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(t))
+		}
 		webpage := fmt.Sprintf("https://hub.docker.com/r/%s/%s", repo.Namespace, repo.Name)
 		pulls := printer.Sprintf("%d", repo.PullCount)
 		table.Append([]string{repository, updated, pulls, webpage})

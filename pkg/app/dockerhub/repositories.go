@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -37,7 +38,7 @@ type Repository struct {
 	CanEdit           bool           `json:"can_edit"`
 	StarCount         int64          `json:"star_count"`
 	PullCount         int64          `json:"pull_count"`
-	LastUpdated       string         `json:"last_updated"`
+	LastUpdated       *time.Time     `json:"last_updated"`
 	IsMigrated        bool           `json:"is_migrated"`
 	CollaboratorCount int64          `json:"collaborator_count"`
 	Affiliation       Affiliation    `json:"affiliation"`
@@ -48,7 +49,7 @@ type Affiliation string
 type RepositoryType string
 
 func (c *Client) ListRepositories(hubuser string) ([]*Repository, error) {
-	url := baseURL + "/v2/repositories/" + hubuser
+	url := baseURL + "/v2/repositories/" + hubuser + "?page=1&page_size=1000000"
 	method := "GET"
 
 	req, err := http.NewRequest(method, url, nil)
