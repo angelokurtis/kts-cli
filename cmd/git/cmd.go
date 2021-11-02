@@ -1,9 +1,11 @@
 package git
 
 import (
+	"github.com/spf13/cobra"
+
+	"github.com/angelokurtis/kts-cli/cmd/git/commits"
 	"github.com/angelokurtis/kts-cli/cmd/git/tags"
 	"github.com/angelokurtis/kts-cli/internal/system"
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -22,4 +24,5 @@ func init() {
 	cloneCommand := &cobra.Command{Use: "clone", Run: clone}
 	cloneCommand.PersistentFlags().BoolVar(&open, "open", false, "")
 	Command.AddCommand(cloneCommand)
+	Command.AddCommand(commits.Command)
 }
