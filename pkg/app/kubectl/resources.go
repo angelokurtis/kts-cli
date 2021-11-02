@@ -16,6 +16,43 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
+func ListResourcesOwners(resources, namespace string, allNamespaces bool) ([]Item, error) {
+	cmd := "kubectl get " + resources + " -o=json"
+	if allNamespaces {
+		cmd += " --all-namespaces"
+	} else if namespace != "" {
+		cmd = cmd + " -n " + namespace
+	}
+	out, err := bash.RunAndLogRead(cmd)
+	if err != nil {
+		return nil, err
+	}
+	var col *collection
+	if err := json.Unmarshal(out, &col); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	counter := make(map[string]int)
+	for _, item := range col.Items {
+		counter[item.Metadata.UID] = 0
+	}
+
+	for _, item := range col.Items {
+		for _, owner := range item.Metadata.OwnerReferences {
+			counter[owner.UID]++
+		}
+	}
+
+	items := make([]Item, 0)
+	for _, item := range col.Items {
+		item.Dependents = counter[item.Metadata.UID]
+		if len(item.Metadata.OwnerReferences) == 0 && item.Dependents > 0 {
+			items = append(items, item)
+		}
+	}
+	return items, nil
+}
+
 func ListResources(resources, namespace string, allNamespaces bool) ([]string, error) {
 	cmd := []string{"get", resources}
 	if allNamespaces {
@@ -270,4 +307,5 @@ type Item struct {
 	APIVersion string   `json:"apiVersion"`
 	Kind       string   `json:"kind"`
 	Metadata   Metadata `json:"metadata"`
+	Dependents int      `json:"-"`
 }

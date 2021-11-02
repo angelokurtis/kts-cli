@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/angelokurtis/kts-cli/internal/kube"
 	"github.com/pkg/errors"
 	extensions "k8s.io/api/extensions/v1beta1"
 	apis "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/angelokurtis/kts-cli/internal/kube"
 )
 
 func ListIngresses() ([]*Ingress, error) {
@@ -50,6 +51,7 @@ type Metadata struct {
 	Generation      int               `json:"generation"`
 	ResourceVersion string            `json:"resourceVersion"`
 	UID             string            `json:"uid"`
+	OwnerReferences []*OwnerReference `json:"ownerReferences"`
 }
 
 type Rule struct {
