@@ -9,7 +9,7 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
-func ListReleases(options ...ListReleasesOptionFunc) (Releases, error) {
+func ListReleases(options ...OptionFunc) (Releases, error) {
 	o := new(Option)
 	if err := o.apply(options...); err != nil {
 		return nil, err

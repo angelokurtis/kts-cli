@@ -17,23 +17,31 @@ var (
 
 // kts helm revisions
 func revisions(cmd *cobra.Command, args []string) {
+	opt := []helm.OptionFunc{helm.OnNamespace(namespace)}
+	if allNamespaces {
+		opt = append(opt, helm.OnAnyNamespace())
+	}
 	release := ""
 	if len(args) > 0 {
 		release = args[0]
 	} else {
-		opt := []helm.ListReleasesOptionFunc{helm.OnNamespace(namespace)}
-		if allNamespaces {
-			opt = append(opt, helm.OnAnyNamespace())
-		}
 		releases, err := helm.ListReleases(opt...)
 		dieOnErr(err)
 
 		r, err := releases.SelectOne()
 		dieOnErr(err)
 		release = r.Name
-		namespace = r.Namespace
+		opt = append(opt, helm.OnNamespace(r.Namespace))
 	}
-	fmt.Println(release + " -n " + namespace)
+	history, err := helm.GetHistory(release, opt...)
+	dieOnErr(err)
+
+	history, err = history.SelectMany()
+	dieOnErr(err)
+
+	for _, revision := range history {
+		fmt.Println(revision.Number)
+	}
 }
 
 func init() {

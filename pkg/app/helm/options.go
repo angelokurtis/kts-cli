@@ -1,15 +1,15 @@
 package helm
 
-type ListReleasesOptionFunc func(*Option) error
+type OptionFunc func(*Option) error
 
-func OnNamespace(namespace string) ListReleasesOptionFunc {
+func OnNamespace(namespace string) OptionFunc {
 	return func(o *Option) error {
 		o.Namespace = namespace
 		return nil
 	}
 }
 
-func OnAnyNamespace() ListReleasesOptionFunc {
+func OnAnyNamespace() OptionFunc {
 	return func(o *Option) error {
 		o.Namespace = ""
 		o.AllNamespaces = true
@@ -22,7 +22,7 @@ type Option struct {
 	AllNamespaces bool
 }
 
-func (o *Option) apply(options ...ListReleasesOptionFunc) error {
+func (o *Option) apply(options ...OptionFunc) error {
 	for _, fn := range options {
 		if fn == nil {
 			continue
