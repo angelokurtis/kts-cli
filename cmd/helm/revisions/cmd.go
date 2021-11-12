@@ -2,11 +2,13 @@ package revisions
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/helm"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 var (
@@ -40,7 +42,20 @@ func revisions(cmd *cobra.Command, args []string) {
 	dieOnErr(err)
 
 	for _, revision := range history {
-		fmt.Println(revision.Number)
+		_, err = bash.Run(fmt.Sprintf("mkdir -p helm-releases/%s/%d", release, revision.Number))
+		dieOnErr(err)
+
+		manifests, err := helm.GetManifests(release, revision.Number, opt...)
+		dieOnErr(err)
+
+		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/manifests.yaml", release, revision.Number), manifests, 0o644)
+		dieOnErr(err)
+
+		values, err := helm.GetValues(release, revision.Number, opt...)
+		dieOnErr(err)
+
+		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/values.yaml", release, revision.Number), values, 0o644)
+		dieOnErr(err)
 	}
 }
 
