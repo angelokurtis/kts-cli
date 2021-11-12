@@ -9,8 +9,19 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
-func ListReleases() (Releases, error) {
-	out, err := bash.RunAndLogRead("helm list -A -o=json")
+func ListReleases(options ...ListReleasesOptionFunc) (Releases, error) {
+	o := new(Option)
+	if err := o.apply(options...); err != nil {
+		return nil, err
+	}
+
+	cmd := "helm list -a -o=json"
+	if o.AllNamespaces {
+		cmd += " -A"
+	} else if o.Namespace != "" {
+		cmd += " -n " + o.Namespace
+	}
+	out, err := bash.RunAndLogRead(cmd)
 	if err != nil {
 		return nil, err
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
 	"github.com/angelokurtis/kts-cli/cmd/git"
 	golang "github.com/angelokurtis/kts-cli/cmd/go"
+	"github.com/angelokurtis/kts-cli/cmd/helm"
 	"github.com/angelokurtis/kts-cli/cmd/ifood"
 	"github.com/angelokurtis/kts-cli/cmd/iptv"
 	"github.com/angelokurtis/kts-cli/cmd/istio"
@@ -67,6 +68,7 @@ func init() {
 	cmd.AddCommand(gcp.Command)
 	cmd.AddCommand(git.Command)
 	cmd.AddCommand(golang.Command)
+	cmd.AddCommand(helm.Command)
 	cmd.AddCommand(ifood.Command)
 	cmd.AddCommand(iptv.Command)
 	cmd.AddCommand(istio.Command)
