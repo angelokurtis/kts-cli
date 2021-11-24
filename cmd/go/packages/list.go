@@ -6,9 +6,10 @@ import (
 
 	"github.com/gookit/color"
 
-	"github.com/angelokurtis/kts-cli/pkg/app/golang"
 	"github.com/disiqueira/gotree"
 	"github.com/spf13/cobra"
+
+	"github.com/angelokurtis/kts-cli/pkg/app/golang"
 )
 
 func packages(_ *cobra.Command, args []string) {
@@ -21,7 +22,7 @@ func packages(_ *cobra.Command, args []string) {
 
 	root := gotree.New(color.BgGray.Text(dir))
 	for _, ydir := range dirs {
-		pkg, err := golang.ListPackages(ydir)
+		pkg, err := golang.DescribePackage(ydir)
 		check(err)
 
 		imports := pkg.InternalImports()

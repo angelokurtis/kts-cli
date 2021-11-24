@@ -3,11 +3,13 @@ package golang
 import (
 	"encoding/json"
 	"fmt"
+	"os/exec"
 	"sort"
 	"strings"
 
-	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func UnmarshalPackage(data []byte) (Package, error) {
@@ -53,6 +55,16 @@ func (p *Package) InternalImports() []string {
 	return i
 }
 
+func (p *Package) ImportsOf(dep string) []string {
+	i := make([]string, 0)
+	for _, s := range p.Imports {
+		if strings.HasPrefix(s, dep) {
+			i = append(i, s)
+		}
+	}
+	return i
+}
+
 type Module struct {
 	Path      string `json:"Path"`
 	Main      bool   `json:"Main"`
@@ -61,7 +73,27 @@ type Module struct {
 	GoVersion string `json:"GoVersion"`
 }
 
-func ListPackages(dir string) (*Package, error) {
+type Packages []*Package
+
+func (p Packages) Deps() []string {
+	deps := make([]string, 0, 0)
+	for _, pkg := range p {
+		deps = dedupe(deps, pkg.Deps...)
+	}
+	return deps
+}
+
+func (p Packages) Usages(dep string) Packages {
+	owners := make([]*Package, 0, 0)
+	for _, pkg := range p {
+		if contains(pkg.Imports, dep) {
+			owners = append(owners, pkg)
+		}
+	}
+	return owners
+}
+
+func DescribePackage(dir string) (*Package, error) {
 	j, err := bash.Run(fmt.Sprintf("cd %s && go list -json", dir))
 	if err != nil {
 		return nil, err
@@ -73,4 +105,28 @@ func ListPackages(dir string) (*Package, error) {
 	}
 
 	return &pkg, nil
+}
+
+func ListPackages(dir string) (Packages, error) {
+	cmd := "cd " + dir + ` && go list -json ./... | jq -s .`
+	j, err := exec.Command("bash", "-c", cmd).Output()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var pkg []*Package
+	if err = json.Unmarshal(j, &pkg); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return pkg, nil
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if strings.HasPrefix(a, e) {
+			return true
+		}
+	}
+	return false
 }
