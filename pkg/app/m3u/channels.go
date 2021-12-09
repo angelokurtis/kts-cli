@@ -2,73 +2,55 @@ package m3u
 
 import (
 	"bufio"
-	"fmt"
 	"os"
-	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	changecase "github.com/ku/go-change-case"
+	"github.com/jamesnetherton/m3u"
 	"github.com/pkg/errors"
 )
 
 func ListChannels(filedir string) (Channels, error) {
-	file, err := os.Open(filedir)
+	playlist, err := m3u.Parse(filedir)
 	if err != nil {
 		return nil, errors.WithStack(err)
+	}
+	return playlist.Tracks, nil
+}
+
+type Channels []m3u.Track
+
+func (c Channels) Write(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return errors.WithStack(err)
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	extinf := ""
-	channels := make(Channels, 0, 0)
-	for scanner.Scan() {
-		txt := scanner.Text()
-		if strings.HasPrefix(txt, "#EXTINF:-1") {
-			extinf = txt
-		} else if extinf != "" {
-			channels = append(channels, NewChannel(extinf, txt))
-			extinf = ""
-		}
+	if err = m3u.MarshallInto(m3u.Playlist{Tracks: c}, bufio.NewWriter(file)); err != nil {
+		return errors.WithStack(err)
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return channels, nil
+	return nil
 }
 
-type Channels []*Channel
-
-func (c Channels) Write(path string) error {
-	var b strings.Builder
-	fmt.Fprint(&b, "#EXTM3U\n")
+func (c Channels) Get(name string) *m3u.Track {
 	for _, channel := range c {
-		fmt.Fprintf(&b, "#EXTINF:-1 tvg-logo=\"%s\" group-title=\"%s\",%s\n%s\n", channel.Logo, channel.Group, channel.Name, channel.Address)
-	}
-
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	_, err = f.WriteString(b.String())
-	return err
-}
-
-func (c Channels) Get(id string) *Channel {
-	for _, channel := range c {
-		if channel.ID == id {
-			return channel
+		if channel.Name == name {
+			return &m3u.Track{
+				Name:   channel.Name,
+				Length: channel.Length,
+				URI:    channel.URI,
+				Tags:   channel.Tags,
+			}
 		}
 	}
 	return nil
 }
 
-func (c Channels) IDs() []string {
+func (c Channels) Names() []string {
 	n := make([]string, 0, 0)
 	for _, channel := range c {
-		n = append(n, channel.ID)
+		n = append(n, channel.Name)
 	}
 	return n
 }
@@ -79,41 +61,21 @@ func (c Channels) SelectMany() (Channels, error) {
 	}
 	prompt := &survey.MultiSelect{
 		Message: "Select Channels:",
-		Options: c.IDs(),
+		Options: c.Names(),
 	}
 
 	var selects []string
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	channels := make(Channels, 0, len(selects))
 	for _, name := range selects {
-		channels = append(channels, c.Get(name))
+		channel := c.Get(name)
+		if channel != nil {
+			channels = append(channels, *channel)
+		}
 	}
 	return channels, nil
-}
-
-type Channel struct {
-	Logo    string
-	Address string
-	Group   string
-	Name    string
-	ID      string
-}
-
-func NewChannel(extinf string, addr string) *Channel {
-	logo := strings.Split(extinf, "tvg-logo=\"")[1]
-	logo = strings.Split(logo, "\"")[0]
-	group := strings.Split(extinf, "group-title=\"")[1]
-	group = strings.Split(group, "\"")[0]
-	name := strings.Split(extinf, ",")[1]
-	return &Channel{
-		Logo:    logo,
-		Address: addr,
-		Group:   group,
-		Name:    name,
-		ID:      changecase.Snake(name),
-	}
 }

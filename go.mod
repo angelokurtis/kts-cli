@@ -11,6 +11,7 @@ require (
 	github.com/enescakir/emoji v1.0.0
 	github.com/google/wire v0.5.0
 	github.com/gookit/color v1.3.0
+	github.com/jamesnetherton/m3u v0.3.0
 	github.com/ku/go-change-case v0.0.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/olekukonko/tablewriter v0.0.4

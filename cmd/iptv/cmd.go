@@ -25,13 +25,16 @@ func channels(cmd *cobra.Command, args []string) {
 	dirname, err := os.UserHomeDir()
 	dieOnErr(err)
 
-	channels, err := m3u.ListChannels(dirname + "/Downloads/tv_channels.m3u")
+	channels, err := m3u.ListChannels(dirname + "/tv_channels.m3u")
 	dieOnErr(err)
 
 	channels, err = channels.SelectMany()
 	dieOnErr(err)
 
-	err = channels.Write(dirname + "/Downloads/globo.m3u")
+	current, err := os.Getwd()
+	dieOnErr(err)
+
+	err = channels.Write(current + "/selected_channels.m3u")
 	dieOnErr(err)
 }
 
