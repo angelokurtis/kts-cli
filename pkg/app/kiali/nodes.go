@@ -97,7 +97,7 @@ func (n Nodes) SelectOne() (*Node, error) {
 		Options: names,
 	}
 
-	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

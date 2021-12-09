@@ -2,9 +2,10 @@ package gcloud
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
-	"time"
 )
 
 func ListGKEClustersNames() ([]string, error) {
@@ -62,7 +63,7 @@ func SelectGKECluster() (*Cluster, error) {
 		Options: options,
 	}
 
-	err = survey.AskOne(prompt, &k)
+	err = survey.AskOne(prompt, &k, survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

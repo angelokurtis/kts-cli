@@ -9,11 +9,11 @@ import (
 func ListProviders() []string {
 	return []string{
 		"aws",
-		//"azurerm",
+		// "azurerm",
 		"google",
 		"helm",
 		"kubernetes",
-		//"vault",
+		// "vault",
 	}
 }
 
@@ -29,7 +29,7 @@ func SelectProvider() (*Provider, error) {
 			Options: providers,
 		}
 
-		err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+		err := survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}

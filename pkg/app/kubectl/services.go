@@ -2,10 +2,11 @@ package kubectl
 
 import (
 	"encoding/json"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/pkg/errors"
 	"sort"
 	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
 )
 
 func ListServices() (*Services, error) {
@@ -50,7 +51,7 @@ func (s *Services) SelectLabels() (map[string][]string, error) {
 		Options: options,
 	}
 
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

@@ -1,13 +1,14 @@
 package gitlab
 
 import (
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/pkg/errors"
-	"github.com/xanzy/go-gitlab"
 	"net/url"
 	"os"
 	"sort"
 	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
+	"github.com/xanzy/go-gitlab"
 )
 
 func SearchMergeRequestsByUser(username string) (MergeRequests, error) {
@@ -113,7 +114,7 @@ func (m *MergeRequests) SelectOne() (*MergeRequest, error) {
 		Options: paths,
 	}
 
-	err = survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+	err = survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

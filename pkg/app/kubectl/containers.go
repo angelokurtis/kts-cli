@@ -2,10 +2,11 @@ package kubectl
 
 import (
 	"encoding/json"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/pkg/errors"
 	"strings"
 	"time"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
 )
 
 func ListContainersByDeployment(deploy *Deployment) (*Containers, error) {
@@ -172,7 +173,7 @@ func (c *Containers) Pods() []string {
 	for _, container := range c.Items {
 		prefix := strings.Split(container.Pod, "-"+container.PodTemplateHash)[0]
 		p = dedupeStr(p, prefix)
-		//p = dedupeStr(p, container.Pod)
+		// p = dedupeStr(p, container.Pod)
 	}
 	return p
 }
@@ -209,7 +210,7 @@ func (c *Containers) SelectMany() (*Containers, error) {
 		Options: names,
 	}
 
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -232,7 +233,7 @@ func (c *Containers) FilterExposed() *Containers {
 	return &Containers{Items: containers}
 }
 
-//func (c *Containers) SelectOnePort() *Container {
+// func (c *Containers) SelectOnePort() *Container {
 //	containers := make(map[string]*Container, 0)
 //	names := make([]string, 0, 0)
 //	for _, container := range c.Items {
@@ -253,10 +254,10 @@ func (c *Containers) FilterExposed() *Containers {
 //		Options: names,
 //	}
 //
-//	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+//	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 //	if err != nil {
 //		return nil, errors.WithStack(err)
 //	}
 //
 //	return containers[selected], nil
-//}
+// }

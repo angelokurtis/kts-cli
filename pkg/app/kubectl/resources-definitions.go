@@ -102,7 +102,7 @@ func (r *ResourcesDefinitions) SelectGroups() ([]string, error) {
 		Options: groups,
 	}
 
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

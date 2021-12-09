@@ -2,11 +2,13 @@ package deployments
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/spf13/cobra"
-	"strings"
 )
 
 // kube deployments update-images
@@ -25,7 +27,7 @@ func updateImages(cmd *cobra.Command, args []string) {
 	}
 	tag := ""
 	prompt := &survey.Input{Message: "Inform the new tag:"}
-	err = survey.AskOne(prompt, &tag)
+	err = survey.AskOne(prompt, &tag, survey.WithKeepFilter(true))
 	if err != nil {
 		log.Fatal(err)
 	}

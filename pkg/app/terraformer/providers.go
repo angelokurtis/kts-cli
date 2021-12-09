@@ -7,31 +7,31 @@ import (
 
 func ListProviders() Providers {
 	return []string{
-		//"alicloud",
+		// "alicloud",
 		"aws",
-		//"azure",
-		//"cloudflare",
-		//"commercetools",
-		//"datadog",
-		//"digitalocean",
-		//"fastly",
-		//"github",
-		//"gmailfilter",
+		// "azure",
+		// "cloudflare",
+		// "commercetools",
+		// "datadog",
+		// "digitalocean",
+		// "fastly",
+		// "github",
+		// "gmailfilter",
 		"google",
-		//"heroku",
-		//"keycloak",
+		// "heroku",
+		// "keycloak",
 		"kubernetes",
-		//"linode",
-		//"logzio",
-		//"mikrotik",
-		//"newrelic",
-		//"ns1",
-		//"octopusdeploy",
-		//"openstack",
-		//"plan",
-		//"rabbitmq",
-		//"vultr",
-		//"yandex",
+		// "linode",
+		// "logzio",
+		// "mikrotik",
+		// "newrelic",
+		// "ns1",
+		// "octopusdeploy",
+		// "openstack",
+		// "plan",
+		// "rabbitmq",
+		// "vultr",
+		// "yandex",
 	}
 }
 
@@ -45,7 +45,7 @@ func (p Providers) SelectProvider() (string, error) {
 			Options: p,
 		}
 
-		err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+		err := survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 		if err != nil {
 			return "", errors.WithStack(err)
 		}

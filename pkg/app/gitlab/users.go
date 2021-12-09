@@ -97,7 +97,7 @@ func (u *userList) selectOne() (*gitlab.User, error) {
 	}
 
 	answer := ""
-	err := survey.AskOne(prompt, &answer)
+	err := survey.AskOne(prompt, &answer, survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

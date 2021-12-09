@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
-	"github.com/pkg/errors"
 	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListResources() (Resources, error) {
@@ -32,7 +34,7 @@ func (r Resources) SelectMany() (Resources, error) {
 		Options: r,
 	}
 
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

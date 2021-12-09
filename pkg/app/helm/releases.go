@@ -2,9 +2,11 @@ package helm
 
 import (
 	"encoding/json"
+
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListReleases() (Releases, error) {
@@ -53,7 +55,7 @@ func (r Releases) SelectOne() (*Release, error) {
 		Options: ids,
 	}
 
-	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

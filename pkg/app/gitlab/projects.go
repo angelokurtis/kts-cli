@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"fmt"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/xanzy/go-gitlab"
@@ -68,7 +69,7 @@ func (p *projectList) selectOne() (*gitlab.Project, error) {
 	}
 
 	answer := ""
-	err := survey.AskOne(prompt, &answer)
+	err := survey.AskOne(prompt, &answer, survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

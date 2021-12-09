@@ -3,13 +3,15 @@ package kubectl
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
-	"github.com/enescakir/emoji"
-	"github.com/pkg/errors"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/enescakir/emoji"
+	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListDeployments(namespace string, allNamespaces bool) (*Deployments, error) {
@@ -129,7 +131,7 @@ func (d *Deployments) SelectOne() (*Deployment, error) {
 		Options: names,
 	}
 
-	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -148,7 +150,7 @@ func (d *Deployments) SelectMany() (*Deployments, error) {
 	}
 
 	var selects []string
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -276,16 +278,16 @@ func (d *Deployment) StatusColor() string {
 func (d *Deployment) HasIstioSidecar() bool {
 	containers := d.Spec.Template.Spec.Containers
 	if len(containers) < 2 {
-		//log.Debugf("%s/%s has not sidecar", d.Metadata.Namespace, d.Metadata.Name)
+		// log.Debugf("%s/%s has not sidecar", d.Metadata.Namespace, d.Metadata.Name)
 		return false
 	}
 	for _, container := range containers {
 		if container.Name == "istio-proxy" {
-			//log.Debugf("%s/%s has the sidecar", d.Metadata.Namespace, d.Metadata.Name)
+			// log.Debugf("%s/%s has the sidecar", d.Metadata.Namespace, d.Metadata.Name)
 			return true
 		}
 	}
-	//log.Debugf("%s/%s has not sidecar", d.Metadata.Namespace, d.Metadata.Name)
+	// log.Debugf("%s/%s has not sidecar", d.Metadata.Namespace, d.Metadata.Name)
 	return false
 }
 
@@ -302,7 +304,7 @@ func (d *Deployment) GetContainer(name string) *Container {
 func (d *Deployment) IsInjectable() bool {
 	annotations := d.Spec.Template.Metadata.Annotations
 	inject := annotations["sidecar.istio.io/inject"]
-	//log.Debugf("deployment %s/%s should inject? %s", d.Metadata.Namespace, d.Metadata.Name, inject)
+	// log.Debugf("deployment %s/%s should inject? %s", d.Metadata.Namespace, d.Metadata.Name, inject)
 	if inject == "false" {
 		return false
 	}

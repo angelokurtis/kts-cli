@@ -2,10 +2,12 @@ package kubectl
 
 import (
 	"encoding/json"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
-	"github.com/pkg/errors"
 	"time"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListNamespaces() (*Namespaces, error) {
@@ -57,7 +59,7 @@ func (n *Namespaces) SelectOne() (*Namespace, error) {
 		Options: names,
 	}
 
-	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -76,7 +78,7 @@ func (n *Namespaces) SelectMany() (*Namespaces, error) {
 	}
 
 	var selects []string
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

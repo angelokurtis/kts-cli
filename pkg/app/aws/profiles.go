@@ -3,11 +3,12 @@ package aws
 import (
 	"bufio"
 	"bytes"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"os/user"
 	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
 )
 
 func ListProfiles() ([]string, error) {
@@ -43,7 +44,7 @@ func SelectProfiles() ([]string, error) {
 		Options: profiles,
 	}
 
-	err = survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err = survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

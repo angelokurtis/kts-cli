@@ -2,9 +2,11 @@ package aws
 
 import (
 	"encoding/json"
+
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListECRImages(repo *ECRRepository) (*ECRImages, error) {
@@ -53,7 +55,7 @@ func (e *ECRRepositories) SelectMany() (*ECRRepositories, error) {
 		Options: uris,
 	}
 
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

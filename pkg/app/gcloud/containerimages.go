@@ -2,12 +2,13 @@ package gcloud
 
 import (
 	"encoding/json"
+	"strings"
+	"time"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
-	"strings"
-	"time"
 )
 
 func SelectContainerRepositories() ([]string, error) {
@@ -22,7 +23,7 @@ func SelectContainerRepositories() ([]string, error) {
 		Options: repositories,
 	}
 
-	err = survey.AskOne(prompt, &selects, survey.WithPageSize(25))
+	err = survey.AskOne(prompt, &selects, survey.WithPageSize(25), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -152,7 +153,7 @@ func SelectTags() ([]string, error) {
 		Options: tags,
 	}
 
-	err = survey.AskOne(prompt, &selects, survey.WithPageSize(25))
+	err = survey.AskOne(prompt, &selects, survey.WithPageSize(25), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

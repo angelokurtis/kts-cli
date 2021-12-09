@@ -125,7 +125,7 @@ func SelectResources(resources, namespace string, allNamespaces bool) ([]*resour
 		Options: options,
 	}
 
-	err = survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err = survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

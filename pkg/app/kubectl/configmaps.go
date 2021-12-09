@@ -3,9 +3,11 @@ package kubectl
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListConfigMaps() (*ConfigMaps, error) {
@@ -80,7 +82,7 @@ func (m *ConfigMaps) SelectOne() (*ConfigMap, error) {
 		Options: names,
 	}
 
-	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

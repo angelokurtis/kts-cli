@@ -3,9 +3,11 @@ package aws
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ConnectToEKSCluster(cluster string) error {
@@ -31,7 +33,7 @@ func SelectEKSCluster() (string, error) {
 			Options: clusters,
 		}
 
-		err = survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+		err = survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 		if err != nil {
 			return "", errors.WithStack(err)
 		}

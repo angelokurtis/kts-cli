@@ -4,11 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"strings"
+
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/pkg/errors"
+
 	"github.com/angelokurtis/kts-cli/pkg/app/gcloud"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
-	"github.com/pkg/errors"
-	"strings"
 )
 
 func ListResources(provider string) (*Resources, error) {
@@ -59,10 +61,10 @@ func (r *Resources) SelectMany() (*Resources, error) {
 		Renderer: survey.Renderer{},
 		Message:  "Select the Terraformer Resources:",
 		Options:  items,
-		//Default:  d,
+		// Default:  d,
 	}
 
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

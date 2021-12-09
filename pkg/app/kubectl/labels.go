@@ -3,12 +3,14 @@ package kubectl
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
-	"github.com/gookit/color"
-	"github.com/pkg/errors"
 	"sort"
 	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/gookit/color"
+	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func SelectLabel(resources string, namespace string, allNamespaces bool) (string, error) {
@@ -27,7 +29,7 @@ func SelectLabel(resources string, namespace string, allNamespaces bool) (string
 		Options: labels,
 	}
 
-	err = survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+	err = survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return "", errors.WithStack(err)
 	}

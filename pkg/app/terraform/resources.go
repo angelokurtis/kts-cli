@@ -2,12 +2,14 @@ package terraform
 
 import (
 	"fmt"
+	"io/ioutil"
+
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
 	changeCase "github.com/ku/go-change-case"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListProviderResources(provider string) []string {
@@ -25,40 +27,40 @@ func ListProviderResources(provider string) []string {
 		return nil
 	case "kubernetes":
 		return []string{
-			//"kubernetes_api_service",
-			//"kubernetes_certificate_signing_request",
-			//"kubernetes_cluster_role",
-			//"kubernetes_cluster_role_binding",
+			// "kubernetes_api_service",
+			// "kubernetes_certificate_signing_request",
+			// "kubernetes_cluster_role",
+			// "kubernetes_cluster_role_binding",
 			"kubernetes_config_map",
-			//"kubernetes_cron_job",
-			//"kubernetes_csi_driver",
-			//"kubernetes_daemonset",
-			//"kubernetes_default_service_account",
+			// "kubernetes_cron_job",
+			// "kubernetes_csi_driver",
+			// "kubernetes_daemonset",
+			// "kubernetes_default_service_account",
 			"kubernetes_deployment",
-			//"kubernetes_endpoints",
-			//"kubernetes_horizontal_pod_autoscaler",
-			//"kubernetes_ingress",
-			//"kubernetes_job",
-			//"kubernetes_limit_range",
-			//"kubernetes_mutating_webhook_configuration",
+			// "kubernetes_endpoints",
+			// "kubernetes_horizontal_pod_autoscaler",
+			// "kubernetes_ingress",
+			// "kubernetes_job",
+			// "kubernetes_limit_range",
+			// "kubernetes_mutating_webhook_configuration",
 			"kubernetes_namespace",
-			//"kubernetes_network_policy",
-			//"kubernetes_persistent_volume",
-			//"kubernetes_persistent_volume_claim",
-			//"kubernetes_pod",
-			//"kubernetes_pod_disruption_budget",
-			//"kubernetes_pod_security_policy",
-			//"kubernetes_priority_class",
-			//"kubernetes_replication_controller",
-			//"kubernetes_resource_quota",
-			//"kubernetes_role",
-			//"kubernetes_role_binding",
-			//"kubernetes_secret",
-			//"kubernetes_service",
-			//"kubernetes_service_account",
-			//"kubernetes_stateful_set",
-			//"kubernetes_storage_class",
-			//"kubernetes_validating_webhook_configuration",
+			// "kubernetes_network_policy",
+			// "kubernetes_persistent_volume",
+			// "kubernetes_persistent_volume_claim",
+			// "kubernetes_pod",
+			// "kubernetes_pod_disruption_budget",
+			// "kubernetes_pod_security_policy",
+			// "kubernetes_priority_class",
+			// "kubernetes_replication_controller",
+			// "kubernetes_resource_quota",
+			// "kubernetes_role",
+			// "kubernetes_role_binding",
+			// "kubernetes_secret",
+			// "kubernetes_service",
+			// "kubernetes_service_account",
+			// "kubernetes_stateful_set",
+			// "kubernetes_storage_class",
+			// "kubernetes_validating_webhook_configuration",
 		}
 	}
 	return nil
@@ -76,7 +78,7 @@ func SelectResource(provider string) (*Resource, error) {
 			Options: r,
 		}
 
-		err := survey.AskOne(prompt, &selected, survey.WithPageSize(10))
+		err := survey.AskOne(prompt, &selected, survey.WithPageSize(10), survey.WithKeepFilter(true))
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
