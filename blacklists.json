@@ -2,8 +2,13 @@
   {
     "Import": "github.com/angelokurtis/kts-cli/cmd",
     "Except": [
-      "/home/kurtis/wrkspc/github.com/angelokurtis/kts-cli/cmd/aws/ecr",
-      "/home/kurtis/wrkspc/github.com/angelokurtis/kts-cli/cmd/dockerhub"
+      "/home/kurtis/wrkspc/github.com/angelokurtis/kts-cli/cmd"
+    ]
+  },
+  {
+    "Import": "github.com/angelokurtis/kts-cli/pkg/bash",
+    "Except": [
+      "/home/kurtis/wrkspc/github.com/angelokurtis/kts-cli/pkg/app"
     ]
   }
 ]

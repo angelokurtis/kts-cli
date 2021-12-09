@@ -21,7 +21,6 @@ func analyze(cmd *cobra.Command, args []string) {
 	}
 	packages, err := golang.ListPackages(dir)
 	check(err)
-	_ = packages
 
 	dat, err := os.ReadFile(filepath.Join(dir, "blacklists.json"))
 	check(err)
@@ -43,8 +42,9 @@ func analyze(cmd *cobra.Command, args []string) {
 	for _, s := range found {
 		fmt.Println(s)
 	}
-
-	_ = blacklists
+	if len(found) > 0 {
+		os.Exit(2)
+	}
 }
 
 func check(err error) {
