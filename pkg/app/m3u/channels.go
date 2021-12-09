@@ -3,6 +3,7 @@ package m3u
 import (
 	"bufio"
 	"os"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/jamesnetherton/m3u"
@@ -33,9 +34,9 @@ func (c Channels) Write(path string) error {
 	return nil
 }
 
-func (c Channels) Get(name string) *m3u.Track {
+func (c Channels) Get(id string) *m3u.Track {
 	for _, channel := range c {
-		if channel.Name == name {
+		if strings.ReplaceAll(channel.Name, " ", ".") == id {
 			return &m3u.Track{
 				Name:   channel.Name,
 				Length: channel.Length,
@@ -47,10 +48,10 @@ func (c Channels) Get(name string) *m3u.Track {
 	return nil
 }
 
-func (c Channels) Names() []string {
+func (c Channels) IDs() []string {
 	n := make([]string, 0, 0)
 	for _, channel := range c {
-		n = append(n, channel.Name)
+		n = append(n, strings.ReplaceAll(channel.Name, " ", "."))
 	}
 	return n
 }
@@ -61,11 +62,12 @@ func (c Channels) SelectMany() (Channels, error) {
 	}
 	prompt := &survey.MultiSelect{
 		Message: "Select Channels:",
-		Options: c.Names(),
+		Options: c.IDs(),
+		Default: defaults(),
 	}
 
 	var selects []string
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
+	err := survey.AskOne(prompt, &selects, survey.WithPageSize(20), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -78,4 +80,18 @@ func (c Channels) SelectMany() (Channels, error) {
 		}
 	}
 	return channels, nil
+}
+
+func defaults() []string {
+	current, err := os.Getwd()
+	if err != nil {
+		return nil
+	}
+
+	channels, err := ListChannels(current + "/selected_channels.m3u")
+	if err != nil {
+		return nil
+	}
+
+	return channels.IDs()
 }
