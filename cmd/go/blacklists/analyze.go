@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/app/golang"
 )
 
-// kts go depguard analyze
 func analyze(cmd *cobra.Command, args []string) {
 	dir := "."
 	if len(args) > 0 {
@@ -29,9 +27,10 @@ func analyze(cmd *cobra.Command, args []string) {
 	check(err)
 
 	found := make([]string, 0, 0)
-	for _, blacklist := range blacklists {
+	for _, blacklist := range blacklists.Set {
 		for _, imp := range packages.Usages(blacklist.Import) {
-			if !contains(blacklist.Except, imp.Dir) && !strings.HasPrefix(blacklist.Import, imp.ImportPath) {
+			if !contains(blacklist.Except, imp.Dir) {
+				// if !contains(blacklist.Except, imp.Dir) && !strings.HasPrefix(blacklist.Import, imp.ImportPath) {
 				for _, s := range imp.ImportsOf(blacklist.Import) {
 					found = dedupe(found, golang.Search(imp.Dir, s))
 				}
@@ -55,7 +54,8 @@ func check(err error) {
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
-		if strings.HasPrefix(e, a) {
+		if e == a {
+			// if strings.HasPrefix(e, a) {
 			return true
 		}
 	}

@@ -109,6 +109,7 @@ func DescribePackage(dir string) (*Package, error) {
 
 func ListPackages(dir string) (Packages, error) {
 	cmd := "cd " + dir + ` && go list -json ./... | jq -s .`
+	// color.Primary.Println(cmd)
 	j, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
 		return nil, errors.WithStack(err)

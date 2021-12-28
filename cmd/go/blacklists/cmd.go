@@ -15,4 +15,5 @@ var (
 
 func init() {
 	Command.AddCommand(&cobra.Command{Use: "analyze", Run: analyze})
+	Command.AddCommand(&cobra.Command{Use: "generate", Run: generate})
 }
