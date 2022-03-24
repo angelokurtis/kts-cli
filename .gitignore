@@ -16,3 +16,6 @@ vendor/
 
 # Environment variables
 .env
+
+# Build artifacts
+out/*
