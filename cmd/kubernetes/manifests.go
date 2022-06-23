@@ -1,9 +1,10 @@
 package kubernetes
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/spf13/cobra"
 )
 
 // kube manifests -A ClusterRoleBinding
@@ -29,7 +30,7 @@ func manifests(cmd *cobra.Command, args []string) {
 	if err != nil {
 		system.Exit(err)
 	}
-	err = kubectl.SaveResourcesManifests(results, status)
+	err = kubectl.SaveResourcesManifests(results, status, decodeSecrets)
 	if err != nil {
 		system.Exit(err)
 	}

@@ -3,6 +3,7 @@ package kubectl
 import (
 	"bufio"
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -11,6 +12,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
+	yamlv3 "gopkg.in/yaml.v3"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/yq"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -138,9 +140,9 @@ func SelectResources(resources, namespace string, allNamespaces bool) ([]*resour
 	return res, nil
 }
 
-func SaveResourcesManifests(resources []*resource, keepStatus bool) error {
+func SaveResourcesManifests(resources []*resource, keepStatus, decodeSecrets bool) error {
 	for _, r := range resources {
-		err := saveResourceManifest(r, keepStatus)
+		err := saveResourceManifest(r, keepStatus, decodeSecrets)
 		if err != nil {
 			return err
 		}
@@ -148,7 +150,7 @@ func SaveResourcesManifests(resources []*resource, keepStatus bool) error {
 	return nil
 }
 
-func saveResourceManifest(resource *resource, keepStatus bool) error {
+func saveResourceManifest(resource *resource, keepStatus, decodeSecrets bool) error {
 	cmd := "kubectl get " + resource.FullKindName + " " + resource.Name + " -o yaml"
 	if resource.Namespace != "" {
 		cmd = cmd + " -n " + resource.Namespace
@@ -156,6 +158,31 @@ func saveResourceManifest(resource *resource, keepStatus bool) error {
 	out, err := bash.Run(cmd)
 	if err != nil {
 		return err
+	}
+
+	if resource.Kind == "Secret" && resource.Group == "" && decodeSecrets {
+		sec := make(map[string]interface{}, 0)
+		err = yamlv3.Unmarshal(out, &sec)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		strdata := make(map[string]string, 0)
+		if data := sec["data"]; data != nil {
+			if kv, ok := data.(map[string]interface{}); ok {
+				for k, v := range kv {
+					srtv, err := base64.StdEncoding.DecodeString(fmt.Sprintf("%s", v))
+					if err != nil {
+						return errors.WithStack(err)
+					}
+					strdata[k] = string(srtv)
+				}
+			}
+		}
+		sec["data"] = strdata
+		out, err = yamlv3.Marshal(&sec)
+		if err != nil {
+			return errors.WithStack(err)
+		}
 	}
 
 	yamlFile := resource.Name + ".yaml"
