@@ -51,10 +51,22 @@ func revisions(cmd *cobra.Command, args []string) {
 		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/manifests.yaml", release, revision.Number), manifests, 0o644)
 		dieOnErr(err)
 
-		values, err := helm.GetValues(release, revision.Number, opt...)
+		svalues, err := helm.GetSuppliedValues(release, revision.Number, opt...)
 		dieOnErr(err)
 
-		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/values.yaml", release, revision.Number), values, 0o644)
+		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/values.supplied.yaml", release, revision.Number), svalues, 0o644)
+		dieOnErr(err)
+
+		cvalues, err := helm.GetComputedValues(release, revision.Number, opt...)
+		dieOnErr(err)
+
+		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/values.computed.yaml", release, revision.Number), cvalues, 0o644)
+		dieOnErr(err)
+
+		notes, err := helm.GetNotes(release, revision.Number, opt...)
+		dieOnErr(err)
+
+		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/notes.txt", release, revision.Number), notes, 0o644)
 		dieOnErr(err)
 	}
 }
