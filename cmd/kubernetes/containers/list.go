@@ -30,7 +30,12 @@ func list(cmd *cobra.Command, args []string) {
 	table.SetBorder(false)
 	table.SetHeaderLine(false)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	table.SetHeader([]string{"", "Container", "Ports", "Image", "Pod", "Age"})
+	if allNamespaces {
+		table.SetHeader([]string{"", "Namespace", "Container", "Ports", "Image", "PullPolicy", "Pod", "Age"})
+	} else {
+		table.SetHeader([]string{"", "Container", "Ports", "Image", "PullPolicy", "Pod", "Age"})
+	}
+
 	for _, container := range containers.Items {
 		ports := make([]string, 0, len(container.Ports))
 		for _, port := range container.Ports {
@@ -46,7 +51,11 @@ func list(cmd *cobra.Command, args []string) {
 		if updateTime != nil {
 			timeStr = prettytime.Format(*updateTime)
 		}
-		table.Append([]string{color, container.Name, strings.Join(ports, ","), container.Image, container.Pod, timeStr})
+		if allNamespaces {
+			table.Append([]string{color, container.Namespace, container.Name, strings.Join(ports, ","), container.Image, container.ImagePullPolicy, container.Pod, timeStr})
+		} else {
+			table.Append([]string{color, container.Name, strings.Join(ports, ","), container.Image, container.ImagePullPolicy, container.Pod, timeStr})
+		}
 	}
 	table.Render()
 }
