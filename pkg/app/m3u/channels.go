@@ -2,7 +2,10 @@ package m3u
 
 import (
 	"bufio"
+	"github.com/samber/lo"
 	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -10,15 +13,34 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Channels []*Channel
+
 func ListChannels(filedir string) (Channels, error) {
 	playlist, err := m3u.Parse(filedir)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	return playlist.Tracks, nil
+	channels := make(Channels, 0, 0)
+	for _, track := range playlist.Tracks {
+		channels = append(channels, &Channel{
+			filename: filedir,
+			Track: &m3u.Track{
+				Name:   track.Name,
+				Length: track.Length,
+				URI:    track.URI,
+				Tags:   track.Tags,
+			},
+		})
+	}
+	return channels, nil
 }
-
-type Channels []m3u.Track
+func (c Channels) tracks() []m3u.Track {
+	tracks := make([]m3u.Track, 0, 0)
+	for _, channel := range c {
+		tracks = append(tracks, *channel.Track)
+	}
+	return tracks
+}
 
 func (c Channels) Write(path string) error {
 	file, err := os.Create(path)
@@ -27,22 +49,24 @@ func (c Channels) Write(path string) error {
 	}
 	defer file.Close()
 
-	if err = m3u.MarshallInto(m3u.Playlist{Tracks: c}, bufio.NewWriter(file)); err != nil {
+	if err = m3u.MarshallInto(m3u.Playlist{Tracks: c.tracks()}, bufio.NewWriter(file)); err != nil {
 		return errors.WithStack(err)
 	}
 
 	return nil
 }
 
-func (c Channels) Get(id string) *m3u.Track {
+func (c Channels) Get(id string) *Channel {
 	for _, channel := range c {
 		if strings.ReplaceAll(channel.Name, " ", ".") == id {
-			return &m3u.Track{
-				Name:   channel.Name,
-				Length: channel.Length,
-				URI:    channel.URI,
-				Tags:   channel.Tags,
-			}
+			return &Channel{
+				filename: channel.filename,
+				Track: &m3u.Track{
+					Name:   channel.Name,
+					Length: channel.Length,
+					URI:    channel.URI,
+					Tags:   channel.Tags,
+				}}
 		}
 	}
 	return nil
@@ -63,7 +87,7 @@ func (c Channels) SelectMany() (Channels, error) {
 	prompt := &survey.MultiSelect{
 		Message: "Select Channels:",
 		Options: c.IDs(),
-		Default: defaults(),
+		Default: c.defaults(),
 	}
 
 	var selects []string
@@ -76,21 +100,43 @@ func (c Channels) SelectMany() (Channels, error) {
 	for _, name := range selects {
 		channel := c.Get(name)
 		if channel != nil {
-			channels = append(channels, *channel)
+			channels = append(channels, channel)
 		}
 	}
 	return channels, nil
 }
 
-func defaults() []string {
-	current, err := os.Getwd()
-	if err != nil {
-		return nil
+func (c Channels) Groups() Groups {
+	groups := make([]string, 0, 0)
+	for _, channel := range c {
+		for _, tag := range channel.Tags {
+			if tag.Name == "group-title" {
+				groups = append(groups, tag.Value)
+			}
+		}
 	}
+	groups = lo.Uniq(groups)
+	sort.Strings(groups)
+	return groups
+}
 
-	channels, err := ListChannels(current + "/selected_channels.m3u")
+func (c Channels) FileName() string {
+	for _, channel := range c {
+		return channel.filename
+	}
+	return ""
+}
+
+func (c Channels) defaults() []string {
+	filename := c.FileName()
+	ext := filepath.Ext(filename)
+	name := filename[:len(filename)-len(ext)]
+	channels, err := ListChannels(name + "[edited]" + ext)
 	if err != nil {
-		return nil
+		channels, err = ListChannels(filename)
+		if err != nil {
+			return nil
+		}
 	}
 
 	return channels.IDs()

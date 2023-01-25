@@ -1,6 +1,6 @@
 module github.com/angelokurtis/kts-cli
 
-go 1.17
+go 1.19
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.4
@@ -18,6 +18,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rodaine/hclencoder v0.0.1
 	github.com/rs/zerolog v1.26.1
+	github.com/samber/lo v1.37.0
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.10.1
 	github.com/xanzy/go-gitlab v0.60.0
@@ -64,6 +65,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a // indirect
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
