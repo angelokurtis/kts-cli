@@ -19,6 +19,8 @@ func clone(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
+	} else {
+		log.Infof("local repository was found at the path %s", dir.Path())
 	}
 	if open {
 		log.Infof("opening %s on IntelliJ IDEA", dir.Path())
