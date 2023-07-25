@@ -2,12 +2,13 @@ package git
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"net/url"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 const base = "~/wrkspc/"
@@ -31,6 +32,9 @@ func (l *LocalRepo) IsGithub() bool {
 func (l *LocalRepo) SSHAddress() string {
 	h := strings.ReplaceAll(l.Repo.Host, "www.", "")
 	p := l.Repo.Path[1:]
+	if strings.HasPrefix(p, "cloud104/") || strings.HasPrefix(p, "totvs-cloud/") || strings.HasPrefix(p, "tiagoangelototvs/") {
+		h = "github-totvs"
+	}
 	return fmt.Sprintf("git@%s:%s.git", h, p)
 }
 

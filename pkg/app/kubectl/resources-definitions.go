@@ -1,8 +1,8 @@
 package kubectl
 
 import (
-	"bufio"
-	"bytes"
+	"github.com/angelokurtis/kts-cli/internal/kube"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,40 +16,34 @@ var emptyChar int32 = 32
 const ignoreEventsResource = true
 
 func ListResourceDefinitions() (*ResourcesDefinitions, error) {
-	out, err := run("api-resources", "--cached=true", "-o=wide")
+	resources := make([]*ResourceDefinition, 0)
+	lists, err := kube.GetDiscoveryClient().ServerPreferredResources()
 	if err != nil {
-		return nil, err
-	}
-	scanner := bufio.NewScanner(bytes.NewReader(out))
-	if err := scanner.Err(); err != nil {
 		return nil, errors.WithStack(err)
 	}
-	resources := &ResourcesDefinitions{}
-	columns := make([]int, 0, 0)
-	var empty bool
-	i := 0
-	for scanner.Scan() {
-		i++
-		line := scanner.Text()
-		if i > 1 {
-			rd, err := NewResourceDefinition(line, columns)
-			if err != nil {
-				return nil, err
-			}
-			if ignoreEventsResource && rd.Name == "events" {
-				continue
-			}
-			resources.add(rd)
+	for _, list := range lists {
+		if len(list.APIResources) == 0 {
 			continue
 		}
-		for i, n := range line {
-			if empty && n != emptyChar {
-				columns = append(columns, i)
+		gv, err := schema.ParseGroupVersion(list.GroupVersion)
+		if err != nil {
+			continue
+		}
+		for _, rsrc := range list.APIResources {
+			if len(rsrc.Verbs) == 0 {
+				continue
 			}
-			empty = n == emptyChar
+			resources = append(resources, &ResourceDefinition{
+				Name:       rsrc.Name,
+				ShortNames: rsrc.ShortNames,
+				APIGroup:   gv.Group,
+				Namespaced: rsrc.Namespaced,
+				Kind:       rsrc.Kind,
+				Verbs:      rsrc.Verbs,
+			})
 		}
 	}
-	return resources, nil
+	return &ResourcesDefinitions{Items: resources}, nil
 }
 
 type ResourcesDefinitions struct {

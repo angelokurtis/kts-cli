@@ -2,6 +2,7 @@ package kube
 
 import (
 	"flag"
+	"k8s.io/client-go/discovery"
 	"path/filepath"
 	"sync"
 
@@ -14,8 +15,9 @@ import (
 )
 
 var (
-	svcOnce   sync.Once
-	clientset *kubernetes.Clientset
+	svcOnce         sync.Once
+	clientset       *kubernetes.Clientset
+	discoveryClient discovery.DiscoveryInterface
 )
 
 func NewRestConfig() (*rest.Config, error) {
@@ -57,4 +59,20 @@ func GetClientset() *kubernetes.Clientset {
 		}
 	})
 	return clientset
+}
+
+func NewDiscoveryClient(config *rest.Config) discovery.DiscoveryInterface {
+	client := discovery.NewDiscoveryClientForConfigOrDie(config)
+	return client
+}
+
+func GetDiscoveryClient() discovery.DiscoveryInterface {
+	svcOnce.Do(func() {
+		config, err := NewRestConfig()
+		if err != nil {
+			system.Exit(err)
+		}
+		discoveryClient = NewDiscoveryClient(config)
+	})
+	return discoveryClient
 }

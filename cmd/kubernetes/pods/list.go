@@ -50,10 +50,16 @@ func list(cmd *cobra.Command, args []string) {
 			}
 			return ""
 		}()
+		system := func() string {
+			if pod.Metadata.Namespace == "kube-system" || pod.Metadata.Namespace == "local-path-storage" {
+				return " " + emoji.Laptop.String()
+			}
+			return ""
+		}()
 		if allNamespaces {
-			table.Append([]string{pod.StatusColor(), pod.Metadata.Namespace, pod.Metadata.Name + job + istio, pod.Ready(), pod.CurrentStatus(), strconv.Itoa(pod.RestartCount()), prettytime.Format(pod.Metadata.CreationTimestamp), prettytime.Format(*pod.LastUpdate())})
+			table.Append([]string{pod.StatusColor(), pod.Metadata.Namespace, pod.Metadata.Name + job + istio + system, pod.Ready(), pod.CurrentStatus(), strconv.Itoa(pod.RestartCount()), prettytime.Format(pod.Metadata.CreationTimestamp), prettytime.Format(*pod.LastUpdate())})
 		} else {
-			table.Append([]string{pod.StatusColor(), pod.Metadata.Name + job + istio, pod.Ready(), pod.CurrentStatus(), strconv.Itoa(pod.RestartCount()), prettytime.Format(pod.Metadata.CreationTimestamp), prettytime.Format(*pod.LastUpdate())})
+			table.Append([]string{pod.StatusColor(), pod.Metadata.Name + job + istio + system, pod.Ready(), pod.CurrentStatus(), strconv.Itoa(pod.RestartCount()), prettytime.Format(pod.Metadata.CreationTimestamp), prettytime.Format(*pod.LastUpdate())})
 		}
 	}
 	table.Render()
