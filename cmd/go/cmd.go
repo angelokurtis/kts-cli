@@ -17,4 +17,6 @@ var Command = &cobra.Command{
 func init() {
 	Command.AddCommand(packages.Command)
 	Command.AddCommand(versions.Command)
+	Command.AddCommand(&cobra.Command{Use: "lint", Run: lint})
+	Command.AddCommand(&cobra.Command{Use: "format", Run: format})
 }
