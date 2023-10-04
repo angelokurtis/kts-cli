@@ -2,6 +2,7 @@ package git
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"strings"
 	"time"
@@ -13,6 +14,11 @@ import (
 )
 
 const timeLayout = "2006-01-02 15:04:05 -0700"
+
+func DoCommit(message string, files []string) error {
+	_, err := bash.RunAndLogWrite(fmt.Sprintf(`git commit -o %s -m "%s"`, strings.Join(files, " -o "), message))
+	return err
+}
 
 func GetCommitTime(commit string, dir string) (*time.Time, error) {
 	out, err := bash.Run("git -C " + dir + " show -s --format=%ci " + commit)

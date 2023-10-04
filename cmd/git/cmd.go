@@ -25,4 +25,6 @@ func init() {
 	cloneCommand.PersistentFlags().BoolVar(&open, "open", false, "")
 	Command.AddCommand(cloneCommand)
 	Command.AddCommand(commits.Command)
+
+	Command.AddCommand(&cobra.Command{Use: "commit", Run: commit})
 }
