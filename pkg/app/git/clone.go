@@ -18,7 +18,7 @@ func Clone(repo string) error {
 		return err
 	}
 	path := dir.Path()
-	if dir.IsGithub() {
+	if dir.IsGithub() || dir.IsGitlab() {
 		repo = dir.SSHAddress()
 	}
 	_, err = bash.RunAndLogWrite(fmt.Sprintf("git clone %s %s", repo, path))

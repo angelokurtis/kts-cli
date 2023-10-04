@@ -29,11 +29,18 @@ func (l *LocalRepo) IsGithub() bool {
 	return strings.Contains(l.Repo.Host, "github.com")
 }
 
+func (l *LocalRepo) IsGitlab() bool {
+	return strings.Contains(l.Repo.Host, "gitlab.com")
+}
+
 func (l *LocalRepo) SSHAddress() string {
 	h := strings.ReplaceAll(l.Repo.Host, "www.", "")
 	p := l.Repo.Path[1:]
-	if strings.HasPrefix(p, "cloud104/") || strings.HasPrefix(p, "totvs-cloud/") || strings.HasPrefix(p, "tiagoangelototvs/") {
+	if l.IsGithub() && strings.HasPrefix(p, "cloud104/") || strings.HasPrefix(p, "totvs-cloud/") || strings.HasPrefix(p, "tiagoangelototvs/") {
 		h = "github-totvs"
+	}
+	if l.IsGitlab() && strings.HasPrefix(p, "ascenty/") {
+		h = "gitlab-totvs"
 	}
 	return fmt.Sprintf("git@%s:%s.git", h, p)
 }
