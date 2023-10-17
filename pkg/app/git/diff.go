@@ -1,14 +1,19 @@
 package git
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
-	"github.com/pkg/errors"
 	"os"
 	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/samber/lo"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ShowDiffFiles(branch string) ([]string, error) {
@@ -47,12 +52,30 @@ func ShowDiffFiles(branch string) ([]string, error) {
 }
 
 func UncommittedFiles() ([]string, error) {
-	out, err := bash.RunAndLogRead("git status -s | awk '{print $2}'")
+	out, err := bash.RunAndLogRead("git status -s")
 	if err != nil {
 		return nil, err
 	}
 
-	files := strings.Split(string(out), "\n")
+	files := make([]string, 0)
+
+	scanner := bufio.NewScanner(bytes.NewReader(out))
+	for scanner.Scan() {
+		text := scanner.Text()
+		splited := strings.Split(text, " ")
+		splited = lo.Filter(splited, func(x string, index int) bool {
+			trimed := strings.TrimSpace(x)
+			return len(trimed) > 0
+		})
+		if len(splited) != 2 {
+			continue
+		}
+		change := splited[0]
+		file := splited[1]
+		if change != "??" {
+			files = append(files, file)
+		}
+	}
 
 	if len(files) == 0 {
 		return nil, nil
