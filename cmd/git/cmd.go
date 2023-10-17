@@ -27,4 +27,5 @@ func init() {
 	Command.AddCommand(commits.Command)
 
 	Command.AddCommand(&cobra.Command{Use: "commit", Run: commit})
+	Command.AddCommand(&cobra.Command{Use: "stage", Run: stage})
 }
