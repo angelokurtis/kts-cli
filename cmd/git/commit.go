@@ -2,30 +2,37 @@ package git
 
 import (
 	"fmt"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/angelokurtis/kts-cli/internal/log"
-	"github.com/angelokurtis/kts-cli/pkg/app/git"
-	"github.com/martinusso/inflect"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/martinusso/inflect"
+	"github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/spf13/cobra"
+
+	"github.com/angelokurtis/kts-cli/internal/log"
+	"github.com/angelokurtis/kts-cli/pkg/app/git"
 )
 
 func commit(cmd *cobra.Command, args []string) {
-	remoteBranch := "origin/HEAD"
-
-	currentBranch, err := git.CurrentBranch()
+	count, err := git.CountCommitsByAuthor()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	count, err := git.CountCommitsBetweenBranches(currentBranch, remoteBranch)
+	author, err := git.GetUser()
 	if err != nil {
-		log.Fatal(err)
+		authors := lo.Keys(count)
+		author, err = selectAuthor(authors)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	message := fmt.Sprintf("Commit number %s", inflect.IntoWords(float64(count+1)))
+	total := count[author]
+
+	message := fmt.Sprintf("Commit number %s", inflect.IntoWords(float64(total+1)))
 
 	files, err := git.UncommittedFiles()
 	if err != nil {
@@ -54,6 +61,25 @@ func commit(cmd *cobra.Command, args []string) {
 	if err = git.DoCommit(message, paths); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func selectAuthor(authors []string) (string, error) {
+	if authors == nil || len(authors) == 0 {
+		return "", errors.New("there's no author available")
+	}
+
+	var selected string
+	prompt := &survey.Select{
+		Message: "Choose the commit author:",
+		Options: authors,
+	}
+
+	err := survey.AskOne(prompt, &selected, survey.WithPageSize(20), survey.WithKeepFilter(true))
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	return selected, nil
 }
 
 func selectFiles(files []string) ([]string, error) {

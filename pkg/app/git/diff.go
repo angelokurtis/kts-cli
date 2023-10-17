@@ -118,3 +118,29 @@ func CountCommitsBetweenBranches(branch1, branch2 string) (int, error) {
 	}
 	return count, nil
 }
+
+func CountCommitsByAuthor() (map[string]int64, error) {
+	out, err := bash.RunAndLogRead("git shortlog --summary --email --numbered --all --no-merges")
+	if err != nil {
+		return nil, err
+	}
+
+	count := make(map[string]int64)
+	scanner := bufio.NewScanner(bytes.NewReader(out))
+	for scanner.Scan() {
+		text := scanner.Text()
+		text = strings.TrimSpace(text)
+		splited := strings.Split(text, "\t")
+		if len(splited) != 2 {
+			continue
+		}
+		val, err := strconv.ParseInt(splited[0], 10, 64)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+
+		count[splited[1]] = val
+	}
+
+	return count, nil
+}
