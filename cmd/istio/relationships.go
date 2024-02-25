@@ -56,7 +56,6 @@ func relationships(cmd *cobra.Command, args []string) {
 		fmt.Print(re.Selector())
 
 		i++
-		// fmt.Println(re.GetName())
 	}
 
 	fmt.Println()

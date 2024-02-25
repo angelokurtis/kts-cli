@@ -184,7 +184,6 @@ func (c *Containers) Pods() []string {
 	for _, container := range c.Items {
 		prefix := strings.Split(container.Pod, "-"+container.PodTemplateHash)[0]
 		p = dedupeStr(p, prefix)
-		// p = dedupeStr(p, container.Pod)
 	}
 
 	return p
