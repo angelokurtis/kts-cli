@@ -8,7 +8,7 @@ linters:
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
-  new-from-rev: b648f5dcdd48d5f0c0d6e337bbae38cd48139748
+  new-from-rev: 21dd952372fd148bf65b4750bd3ceb8826418765
 
 linters-settings:
   errcheck:
