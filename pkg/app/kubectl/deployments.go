@@ -228,6 +228,25 @@ func (d *Deployments) Rollout() error {
 	return nil
 }
 
+func (d *Deployments) Scale(replicas int) error {
+	byNamespace := lo.GroupBy(d.Items, func(item *Deployment) string {
+		return item.Metadata.Namespace
+	})
+
+	for namespace, deployments := range byNamespace {
+		names := lo.Map(deployments, func(deployment *Deployment, index int) string {
+			return deployment.Metadata.Name
+		})
+
+		_, err := bash.RunAndLogWrite(fmt.Sprintf("kubectl scale --replicas=%d deployment %s -n %s", replicas, strings.Join(names, " "), namespace))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 type (
 	Deployment struct {
 		APIVersion string `json:"apiVersion"`
