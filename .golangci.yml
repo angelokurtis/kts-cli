@@ -1,0 +1,97 @@
+linters:
+  enable:
+    - errcheck
+    - revive
+    - sloglint
+    - wrapcheck
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new-from-rev: b648f5dcdd48d5f0c0d6e337bbae38cd48139748
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+    disable-default-exclusions: true
+
+  sloglint:
+    args-on-sep-lines: true
+    context-only: true
+    key-naming-case: snake
+    static-msg: true
+
+  revive:
+    ignore-generated-header: true
+    rules: [
+      { name: "argument-limit", disabled: false },
+      { name: "atomic", disabled: false },
+      { name: "banned-characters", disabled: false },
+      { name: "bare-return", disabled: false },
+      { name: "blank-imports", disabled: false },
+      { name: "bool-literal-in-expr", disabled: false },
+      { name: "call-to-gc", disabled: false },
+      { name: "cognitive-complexity", disabled: false },
+      { name: "comment-spacings", disabled: false },
+      { name: "confusing-naming", disabled: false },
+      { name: "confusing-results", disabled: false },
+      { name: "constant-logical-expr", disabled: false },
+      { name: "context-as-argument", disabled: false },
+      { name: "context-keys-type", disabled: false },
+      { name: "datarace", disabled: false },
+      { name: "defer", disabled: false,  arguments: [ [ "call-chain", "loop", "method-call", "recover", "immediate-recover", "return" ] ] },
+      { name: "dot-imports", disabled: false },
+      { name: "duplicated-imports", disabled: false },
+      { name: "early-return", disabled: false },
+      { name: "empty-block", disabled: false },
+      { name: "empty-lines", disabled: false },
+      { name: "error-naming", disabled: false },
+      { name: "error-return", disabled: false },
+      { name: "error-strings", disabled: false },
+      { name: "errorf", disabled: false },
+      { name: "exported", disabled: false },
+      { name: "file-header", disabled: false },
+      { name: "flag-parameter", disabled: false },
+      { name: "function-result-limit", disabled: false },
+      { name: "get-return", disabled: false },
+      { name: "identical-branches", disabled: false },
+      { name: "if-return", disabled: false },
+      { name: "import-alias-naming", disabled: true },
+      { name: "import-shadowing", disabled: false },
+      { name: "imports-blacklist", disabled: false },
+      { name: "increment-decrement", disabled: false },
+      { name: "indent-error-flow", disabled: false },
+      { name: "max-public-structs", disabled: false },
+      { name: "modifies-parameter", disabled: false },
+      { name: "modifies-value-receiver", disabled: false },
+      { name: "nested-structs", disabled: false },
+      { name: "optimize-operands-order", disabled: false },
+      { name: "package-comments", disabled: false },
+      { name: "range-val-address", disabled: false },
+      { name: "range-val-in-closure", disabled: false },
+      { name: "range", disabled: false },
+      { name: "receiver-naming", disabled: false },
+      { name: "redefines-builtin-id", disabled: false },
+      { name: "redundant-import-alias", disabled: false },
+      { name: "string-format", disabled: false },
+      { name: "string-of-int", disabled: false },
+      { name: "struct-tag", disabled: false },
+      { name: "superfluous-else", disabled: false },
+      { name: "time-equal", disabled: false },
+      { name: "time-naming", disabled: false },
+      { name: "unchecked-type-assertion", disabled: false },
+      { name: "unconditional-recursion", disabled: false },
+      { name: "unexported-naming", disabled: false },
+      { name: "unexported-return", disabled: false },
+      { name: "unhandled-error", disabled: false },
+      { name: "unnecessary-stmt", disabled: false },
+      { name: "unreachable-code", disabled: false },
+      { name: "unused-parameter", disabled: false },
+      { name: "unused-receiver", disabled: false },
+      { name: "use-any", disabled: false },
+      { name: "useless-break", disabled: false },
+      { name: "var-declaration", disabled: false },
+      { name: "var-naming", disabled: false },
+      { name: "waitgroup-by-value", disabled: false },
+    ]
