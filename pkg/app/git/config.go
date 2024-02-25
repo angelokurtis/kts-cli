@@ -1,9 +1,10 @@
 package git
 
 import (
+	"strings"
+
 	"github.com/angelokurtis/kts-cli/pkg/app/gpg"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
-	"strings"
 )
 
 func ConfigureSecretKey(sk *gpg.SecretKey) error {
@@ -21,22 +22,27 @@ func ConfigureSecretKey(sk *gpg.SecretKey) error {
 	if wordCount(name) > 1 {
 		name = "'" + name + "'"
 	}
+
 	_, err := bash.RunAndLogWrite("git config user.name " + name)
 	if err != nil {
 		return err
 	}
+
 	_, err = bash.RunAndLogWrite("git config user.email " + email)
 	if err != nil {
 		return err
 	}
+
 	_, err = bash.RunAndLogWrite("git config user.signingKey " + key)
 	if err != nil {
 		return err
 	}
+
 	_, err = bash.RunAndLogWrite("git config commit.gpgsign true")
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

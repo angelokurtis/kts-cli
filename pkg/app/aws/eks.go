@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -15,6 +15,7 @@ func ConnectToEKSCluster(cluster string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -25,6 +26,7 @@ func SelectEKSCluster() (string, error) {
 	}
 
 	var selected string
+
 	if len(clusters) == 0 {
 		return "", nil
 	} else if len(clusters) > 1 {
@@ -60,6 +62,7 @@ func ListEKSClusters(region ...string) ([]string, error) {
 	}
 
 	clusters := make([]string, 0, 0)
+
 	for _, r := range region {
 		out, err := bash.RunAndLogRead("aws eks list-clusters --region " + r)
 		if err != nil {
@@ -73,6 +76,7 @@ func ListEKSClusters(region ...string) ([]string, error) {
 
 		clusters = append(clusters, eks.Clusters...)
 	}
+
 	return clusters, nil
 }
 

@@ -2,12 +2,14 @@ package providers
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/terraform"
-	"github.com/spf13/cobra"
-	"io/ioutil"
-	"os"
 )
 
 var Command = &cobra.Command{
@@ -25,10 +27,12 @@ func importCmd(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	out, err := provider.Encode()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = ioutil.WriteFile(fmt.Sprintf("%s.tf", provider.Name), out, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)

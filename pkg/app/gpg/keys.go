@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 )
 
@@ -14,6 +14,7 @@ func SelectSecretKey() (*SecretKey, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if keys == nil || len(keys.Items) == 0 {
 		return nil, nil
 	} else if len(keys.Items) == 1 {
@@ -22,12 +23,14 @@ func SelectSecretKey() (*SecretKey, error) {
 
 	options := make([]string, 0, 0)
 	m := make(map[string]*SecretKey)
+
 	for _, key := range keys.Items {
 		options = append(options, key.UID)
 		m[key.UID] = key
 	}
 
 	var k string
+
 	prompt := &survey.Select{
 		Message: "Select the GnuPG key:",
 		Options: options,
@@ -46,6 +49,7 @@ func ListSecretKeys() (*Keys, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return NewKeys(out)
 }
 
@@ -57,6 +61,7 @@ func NewKeys(out []byte) (*Keys, error) {
 	items := make([]*SecretKey, 0, 0)
 
 	var current *SecretKey
+
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -64,6 +69,7 @@ func NewKeys(out []byte) (*Keys, error) {
 			sec := strings.Fields(line)[1]
 			current = &SecretKey{Sec: sec}
 		}
+
 		if strings.HasPrefix(line, "uid ") && current != nil {
 			uid := strings.Fields(line)[2:]
 			current.UID = strings.Join(uid, " ")

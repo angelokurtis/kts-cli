@@ -1,8 +1,9 @@
 package deployments
 
 import (
-	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/spf13/cobra"
+
+	"github.com/angelokurtis/kts-cli/internal/system"
 )
 
 var (
@@ -29,5 +30,4 @@ func init() {
 	logsCommand.PersistentFlags().BoolVarP(&previous, "previous", "p", false, "If true, print the logs for the previous instance of the container in a pod if it exists.")
 	logsCommand.PersistentFlags().StringVarP(&since, "since", "s", "0s", "Only return logs newer than a relative duration like 5s, 2m, or 3h.")
 	Command.AddCommand(logsCommand)
-
 }

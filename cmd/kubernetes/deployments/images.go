@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/internal/log"
@@ -17,20 +17,25 @@ func updateImages(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	deploys, err = deploys.SelectMany()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	containers, err := deploys.SelectContainers()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	tag := ""
 	prompt := &survey.Input{Message: "Inform the new tag:"}
+
 	err = survey.AskOne(prompt, &tag, survey.WithKeepFilter(true))
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	for _, deploy := range deploys.Items {
 		for _, container := range deploy.Spec.Template.Spec.Containers {
 			if containers.Contains(container.Name) {

@@ -1,14 +1,15 @@
 package kubectl
 
 import (
-	"github.com/angelokurtis/kts-cli/internal/kube"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sort"
 	"strconv"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	"github.com/angelokurtis/kts-cli/internal/kube"
 )
 
 var emptyChar int32 = 32
@@ -17,22 +18,27 @@ const ignoreEventsResource = true
 
 func ListResourceDefinitions() (*ResourcesDefinitions, error) {
 	resources := make([]*ResourceDefinition, 0)
+
 	lists, err := kube.GetDiscoveryClient().ServerPreferredResources()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	for _, list := range lists {
 		if len(list.APIResources) == 0 {
 			continue
 		}
+
 		gv, err := schema.ParseGroupVersion(list.GroupVersion)
 		if err != nil {
 			continue
 		}
+
 		for _, rsrc := range list.APIResources {
 			if len(rsrc.Verbs) == 0 {
 				continue
 			}
+
 			resources = append(resources, &ResourceDefinition{
 				Name:       rsrc.Name,
 				ShortNames: rsrc.ShortNames,
@@ -43,6 +49,7 @@ func ListResourceDefinitions() (*ResourcesDefinitions, error) {
 			})
 		}
 	}
+
 	return &ResourcesDefinitions{Items: resources}, nil
 }
 
@@ -56,31 +63,37 @@ func (r *ResourcesDefinitions) add(rd *ResourceDefinition) {
 
 func (r *ResourcesDefinitions) FilterVerbs(verb string) *ResourcesDefinitions {
 	definitions := &ResourcesDefinitions{}
+
 	for _, definition := range r.Items {
 		if contains(definition.Verbs, verb) {
 			definitions.add(definition)
 		}
 	}
+
 	return definitions
 }
 
 func (r *ResourcesDefinitions) FilterNamespaced() *ResourcesDefinitions {
 	definitions := &ResourcesDefinitions{}
+
 	for _, definition := range r.Items {
 		if definition.Namespaced {
 			definitions.add(definition)
 		}
 	}
+
 	return definitions
 }
 
 func (r *ResourcesDefinitions) FilterAPIGroup(group string) *ResourcesDefinitions {
 	definitions := &ResourcesDefinitions{}
+
 	for _, definition := range r.Items {
 		if strings.Contains(definition.APIGroup, group) {
 			definitions.add(definition)
 		}
 	}
+
 	return definitions
 }
 
@@ -91,6 +104,7 @@ func (r *ResourcesDefinitions) SelectGroups() ([]string, error) {
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the APIGroups:",
 		Options: groups,
@@ -106,6 +120,7 @@ func (r *ResourcesDefinitions) SelectGroups() ([]string, error) {
 
 func (r *ResourcesDefinitions) APIGroups() []string {
 	m := make(map[string]string, 0)
+
 	for _, item := range r.Items {
 		k := reverse(item.APIGroup)
 		m[k] = item.APIGroup
@@ -115,12 +130,14 @@ func (r *ResourcesDefinitions) APIGroups() []string {
 	for k := range m {
 		keys = append(keys, k)
 	}
+
 	sort.Strings(keys)
 
 	groups := make([]string, 0, len(m))
 	for _, k := range keys {
 		groups = append(groups, m[k])
 	}
+
 	return groups
 }
 
@@ -128,10 +145,12 @@ func (r *ResourcesDefinitions) String() string {
 	sb := strings.Builder{}
 	for i, resource := range r.Items {
 		sb.WriteString(resource.String())
+
 		if i < len(r.Items)-1 {
 			sb.WriteString(",")
 		}
 	}
+
 	return sb.String()
 }
 
@@ -146,7 +165,9 @@ type ResourceDefinition struct {
 
 func NewResourceDefinition(line string, indexes []int) (*ResourceDefinition, error) {
 	var name, shortNames, apiGroup, kind, verbs string
+
 	var namespaced bool
+
 	for i, index := range indexes {
 		switch i {
 		case 0:
@@ -164,6 +185,7 @@ func NewResourceDefinition(line string, indexes []int) (*ResourceDefinition, err
 			}
 		case 3:
 			var err error
+
 			namespaced, err = strconv.ParseBool(strings.TrimSpace(line[indexes[i-1]:index]))
 			if err != nil {
 				return nil, errors.WithStack(err)
@@ -175,6 +197,7 @@ func NewResourceDefinition(line string, indexes []int) (*ResourceDefinition, err
 			verbs = strings.Replace(verbs, "]", "", -1)
 		}
 	}
+
 	return &ResourceDefinition{
 		Name:       name,
 		ShortNames: strings.Split(shortNames, ","),
@@ -189,6 +212,7 @@ func (r *ResourceDefinition) String() string {
 	if r.APIGroup == "" {
 		return r.Name
 	}
+
 	return r.Name + "." + r.APIGroup
 }
 
@@ -198,16 +222,19 @@ func contains(s []string, e string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
 func reverse(input string) string {
 	n := 0
+
 	runes := make([]rune, len(input))
 	for _, r := range input {
 		runes[n] = r
 		n++
 	}
+
 	runes = runes[0:n]
 	// Reverse
 	for i := 0; i < n/2; i++ {

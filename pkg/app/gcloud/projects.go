@@ -2,10 +2,12 @@ package gcloud
 
 import (
 	"encoding/json"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
-	"github.com/pkg/errors"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func CurrentProject() (*Project, error) {
@@ -13,10 +15,12 @@ func CurrentProject() (*Project, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	project, err := DescribeProject(strings.TrimSpace(string(out)))
 	if err != nil {
 		return nil, err
 	}
+
 	return project, nil
 }
 
@@ -53,10 +57,12 @@ func ListProjectNames() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	names := make([]string, 0, len(projects))
 	for _, project := range projects {
 		names = append(names, project.Name)
 	}
+
 	return names, nil
 }
 

@@ -3,9 +3,10 @@ package certificates
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/spf13/cobra"
 )
 
 func list(cmd *cobra.Command, args []string) {

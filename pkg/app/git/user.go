@@ -26,10 +26,12 @@ func GetUserName() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	list := strings.Split(string(out), "\n")
 	for _, name := range list {
 		return name, nil
 	}
+
 	return "", nil
 }
 
@@ -38,9 +40,11 @@ func GetUserEmail() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	list := strings.Split(string(out), "\n")
 	for _, email := range list {
 		return email, nil
 	}
+
 	return "", nil
 }

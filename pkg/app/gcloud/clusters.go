@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 )
 
@@ -13,10 +13,12 @@ func ListGKEClustersNames() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	names := make([]string, 0, len(clusters))
 	for _, cluster := range clusters {
 		names = append(names, cluster.Name)
 	}
+
 	return names, nil
 }
 
@@ -25,17 +27,21 @@ func ListGKEClusters() ([]*Cluster, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	clusters := make([]*Cluster, 0, 0)
+
 	for _, project := range projects {
 		cts, err := ListGKEClustersByProject(project)
 		if err != nil {
 			return nil, err
 		}
+
 		for _, ct := range cts {
 			ct.Project = project
 			clusters = append(clusters, ct)
 		}
 	}
+
 	return clusters, nil
 }
 
@@ -44,6 +50,7 @@ func SelectGKECluster() (*Cluster, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if clusters == nil || len(clusters) == 0 {
 		return nil, nil
 	} else if len(clusters) == 1 {
@@ -52,12 +59,14 @@ func SelectGKECluster() (*Cluster, error) {
 
 	options := make([]string, 0, 0)
 	m := make(map[string]*Cluster)
+
 	for _, cluster := range clusters {
 		options = append(options, cluster.Name)
 		m[cluster.Name] = cluster
 	}
 
 	var k string
+
 	prompt := &survey.Select{
 		Message: "Select the Google Cluster:",
 		Options: options,

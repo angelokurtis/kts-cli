@@ -2,11 +2,13 @@ package aws
 
 import (
 	"encoding/json"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
-	"github.com/olekukonko/tablewriter"
-	"github.com/pkg/errors"
 	"os"
 	"strconv"
+
+	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListHostedZones() (*HostedZones, error) {
@@ -70,14 +72,18 @@ func ListAllRecords() (*ResourceRecordSets, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	rs := make([]*ResourceRecordSet, 0, 0)
+
 	for _, hz := range hzs.Items {
 		r, err := ListRecordsByHostedZone(hz)
 		if err != nil {
 			return nil, err
 		}
+
 		rs = append(rs, r.Items...)
 	}
+
 	return &ResourceRecordSets{rs}, nil
 }
 
@@ -86,18 +92,22 @@ func ListAllRecordsByProfile(profile string) (*ResourceRecordSets, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	rs := make([]*ResourceRecordSet, 0, 0)
+
 	for _, hz := range hzs.Items {
 		r, err := ListRecordsByHostedZoneByProfile(hz, profile)
 		if err != nil {
 			return nil, err
 		}
+
 		for _, item := range r.Items {
 			item.Profile = profile
 			item.HostedZone = hz
 			rs = append(rs, item)
 		}
 	}
+
 	return &ResourceRecordSets{rs}, nil
 }
 
@@ -124,11 +134,13 @@ func (s *ResourceRecordSets) RenderTable() {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"HostedZone", "PrivateZone", "Name", "Type", "TTL", "Record", "Profile"})
 	table.SetBorder(false)
+
 	for _, item := range s.Items {
 		for _, record := range item.ResourceRecords {
 			table.Append([]string{item.HostedZone.Name, strconv.FormatBool(item.HostedZone.Config.PrivateZone), item.Name, item.Type, strconv.Itoa(item.TTL), record.Value, item.Profile})
 		}
 	}
+
 	table.Render()
 }
 

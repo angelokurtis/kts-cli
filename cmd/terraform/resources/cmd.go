@@ -2,17 +2,19 @@ package resources
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
+
+	changeCase "github.com/ku/go-change-case"
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/internal/colors"
 	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/terraform"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
-	changeCase "github.com/ku/go-change-case"
-	"github.com/spf13/cobra"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 var (
@@ -43,15 +45,18 @@ func convert(cmd *cobra.Command, args []string) {
 	if err != nil {
 		panic(err)
 	}
+
 	for _, file := range files {
 		if strings.HasSuffix(file, ".yaml") || strings.HasSuffix(file, ".yml") {
 			out, err := terraform.YAMLDecode(file)
 			if err != nil {
 				log.Fatal(err)
 			}
+
 			filename := strings.Replace(file, ".yaml", ".tf", -1)
 			filename = strings.Replace(filename, ".yml", ".tf", -1)
-			if err = ioutil.WriteFile(filename, out, 0644); err != nil {
+
+			if err = ioutil.WriteFile(filename, out, 0o644); err != nil {
 				log.Fatal(err)
 			}
 		}
@@ -64,6 +69,7 @@ func importCmd(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		provider = p.Name
 	}
 
@@ -71,23 +77,29 @@ func importCmd(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	out, err := resource.Encode()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	filename := fmt.Sprintf("%s.tf", changeCase.Param(resource.Name))
+
 	err = ioutil.WriteFile(filename, out, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = resource.Import()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	state, err := bash.Run("terraform state show " + resource.GetID())
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = ioutil.WriteFile(filename, colors.Strip(state), os.ModePerm)
 	if err != nil {
 		log.Fatal(err)

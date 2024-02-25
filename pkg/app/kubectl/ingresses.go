@@ -18,6 +18,7 @@ func ListIngresses() ([]*Ingress, error) {
 	}
 
 	items := make([]*Ingress, 0)
+
 	for _, ing := range ingresses.Items {
 		ingress := Ingress(ing)
 		items = append(items, &ingress)
@@ -82,9 +83,11 @@ func (i *Ingress) ExternalIP() string {
 		if ingress.Hostname != "" {
 			return ingress.Hostname
 		}
+
 		if ingress.IP != "" {
 			return ingress.IP
 		}
 	}
+
 	return ""
 }

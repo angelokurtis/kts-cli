@@ -11,8 +11,10 @@ func findIstioNamespace() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	for _, pod := range pods.Items {
 		return pod.Metadata.Namespace, nil
 	}
+
 	return "", errors.New("unable to find any Istiod instances")
 }

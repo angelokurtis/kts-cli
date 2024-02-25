@@ -2,12 +2,14 @@ package kubectl
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/internal/colors"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
-	"github.com/gookit/color"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
+
+	"github.com/gookit/color"
+	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/internal/colors"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func Logs(container *Container, since string, previous bool) ([]byte, error) {
@@ -21,6 +23,7 @@ func Logs(container *Container, since string, previous bool) ([]byte, error) {
 	} else {
 		cmd = fmt.Sprintf("kubectl logs %s -c %s --since=%s -n %s", p, c, since, ns)
 	}
+
 	if previous {
 		cmd += " --previous"
 	}
@@ -29,6 +32,7 @@ func Logs(container *Container, since string, previous bool) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return logs, nil
 }
 
@@ -58,9 +62,11 @@ func saveLog(container *Container, since string, previous bool) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
+
 	err = ioutil.WriteFile(filename, colors.Strip(logs), os.ModePerm)
 	if err != nil {
 		return errors.WithStack(err)
 	}
+
 	return nil
 }

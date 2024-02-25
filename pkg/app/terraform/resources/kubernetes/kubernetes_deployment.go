@@ -2,12 +2,14 @@ package kubernetes
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
+	"strings"
+
 	"github.com/gookit/color"
 	changeCase "github.com/ku/go-change-case"
 	"github.com/pkg/errors"
-	"strings"
+
+	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 type (
@@ -37,6 +39,7 @@ func (c *Deployment) Import() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -45,11 +48,13 @@ func NewDeployment() (*Deployment, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	deployment, err := deployments.SelectOne()
 	if err != nil {
 		return nil, err
 	} else if deployment == nil {
 		return nil, errors.New("Deployment was not found")
 	}
+
 	return &Deployment{Metadata: Metadata{Name: deployment.Metadata.Name, Namespace: deployment.Metadata.Namespace}}, nil
 }

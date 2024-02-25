@@ -1,10 +1,11 @@
 package terraformer
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/cmd/terraformer/providers"
 	"github.com/angelokurtis/kts-cli/cmd/terraformer/resources"
 	"github.com/angelokurtis/kts-cli/internal/system"
-	"github.com/spf13/cobra"
 )
 
 var Command = &cobra.Command{

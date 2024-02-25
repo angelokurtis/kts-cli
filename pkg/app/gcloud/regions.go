@@ -1,8 +1,9 @@
 package gcloud
 
 import (
-	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"strings"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func CurrentRegion() (string, error) {
@@ -10,5 +11,6 @@ func CurrentRegion() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return strings.TrimSpace(string(out)), nil
 }

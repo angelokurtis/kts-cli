@@ -13,6 +13,7 @@ func OnAnyNamespace() OptionFunc {
 	return func(o *Option) error {
 		o.Namespace = ""
 		o.AllNamespaces = true
+
 		return nil
 	}
 }
@@ -27,9 +28,11 @@ func (o *Option) apply(options ...OptionFunc) error {
 		if fn == nil {
 			continue
 		}
+
 		if err := fn(o); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }

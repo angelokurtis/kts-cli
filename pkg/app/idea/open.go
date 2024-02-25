@@ -2,6 +2,7 @@ package idea
 
 import (
 	"fmt"
+
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 

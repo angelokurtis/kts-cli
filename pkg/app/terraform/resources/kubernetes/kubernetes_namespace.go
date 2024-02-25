@@ -2,11 +2,13 @@ package kubernetes
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
+	"strings"
+
 	"github.com/gookit/color"
 	changeCase "github.com/ku/go-change-case"
-	"strings"
+
+	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 type (
@@ -39,6 +41,7 @@ func (n *Namespace) Import() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -47,9 +50,11 @@ func NewNamespace() (*Namespace, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	namespace, err := namespaces.SelectOne()
 	if err != nil {
 		return nil, err
 	}
+
 	return &Namespace{Metadata: MetadataClusterScoped{Name: namespace.Metadata.Name}}, nil
 }

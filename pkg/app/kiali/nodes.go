@@ -1,7 +1,7 @@
 package kiali
 
 import (
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 )
 
@@ -33,18 +33,21 @@ type (
 
 func (n *Node) GetName() string {
 	name := ""
+
 	switch n.NodeType {
 	case "workload":
 		name = n.Workload
 	case "service":
 		name = n.Service
 	}
+
 	return n.Namespace + "/" + n.NodeType + "/" + name
 }
 
 func (n *Node) Selector() string {
 	label := ""
 	name := ""
+
 	switch n.NodeType {
 	case "workload", "unknown":
 		label = "app"
@@ -53,6 +56,7 @@ func (n *Node) Selector() string {
 		label = "svc"
 		name = n.Service
 	}
+
 	return label + " != " + name
 }
 
@@ -61,9 +65,11 @@ func (n Nodes) Join(o Nodes) Nodes {
 	for k, v := range n {
 		res[k] = v
 	}
+
 	for k, v := range o {
 		res[k] = v
 	}
+
 	return res
 }
 
@@ -73,6 +79,7 @@ func (n Nodes) Get(name string) *Node {
 			return node
 		}
 	}
+
 	return nil
 }
 
@@ -81,6 +88,7 @@ func (n Nodes) FullNames() []string {
 	for _, node := range n {
 		names = append(names, node.GetName())
 	}
+
 	return names
 }
 
@@ -92,6 +100,7 @@ func (n Nodes) SelectOne() (*Node, error) {
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Select the Node:",
 		Options: names,

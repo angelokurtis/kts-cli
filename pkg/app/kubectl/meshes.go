@@ -9,10 +9,12 @@ func MeshesHosts() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	str := string(out)
 	str = str[1:]
 	str = str[:len(str)-1]
 
 	meshes := strings.Split(str, " ")
+
 	return meshes, nil
 }

@@ -7,7 +7,7 @@ import (
 	"os/user"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 )
 
@@ -16,10 +16,12 @@ func ListProfiles() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	filename := usr.HomeDir + "/.aws/config"
 	out, err := ioutil.ReadFile(filename)
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	profiles := make([]string, 0, 0)
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
@@ -29,6 +31,7 @@ func ListProfiles() ([]string, error) {
 			profiles = append(profiles, profile)
 		}
 	}
+
 	return profiles, nil
 }
 
@@ -39,6 +42,7 @@ func SelectProfiles() ([]string, error) {
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the AWS profiles:",
 		Options: profiles,

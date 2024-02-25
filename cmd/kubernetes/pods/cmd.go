@@ -1,8 +1,9 @@
 package pods
 
 import (
-	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/spf13/cobra"
+
+	"github.com/angelokurtis/kts-cli/internal/system"
 )
 
 var (
@@ -23,6 +24,8 @@ func init() {
 	Command.AddCommand(&cobra.Command{Use: "selectors", Run: selectors})
 
 	Command.AddCommand(&cobra.Command{Use: "variables", Run: variables})
+
+	Command.AddCommand(&cobra.Command{Use: "restart", Run: restart})
 
 	listCMD := &cobra.Command{Use: "list", Run: list}
 	listCMD.PersistentFlags().StringVarP(&selector, "selector", "l", "", "Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)")

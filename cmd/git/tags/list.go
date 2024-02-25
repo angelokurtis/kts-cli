@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/andanhm/go-prettytime"
+	prettytime "github.com/andanhm/go-prettytime"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 
@@ -22,6 +22,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	brazil = loc
 }
 
@@ -37,9 +38,11 @@ func list(_ *cobra.Command, _ []string) {
 		b := tags[j]
 		av, aerr := semver.NewVersion(a.Name)
 		bv, berr := semver.NewVersion(b.Name)
+
 		if aerr != nil || berr != nil {
 			return a.Time.After(*b.Time)
 		}
+
 		return av.GreaterThan(bv)
 	})
 
@@ -48,9 +51,11 @@ func list(_ *cobra.Command, _ []string) {
 	table.SetRowLine(false)
 	table.SetBorder(false)
 	table.SetColWidth(50)
+
 	for _, tag := range tags {
 		t := fmt.Sprintf("%s (%s)", tag.Time.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(*tag.Time))
 		table.Append([]string{tag.Name, tag.CommitID, t})
 	}
+
 	table.Render()
 }

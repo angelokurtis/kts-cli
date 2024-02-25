@@ -1,8 +1,9 @@
 package git
 
 import (
-	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"strings"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListRemoteBranches() ([]string, error) {
@@ -10,7 +11,9 @@ func ListRemoteBranches() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	branches := strings.Split(string(out), "\n")
+
 	return branches, nil
 }
 
@@ -19,9 +22,11 @@ func CurrentBranch() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	branches := strings.Split(string(out), "\n")
 	for _, branch := range branches {
 		return branch, nil
 	}
+
 	return "", nil
 }

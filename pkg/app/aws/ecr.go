@@ -3,7 +3,7 @@ package aws
 import (
 	"encoding/json"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -44,12 +44,14 @@ type ECRRepositories struct {
 func (e *ECRRepositories) SelectMany() (*ECRRepositories, error) {
 	repos := make(map[string]*ECRRepository, 0)
 	uris := make([]string, 0, 0)
+
 	for _, repo := range e.Items {
 		repos[repo.URI] = repo
 		uris = append(uris, repo.URI)
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the ECR repositories:",
 		Options: uris,

@@ -2,12 +2,14 @@ package ingresses
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 	"github.com/angelokurtis/kts-cli/pkg/app/linux"
-	"github.com/spf13/cobra"
-	"strings"
 )
 
 // kube ingresses hosts-mapping
@@ -21,6 +23,7 @@ func hostsMapping(cmd *cobra.Command, args []string) {
 	if err != nil {
 		system.Exit(err)
 	}
+
 	if len(ingresses) > 0 {
 		log.Debugf("found %d ingresses\n", len(ingresses))
 	}
@@ -29,6 +32,7 @@ func hostsMapping(cmd *cobra.Command, args []string) {
 	if err != nil {
 		system.Exit(err)
 	}
+
 	if len(gateways) > 0 {
 		log.Debugf("found %d gateways\n", len(gateways))
 	}
@@ -37,6 +41,7 @@ func hostsMapping(cmd *cobra.Command, args []string) {
 	if err != nil {
 		system.Exit(err)
 	}
+
 	err = hosts.Add(context, ingresses, gateways)
 	if err != nil {
 		system.Exit(err)
@@ -47,6 +52,7 @@ func hostsMapping(cmd *cobra.Command, args []string) {
 		if !strings.Contains(err.Error(), "open /etc/hosts: permission denied") {
 			system.Exit(err)
 		}
+
 		fmt.Printf("This command requires superuser privileges to run. These\nprivileges are required to add IP address aliases to your\nloopback interface.\n\nTry:\n - sudo -E kts kube ingresses hosts-mapping\n")
 	} else {
 		log.Info("/etc/hosts file has been rewritten!")

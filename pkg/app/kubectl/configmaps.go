@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -54,9 +54,11 @@ type ConfigMaps struct {
 func (m *ConfigMaps) Names() []string {
 	configMaps := m.Items
 	names := make([]string, 0, len(configMaps))
+
 	for _, release := range configMaps {
 		names = append(names, release.Metadata.Namespace+"/"+release.Metadata.Name)
 	}
+
 	return names
 }
 
@@ -66,6 +68,7 @@ func (m *ConfigMaps) Get(name string) *ConfigMap {
 			return configMap
 		}
 	}
+
 	return nil
 }
 
@@ -77,6 +80,7 @@ func (m *ConfigMaps) SelectOne() (*ConfigMap, error) {
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Select the ConfigMap:",
 		Options: names,
@@ -94,9 +98,11 @@ func (m *ConfigMaps) SingleResult() (*ConfigMap, error) {
 	if len(m.Items) == 0 {
 		return nil, nil
 	}
+
 	if len(m.Items) == 1 {
 		return m.Items[0], nil
 	}
+
 	return nil, errors.New("found more than one ConfigMap")
 }
 

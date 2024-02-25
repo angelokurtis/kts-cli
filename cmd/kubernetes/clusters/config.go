@@ -1,9 +1,10 @@
 package clusters
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/aws"
-	"github.com/spf13/cobra"
 )
 
 func config(cmd *cobra.Command, args []string) {
@@ -11,6 +12,7 @@ func config(cmd *cobra.Command, args []string) {
 	if err != nil {
 		system.Exit(err)
 	}
+
 	err = aws.ConnectToEKSCluster(cluster)
 	if err != nil {
 		system.Exit(err)

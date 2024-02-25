@@ -7,12 +7,10 @@ import (
 	"github.com/angelokurtis/kts-cli/internal/system"
 )
 
-var (
-	Command = &cobra.Command{
-		Use: "helm",
-		Run: system.Help,
-	}
-)
+var Command = &cobra.Command{
+	Use: "helm",
+	Run: system.Help,
+}
 
 func init() {
 	Command.AddCommand(revisions.Command)

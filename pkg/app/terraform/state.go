@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -17,11 +17,14 @@ func ListResources() (Resources, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	r := make([]string, 0, 0)
 	scanner := bufio.NewScanner(bytes.NewReader(out))
+
 	for scanner.Scan() {
 		r = append(r, scanner.Text())
 	}
+
 	return r, nil
 }
 
@@ -29,6 +32,7 @@ type Resources []string
 
 func (r Resources) SelectMany() (Resources, error) {
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the Terraform resources:",
 		Options: r,
@@ -47,6 +51,7 @@ func (r Resources) ApplyCommand() string {
 	for _, s := range r {
 		_, _ = fmt.Fprintf(&b, " -target=%s", s)
 	}
+
 	return "terraform apply" + b.String()
 }
 
@@ -55,5 +60,6 @@ func (r Resources) DestroyCommand() string {
 	for _, s := range r {
 		_, _ = fmt.Fprintf(&b, " -target=%s", s)
 	}
+
 	return "terraform destroy" + b.String()
 }

@@ -2,11 +2,13 @@ package helm
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/pkg/app/helm"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
+	"strings"
+
 	"github.com/gookit/color"
 	changeCase "github.com/ku/go-change-case"
-	"strings"
+
+	"github.com/angelokurtis/kts-cli/pkg/app/helm"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 type Release struct {
@@ -20,10 +22,12 @@ func NewRelease() (*Release, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	release, err := releases.SelectOne()
 	if err != nil {
 		return nil, err
 	}
+
 	return &Release{Chart: release.Chart, Name: release.Name, Namespace: release.Namespace}, nil
 }
 
@@ -48,5 +52,6 @@ func (r *Release) Import() error {
 			return err
 		}
 	}
+
 	return nil
 }

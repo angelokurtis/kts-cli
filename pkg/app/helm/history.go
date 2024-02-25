@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -20,6 +20,7 @@ func GetHistory(release string, options ...OptionFunc) (Revisions, error) {
 	if o.Namespace != "" {
 		cmd += " -n " + o.Namespace
 	}
+
 	out, err := bash.RunAndLogRead(cmd)
 	if err != nil {
 		return nil, err
@@ -33,6 +34,7 @@ type Revisions []*Revision
 func UnmarshalHistory(data []byte) (Revisions, error) {
 	var r Revisions
 	err := json.Unmarshal(data, &r)
+
 	return r, errors.WithStack(err)
 }
 
@@ -46,6 +48,7 @@ func (r Revisions) SelectMany() (Revisions, error) {
 	} else if len(r) == 1 {
 		return []*Revision{r[0]}, nil
 	}
+
 	numbers := r.Numbers()
 	prompt := &survey.MultiSelect{
 		Message: "Select the Helm release revisions:",
@@ -53,6 +56,7 @@ func (r Revisions) SelectMany() (Revisions, error) {
 	}
 
 	var selects []string
+
 	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -62,6 +66,7 @@ func (r Revisions) SelectMany() (Revisions, error) {
 	for _, name := range selects {
 		revisions = append(revisions, r.Get(name))
 	}
+
 	return revisions, nil
 }
 
@@ -70,6 +75,7 @@ func (r Revisions) Numbers() []string {
 	for _, revision := range r {
 		numbers = append(numbers, fmt.Sprintf("%d", revision.Number))
 	}
+
 	return numbers
 }
 
@@ -79,6 +85,7 @@ func (r Revisions) Get(number string) *Revision {
 			return revision
 		}
 	}
+
 	return nil
 }
 

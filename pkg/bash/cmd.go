@@ -2,10 +2,11 @@ package bash
 
 import (
 	"fmt"
-	"github.com/gookit/color"
-	"github.com/pkg/errors"
 	"os/exec"
 	"strings"
+
+	"github.com/gookit/color"
+	"github.com/pkg/errors"
 )
 
 func RunAndLogRead(cmd string) (out []byte, err error) {
@@ -24,14 +25,17 @@ func Run(cmd string) ([]byte, error) {
 		if eerr, ok := err.(*exec.ExitError); ok {
 			msg := strings.TrimSpace(string(eerr.Stderr))
 			def := strings.TrimSpace(string(out))
+
 			if msg == "" && def != "" {
 				return nil, errors.New(def)
 			} else {
 				return nil, errors.New(msg)
 			}
 		}
+
 		return nil, errors.Wrapf(err, "'%s' execution error", cmd)
 	}
+
 	return out, nil
 }
 
@@ -41,18 +45,22 @@ func Follow(command string) error {
 
 	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 	stdout, _ := cmd.StdoutPipe()
+
 	err := cmd.Start()
 	if err != nil {
 		return err
 	}
 
 	oneByte := make([]byte, 1)
+
 	for {
 		_, err := stdout.Read(oneByte)
 		if err != nil {
 			break
 		}
+
 		fmt.Printf("%s", oneByte)
 	}
+
 	return nil
 }

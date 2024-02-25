@@ -2,9 +2,10 @@ package ifood
 
 import (
 	"encoding/json"
-	"github.com/pkg/errors"
 	"net/http"
 	"os"
+
+	"github.com/pkg/errors"
 )
 
 var client = &http.Client{}
@@ -19,6 +20,7 @@ func List() (Orders, error) {
 
 	accountId := os.Getenv("IFOOD_ACCOUNT_ID")
 	token := os.Getenv("IFOOD_TOKEN")
+
 	req.Header.Add("account_id", accountId)
 	req.Header.Add("authorization", "Bearer "+token)
 

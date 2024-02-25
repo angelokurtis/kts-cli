@@ -15,5 +15,6 @@ func (c *Channel) Group() string {
 			return tag.Value
 		}
 	}
+
 	return ""
 }

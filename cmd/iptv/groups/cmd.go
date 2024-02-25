@@ -2,10 +2,13 @@ package groups
 
 import (
 	"fmt"
+	"path/filepath"
+
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/m3u"
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -26,13 +29,25 @@ func list(cmd *cobra.Command, args []string) {
 	channels, err := m3u.ListChannels(filename)
 	dieOnErr(err)
 
-	for _, group := range channels.Groups() {
+	for _, group := range channels.Groups().Items {
 		fmt.Println(group)
 	}
 }
 
 func edit(cmd *cobra.Command, args []string) {
+	channels, err := m3u.ListChannels(filename)
+	dieOnErr(err)
 
+	groups, err := channels.Groups().SelectMany()
+	dieOnErr(err)
+
+	channels = channels.FilterByGroups(groups)
+
+	ext := filepath.Ext(filename)
+	name := filename[:len(filename)-len(ext)]
+
+	err = channels.Write(name + "[edited]" + ext)
+	dieOnErr(err)
 }
 
 func dieOnErr(err error) {

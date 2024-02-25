@@ -1,10 +1,10 @@
 package log
 
 import (
-	"github.com/gookit/color"
 	"os"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

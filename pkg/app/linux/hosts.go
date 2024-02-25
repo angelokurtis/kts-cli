@@ -7,9 +7,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/pkg/errors"
 )
 
 type HostsFile struct {
@@ -25,6 +26,7 @@ func LoadHostsFile() (*HostsFile, error) {
 	defer file.Close()
 
 	contents := make([]string, 0, 0)
+
 	var ib strings.Builder
 
 	var ingressBlock bool
@@ -35,12 +37,14 @@ func LoadHostsFile() (*HostsFile, error) {
 		if strings.HasPrefix(text, "# Starting the map of external accesses to the ") {
 			ingressBlock = true
 		}
+
 		if ingressBlock {
 			ib.WriteString(text)
 			ib.WriteString("\n")
 		} else {
 			contents = append(contents, text)
 		}
+
 		if strings.HasPrefix(text, "# Ending the map of external accesses to the ") {
 			ingressBlock = false
 		}
@@ -49,6 +53,7 @@ func LoadHostsFile() (*HostsFile, error) {
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
+
 	return &HostsFile{contents: contents, ingresses: ib.String()}, nil
 }
 
@@ -66,6 +71,7 @@ func (h *HostsFile) Add(context string, ingresses []*kubectl.Ingress, gateways [
 		for _, rule := range ing.Spec.Rules {
 			name := rule.Host
 			eip := ing.ExternalIP()
+
 			if len(eip) > 0 && len(name) > 0 && name != "*" {
 				hosts[name] = &hostObj{
 					name:        name,
@@ -83,6 +89,7 @@ func (h *HostsFile) Add(context string, ingresses []*kubectl.Ingress, gateways [
 			return err
 		}
 	}
+
 	for _, gtw := range gateways {
 		n := gtw.Metadata.Name
 		ns := gtw.Metadata.Namespace
@@ -105,23 +112,28 @@ func (h *HostsFile) Add(context string, ingresses []*kubectl.Ingress, gateways [
 		if sb.Len() == 0 {
 			sb.WriteString(fmt.Sprintf("# Starting the map of external accesses to the %s\n", context))
 		}
+
 		sb.WriteString(fmt.Sprintf("%s\t\t%s # %s\n", host.address, host.name, host.description))
 	}
+
 	if sb.Len() > 0 {
 		sb.WriteString(fmt.Sprintf("# Ending the map of external accesses to the %s\n\n", context))
 	}
 
 	h.ingresses = sb.String()
+
 	return nil
 }
 
 func (h *HostsFile) Write() error {
 	content := []byte(h.String())
 	log.Debugf("\n%s", content)
+
 	err := ioutil.WriteFile("/etc/hosts", content, 0o644)
 	if err != nil {
 		return errors.WithStack(err)
 	}
+
 	return nil
 }
 
@@ -130,6 +142,7 @@ func (h *HostsFile) String() string {
 	if len(last) > 1 {
 		h.contents = append(h.contents, "\n")
 	}
+
 	return strings.Join(h.contents, "\n") + h.ingresses
 }
 

@@ -3,8 +3,10 @@ package gcloud
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
+
 	"github.com/pkg/errors"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListNodePools(cluster string) (interface{}, error) {

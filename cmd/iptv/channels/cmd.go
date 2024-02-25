@@ -2,11 +2,13 @@ package channels
 
 import (
 	"fmt"
+	"path/filepath"
+
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/m3u"
-	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 var (

@@ -24,14 +24,17 @@ func list(cmd *cobra.Command, args []string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Cluster", "Region"})
 	table.SetBorder(false)
+
 	for _, region := range aws.Regions {
 		clusters, err := aws.ListEKSClusters(region)
 		if err != nil {
 			color.Yellow.Println("[WARN] " + err.Error())
 		}
+
 		for _, cluster := range clusters {
 			table.Append([]string{cluster, region})
 		}
 	}
+
 	table.Render()
 }

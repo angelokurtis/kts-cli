@@ -16,6 +16,7 @@ func GetSuppliedValues(release string, revision int64, options ...OptionFunc) ([
 	if o.Namespace != "" {
 		cmd += " -n " + o.Namespace
 	}
+
 	return bash.RunAndLogRead(cmd)
 }
 
@@ -29,5 +30,6 @@ func GetComputedValues(release string, revision int64, options ...OptionFunc) ([
 	if o.Namespace != "" {
 		cmd += " -n " + o.Namespace
 	}
+
 	return bash.RunAndLogRead(cmd)
 }

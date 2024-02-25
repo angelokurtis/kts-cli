@@ -137,30 +137,36 @@ type (
 
 func (o Orders) FilterByStatus(status string) Orders {
 	res := make([]*Order, 0, 0)
+
 	for _, order := range o {
 		if order.LastStatus == status {
 			res = append(res, order)
 		}
 	}
+
 	return res
 }
 
 func (o Orders) FilterFrom(from time.Time) Orders {
 	res := make([]*Order, 0, 0)
+
 	for _, order := range o {
 		if order.CreatedAt.After(from) {
 			res = append(res, order)
 		}
 	}
+
 	return res
 }
 
 func (o Orders) FilterTo(to time.Time) Orders {
 	res := make([]*Order, 0, 0)
+
 	for _, order := range o {
 		if order.CreatedAt.Before(to) {
 			res = append(res, order)
 		}
 	}
+
 	return res
 }

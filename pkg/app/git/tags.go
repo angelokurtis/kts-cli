@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
 	"strings"
 	"time"
+
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ListTags(dir string) ([]*Tag, error) {
@@ -14,19 +15,25 @@ func ListTags(dir string) ([]*Tag, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
+
 	tags := make([]*Tag, 0, 0)
+
 	for scanner.Scan() {
 		split := strings.Split(scanner.Text(), " ")
+
 		tag, err := newTag(split[0], strings.ReplaceAll(split[1], "refs/tags/", ""), dir)
 		if err != nil {
 			return nil, err
 		}
+
 		tags = append(tags, tag)
 	}
+
 	return tags, nil
 }
 
@@ -36,10 +43,11 @@ type Tag struct {
 	Name     string
 }
 
-func newTag(commitID string, name string, dir string) (*Tag, error) {
+func newTag(commitID, name, dir string) (*Tag, error) {
 	t, err := GetCommitTime(commitID, dir)
 	if err != nil {
 		return nil, err
 	}
+
 	return &Tag{Time: t, CommitID: commitID, Name: name}, nil
 }

@@ -19,14 +19,18 @@ func (c *Command) String() string {
 	for _, namespace := range c.Namespaces {
 		_, _ = fmt.Fprintf(&nb, " -n %s", namespace)
 	}
+
 	var lb strings.Builder
+
 	count := 0
 	for key, values := range c.Labels {
 		if count > 0 {
 			_, _ = fmt.Fprintf(&lb, ",")
 		}
+
 		if len(values) > 1 {
 			_, _ = fmt.Fprintf(&lb, "%s in (", key)
+
 			for i, value := range values {
 				if i == 0 {
 					_, _ = fmt.Fprintf(&lb, "%s", value)
@@ -34,10 +38,12 @@ func (c *Command) String() string {
 					_, _ = fmt.Fprintf(&lb, ",%s", value)
 				}
 			}
+
 			_, _ = fmt.Fprintf(&lb, ")")
 		} else {
 			_, _ = fmt.Fprintf(&lb, "%s=%s", key, values[0])
 		}
+
 		count++
 	}
 

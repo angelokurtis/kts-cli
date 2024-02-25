@@ -2,16 +2,17 @@ package kube
 
 import (
 	"flag"
-	"k8s.io/client-go/discovery"
 	"path/filepath"
 	"sync"
 
-	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/pkg/errors"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+
+	"github.com/angelokurtis/kts-cli/internal/system"
 )
 
 var (
@@ -27,6 +28,7 @@ func NewRestConfig() (*rest.Config, error) {
 	} else {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
+
 	flag.Parse()
 
 	// use the current context in kubeconfig
@@ -53,11 +55,13 @@ func GetClientset() *kubernetes.Clientset {
 		if err != nil {
 			system.Exit(err)
 		}
+
 		clientset, err = NewClientSet(config)
 		if err != nil {
 			system.Exit(err)
 		}
 	})
+
 	return clientset
 }
 
@@ -72,7 +76,9 @@ func GetDiscoveryClient() discovery.DiscoveryInterface {
 		if err != nil {
 			system.Exit(err)
 		}
+
 		discoveryClient = NewDiscoveryClient(config)
 	})
+
 	return discoveryClient
 }

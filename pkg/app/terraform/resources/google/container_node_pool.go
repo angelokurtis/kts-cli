@@ -2,11 +2,13 @@ package google
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/pkg/app/gcloud"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
+	"strings"
+
 	"github.com/gookit/color"
 	changeCase "github.com/ku/go-change-case"
-	"strings"
+
+	"github.com/angelokurtis/kts-cli/pkg/app/gcloud"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 type ContainerNodePool struct {
@@ -37,6 +39,7 @@ func (c *ContainerNodePool) Import() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -45,6 +48,7 @@ func NewContainerNodePool() (*ContainerNodePool, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &ContainerNodePool{
 		Name:     cluster.Name,
 		Project:  cluster.Project.ID,

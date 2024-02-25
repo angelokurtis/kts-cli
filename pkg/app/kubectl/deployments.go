@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/enescakir/emoji"
 	"github.com/pkg/errors"
 
@@ -21,6 +21,7 @@ func ListDeployments(namespace string, allNamespaces bool) (*Deployments, error)
 	} else if namespace != "" {
 		cmd = append(cmd, "-n", namespace)
 	}
+
 	out, err := run(cmd...)
 	if err != nil {
 		return nil, err
@@ -54,58 +55,70 @@ type Deployments struct {
 
 func (d *Deployments) FilterInjected() *Deployments {
 	deployments := make([]*Deployment, 0, 0)
+
 	for _, deployment := range d.Items {
 		if deployment.HasIstioSidecar() {
 			deployments = append(deployments, deployment)
 		}
 	}
+
 	return &Deployments{Items: deployments}
 }
 
 func (d *Deployments) FilterUninjected() *Deployments {
 	deployments := make([]*Deployment, 0, 0)
+
 	for _, deployment := range d.Items {
 		if !deployment.HasIstioSidecar() {
 			deployments = append(deployments, deployment)
 		}
 	}
+
 	return &Deployments{Items: deployments}
 }
 
 func (d *Deployments) FilterInjectable() *Deployments {
 	deployments := make([]*Deployment, 0, 0)
+
 	for _, deployment := range d.Items {
 		if deployment.IsInjectable() {
 			deployments = append(deployments, deployment)
 		}
 	}
+
 	return &Deployments{Items: deployments}
 }
 
 func (d *Deployments) Names() []string {
 	deployments := d.Items
 	names := make([]string, 0, len(deployments))
+
 	for _, release := range deployments {
 		names = append(names, release.Metadata.Name)
 	}
+
 	return names
 }
 
 func (d *Deployments) FullNames() []string {
 	deployments := d.Items
 	names := make([]string, 0, len(deployments))
+
 	for _, release := range deployments {
 		names = append(names, release.Metadata.Namespace+"/"+release.Metadata.Name)
 	}
+
 	return names
 }
 
 func (d *Deployments) Namespaces() []string {
 	deployments := d.Items
 	namespaces := make([]string, 0, len(deployments))
+
 	for _, release := range deployments {
 		namespaces = dedupeStr(namespaces, release.Metadata.Namespace)
 	}
+
 	return namespaces
 }
 
@@ -115,6 +128,7 @@ func (d *Deployments) Get(name string) *Deployment {
 			return deployment
 		}
 	}
+
 	return nil
 }
 
@@ -126,6 +140,7 @@ func (d *Deployments) SelectOne() (*Deployment, error) {
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Select the Deployment:",
 		Options: names,
@@ -143,6 +158,7 @@ func (d *Deployments) SelectMany() (*Deployments, error) {
 	if len(d.Items) == 0 {
 		return &Deployments{}, nil
 	}
+
 	names := d.FullNames()
 	prompt := &survey.MultiSelect{
 		Message: "Select the Deployments:",
@@ -150,6 +166,7 @@ func (d *Deployments) SelectMany() (*Deployments, error) {
 	}
 
 	var selects []string
+
 	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -159,6 +176,7 @@ func (d *Deployments) SelectMany() (*Deployments, error) {
 	for _, name := range selects {
 		deploys = append(deploys, d.Get(name))
 	}
+
 	return &Deployments{Items: deploys}, nil
 }
 
@@ -166,10 +184,12 @@ func (d *Deployments) SelectContainers() (*Containers, error) {
 	if len(d.Items) == 0 {
 		return &Containers{}, nil
 	}
+
 	containers, err := d.ListContainers()
 	if err != nil {
 		return nil, err
 	}
+
 	return containers.SelectMany()
 }
 
@@ -177,11 +197,14 @@ func (d *Deployments) ListContainers() (*Containers, error) {
 	if len(d.Items) == 0 {
 		return &Containers{}, nil
 	}
+
 	c := make([]*Container, 0, 0)
+
 	for _, deploy := range d.Items {
 		containers := deploy.Spec.Template.Spec.Containers
 		c = append(c, containers...)
 	}
+
 	return &Containers{Items: c}, nil
 }
 
@@ -190,9 +213,11 @@ func (d *Deployments) Rollout() error {
 	if len(namespaces) != 1 {
 		return errors.New("the deployment rollout restart just can be done on a single namespace")
 	}
+
 	ns := namespaces[0]
 	names := d.Names()
 	_, err := bash.RunAndLogWrite(fmt.Sprintf("kubectl rollout restart deployment %s -n %s", strings.Join(names, " "), ns))
+
 	return err
 }
 
@@ -257,21 +282,26 @@ func (d *Deployment) LastUpdateTime() *time.Time {
 	if len(conditions) < 1 {
 		return nil
 	}
+
 	sort.Slice(conditions, func(i, j int) bool {
 		return conditions[i].LastTransitionTime.After(conditions[j].LastTransitionTime)
 	})
+
 	return &conditions[0].LastUpdateTime
 }
 
 func (d *Deployment) StatusColor() string {
 	ready := d.Status.ReadyReplicas
 	desired := d.Spec.Replicas
+
 	if ready >= desired {
 		return emoji.GreenCircle.String()
 	}
+
 	if ready > 0 {
 		return emoji.YellowCircle.String()
 	}
+
 	return emoji.RedCircle.String()
 }
 
@@ -281,6 +311,7 @@ func (d *Deployment) HasIstioSidecar() bool {
 		// log.Debugf("%s/%s has not sidecar", d.Metadata.Namespace, d.Metadata.Name)
 		return false
 	}
+
 	for _, container := range containers {
 		if container.Name == "istio-proxy" {
 			// log.Debugf("%s/%s has the sidecar", d.Metadata.Namespace, d.Metadata.Name)
@@ -298,6 +329,7 @@ func (d *Deployment) GetContainer(name string) *Container {
 			return container
 		}
 	}
+
 	return nil
 }
 
@@ -308,5 +340,6 @@ func (d *Deployment) IsInjectable() bool {
 	if inject == "false" {
 		return false
 	}
+
 	return true
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 )
 
@@ -14,7 +14,9 @@ func ListContainersByDeployment(deploy *Deployment) (*Containers, error) {
 	for key, value := range deploy.Spec.Selector.MatchLabels {
 		labels = append(labels, key+"="+value)
 	}
+
 	cmd := []string{"get", "pods", "-o=json", "-n", deploy.Metadata.Namespace, "-l", strings.Join(labels, ", ")}
+
 	out, err := run(cmd...)
 	if err != nil {
 		return nil, err
@@ -33,6 +35,7 @@ func ListContainers(namespace string, allNamespaces bool, selector string) (*Con
 	if err != nil {
 		return nil, err
 	}
+
 	return pods.Containers(), nil
 }
 
@@ -120,10 +123,12 @@ func (c *Container) LastUpdateTime() *time.Time {
 	if status == nil {
 		return nil
 	}
+
 	state := status.CurrentState()
 	if state == nil {
 		return nil
 	}
+
 	return state.GetTime()
 }
 
@@ -131,6 +136,7 @@ func (c *Container) GetState() ContainerStateEvent {
 	if c.Status == nil {
 		return nil
 	}
+
 	return c.Status.CurrentState()
 }
 
@@ -140,6 +146,7 @@ func (c *Container) GetEnv(key string) string {
 			return v.Value
 		}
 	}
+
 	return ""
 }
 
@@ -149,6 +156,7 @@ func (c *Containers) Contains(containerName string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -157,6 +165,7 @@ func (c *Containers) Namespaces() []string {
 	for _, container := range c.Items {
 		ns = dedupeStr(ns, container.Namespace)
 	}
+
 	return ns
 }
 
@@ -165,46 +174,55 @@ func (c *Containers) Names() []string {
 	for _, container := range c.Items {
 		n = dedupeStr(n, container.Name)
 	}
+
 	return n
 }
 
 func (c *Containers) Pods() []string {
 	p := make([]string, 0, 0)
+
 	for _, container := range c.Items {
 		prefix := strings.Split(container.Pod, "-"+container.PodTemplateHash)[0]
 		p = dedupeStr(p, prefix)
 		// p = dedupeStr(p, container.Pod)
 	}
+
 	return p
 }
 
 func (c *Containers) CountByPod(pod string) int {
 	count := 0
+
 	for _, container := range c.Items {
 		if container.Pod == pod {
 			count++
 		}
 	}
+
 	return count
 }
 
 func (c *Containers) SelectMany() (*Containers, error) {
 	containers := make(map[string]*Container, 0)
 	names := make([]string, 0, 0)
+
 	for _, container := range c.Items {
 		name := ""
 		if container.Namespace != "" {
 			name = container.Namespace + "/"
 		}
+
 		if container.Pod != "" {
 			name = container.Pod + "/"
 		}
+
 		name = name + container.Name
 		containers[name] = container
 		names = dedupeStr(names, name)
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the containers:",
 		Options: names,
@@ -225,11 +243,13 @@ func (c *Containers) SelectMany() (*Containers, error) {
 
 func (c *Containers) FilterExposed() *Containers {
 	containers := make([]*Container, 0, 0)
+
 	for _, container := range c.Items {
 		if len(container.Ports) > 0 {
 			containers = append(containers, container)
 		}
 	}
+
 	return &Containers{Items: containers}
 }
 

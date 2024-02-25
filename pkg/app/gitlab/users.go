@@ -1,17 +1,19 @@
 package gitlab
 
 import (
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
-	"github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
 func GetMyUser() (*gitlab.User, error) {
 	svc := client.Users
+
 	u, _, err := svc.CurrentUser()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	return u, nil
 }
 
@@ -31,6 +33,7 @@ func SearchUsers() ([]*gitlab.User, error) {
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
+
 		u = append(u, users...)
 		lastPage = res.TotalPages
 		currentPage++
@@ -41,15 +44,18 @@ func SearchUsers() ([]*gitlab.User, error) {
 
 func SearchUser(username string) (*gitlab.User, error) {
 	svc := client.Users
+
 	users, _, err := svc.ListUsers(&gitlab.ListUsersOptions{
 		Username: &username,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	if len(users) == 0 {
 		return nil, nil
 	}
+
 	return users[0], nil
 }
 
@@ -60,6 +66,7 @@ func SelectOneUser() (*gitlab.User, error) {
 	}
 
 	list := userList{items: u}
+
 	return list.selectOne()
 }
 
@@ -73,6 +80,7 @@ func (u *userList) get(name string) *gitlab.User {
 			return item
 		}
 	}
+
 	return nil
 }
 
@@ -81,6 +89,7 @@ func (u *userList) names() []string {
 	for _, item := range u.items {
 		names = append(names, item.Username)
 	}
+
 	return names
 }
 
@@ -97,6 +106,7 @@ func (u *userList) selectOne() (*gitlab.User, error) {
 	}
 
 	answer := ""
+
 	err := survey.AskOne(prompt, &answer, survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)

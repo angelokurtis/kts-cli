@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	yamlv3 "gopkg.in/yaml.v3"
@@ -25,10 +25,12 @@ func ListResourcesOwners(resources, namespace string, allNamespaces bool) ([]Ite
 	} else if namespace != "" {
 		cmd = cmd + " -n " + namespace
 	}
+
 	out, err := bash.RunAndLogRead(cmd)
 	if err != nil {
 		return nil, err
 	}
+
 	var col *collection
 	if err := json.Unmarshal(out, &col); err != nil {
 		return nil, errors.WithStack(err)
@@ -46,12 +48,14 @@ func ListResourcesOwners(resources, namespace string, allNamespaces bool) ([]Ite
 	}
 
 	items := make([]Item, 0)
+
 	for _, item := range col.Items {
 		item.Dependents = counter[item.Metadata.UID]
 		if len(item.Metadata.OwnerReferences) == 0 && item.Dependents > 0 {
 			items = append(items, item)
 		}
 	}
+
 	return items, nil
 }
 
@@ -62,18 +66,22 @@ func ListResources(resources, namespace string, allNamespaces bool) ([]string, e
 	} else if namespace != "" {
 		cmd = append(cmd, "-n", namespace)
 	}
+
 	out, err := runAndLogRead(cmd...)
 	if err != nil {
 		return nil, err
 	}
+
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	if err := scanner.Err(); err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	res := make([]string, 0, 0)
 	for scanner.Scan() {
 		res = append(res, scanner.Text())
 	}
+
 	return res, nil
 }
 
@@ -84,20 +92,26 @@ func SelectResources(resources, namespace string, allNamespaces bool) ([]*resour
 	} else if namespace != "" {
 		cmd = cmd + " -n " + namespace
 	}
+
 	out, err := bash.RunAndLogRead(cmd)
 	if err != nil {
 		return nil, err
 	}
+
 	var col *collection
 	if err := json.Unmarshal(out, &col); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	links := make(map[string]*resource, 0)
+
 	var options []string
+
 	for _, item := range col.Items {
 		split := strings.Split(item.APIVersion, "/")
+
 		var fullKindName, group string
+
 		if len(split) <= 1 {
 			group = ""
 			fullKindName = item.Kind
@@ -105,6 +119,7 @@ func SelectResources(resources, namespace string, allNamespaces bool) ([]*resour
 			group = split[0]
 			fullKindName = item.Kind + "." + group
 		}
+
 		r := &resource{
 			Name:         item.Metadata.Name,
 			FullKindName: fullKindName,
@@ -113,15 +128,19 @@ func SelectResources(resources, namespace string, allNamespaces bool) ([]*resour
 			Namespace:    item.Metadata.Namespace,
 		}
 		key := ""
+
 		if allNamespaces {
 			key = key + r.Namespace + "/"
 		}
+
 		key = key + r.FullKindName + "/" + r.Name
 		links[key] = r
+
 		options = append(options, key)
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the resource:",
 		Options: options,
@@ -147,6 +166,7 @@ func SaveResourcesManifests(resources []*resource, keepStatus, decodeSecrets boo
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -155,6 +175,7 @@ func saveResourceManifest(resource *resource, keepStatus, decodeSecrets bool) er
 	if resource.Namespace != "" {
 		cmd = cmd + " -n " + resource.Namespace
 	}
+
 	out, err := bash.Run(cmd)
 	if err != nil {
 		return err
@@ -162,11 +183,14 @@ func saveResourceManifest(resource *resource, keepStatus, decodeSecrets bool) er
 
 	if resource.Kind == "Secret" && resource.Group == "" && decodeSecrets {
 		sec := make(map[string]interface{}, 0)
+
 		err = yamlv3.Unmarshal(out, &sec)
 		if err != nil {
 			return errors.WithStack(err)
 		}
+
 		strdata := make(map[string]string, 0)
+
 		if data := sec["data"]; data != nil {
 			if kv, ok := data.(map[string]interface{}); ok {
 				for k, v := range kv {
@@ -174,11 +198,14 @@ func saveResourceManifest(resource *resource, keepStatus, decodeSecrets bool) er
 					if err != nil {
 						return errors.WithStack(err)
 					}
+
 					strdata[k] = string(srtv)
 				}
 			}
 		}
+
 		sec["data"] = strdata
+
 		out, err = yamlv3.Marshal(&sec)
 		if err != nil {
 			return errors.WithStack(err)
@@ -186,6 +213,7 @@ func saveResourceManifest(resource *resource, keepStatus, decodeSecrets bool) er
 	}
 
 	yamlFile := resource.Name + ".yaml"
+
 	yamlPath := ""
 	if resource.Namespace != "" && resource.Group != "" {
 		yamlPath = fmt.Sprintf("./manifests/%s/%s.%s", resource.Namespace, resource.Kind, resource.Group)
@@ -203,6 +231,7 @@ func saveResourceManifest(resource *resource, keepStatus, decodeSecrets bool) er
 	}
 
 	color.Primary.Println(cmd + " > " + yamlPath + "/" + yamlFile)
+
 	if err = ioutil.WriteFile(yamlPath+"/"+yamlFile, out, 0o644); err != nil {
 		return errors.WithStack(err)
 	}
@@ -210,6 +239,7 @@ func saveResourceManifest(resource *resource, keepStatus, decodeSecrets bool) er
 	if err := deleteGeneratedFields(yamlPath+"/"+yamlFile, keepStatus); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -219,65 +249,82 @@ func deleteGeneratedFields(manifestPath string, keepStatus bool) error {
 			return err
 		}
 	}
+
 	if err := yq.DeleteNode(manifestPath, "metadata.managedFields"); err != nil {
 		return err
 	}
+
 	if err := yq.DeleteNode(manifestPath, "metadata.generation"); err != nil {
 		return err
 	}
+
 	if err := yq.DeleteNode(manifestPath, "metadata.selfLink"); err != nil {
 		return err
 	}
+
 	if err := yq.DeleteNode(manifestPath, "metadata.annotations[kubectl.kubernetes.io/last-applied-configuration]"); err != nil {
 		return err
 	}
+
 	if err := yq.DeleteNode(manifestPath, "metadata.creationTimestamp"); err != nil {
 		return err
 	}
+
 	if err := yq.DeleteNode(manifestPath, "metadata.resourceVersion"); err != nil {
 		return err
 	}
+
 	if err := yq.DeleteNode(manifestPath, "metadata.uid"); err != nil {
 		return err
 	}
+
 	if err := yq.DeleteNode(manifestPath, "metadata.annotations[cloud.google.com/neg]"); err != nil {
 		return err
 	}
+
 	kind, err := yq.ReadNodeValue(manifestPath, "kind")
 	if err != nil {
 		return err
 	}
+
 	if kind == "Service" {
 		if err := yq.DeleteNode(manifestPath, "spec.clusterIP"); err != nil {
 			return err
 		}
+
 		sessionAffinity, err := yq.ReadNodeValue(manifestPath, "spec.sessionAffinity")
 		if err != nil {
 			return err
 		}
+
 		if sessionAffinity == "None" {
 			if err := yq.DeleteNode(manifestPath, "spec.sessionAffinity"); err != nil {
 				return err
 			}
 		}
 	}
+
 	if kind == "Deployment" {
 		if err := yq.DeleteNode(manifestPath, "metadata.annotations[deployment.kubernetes.io/revision]"); err != nil {
 			return err
 		}
+
 		if err := yq.DeleteNode(manifestPath, "spec.template.metadata.creationTimestamp"); err != nil {
 			return err
 		}
 	}
+
 	annotations, err := yq.ReadNodeValue(manifestPath, "metadata.annotations")
 	if err != nil {
 		return err
 	}
+
 	if annotations == "{}" {
 		if err := yq.DeleteNode(manifestPath, "metadata.annotations"); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -292,6 +339,7 @@ type resource struct {
 func newResource(l string) (*resource, error) {
 	splitted := strings.Split(l, "/")
 	size := len(splitted)
+
 	if size == 8 {
 		return &resource{
 			Name:         splitted[7],
@@ -323,6 +371,7 @@ func newResource(l string) (*resource, error) {
 			Namespace:    "",
 		}, nil
 	}
+
 	return nil, errors.New("unrecognized selfLink format: " + l)
 }
 

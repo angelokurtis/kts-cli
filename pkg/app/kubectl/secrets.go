@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -68,9 +68,11 @@ type Secrets struct {
 func (m *Secrets) Names() []string {
 	secrets := m.Items
 	names := make([]string, 0, len(secrets))
+
 	for _, release := range secrets {
 		names = append(names, release.Metadata.Namespace+"/"+release.Metadata.Name)
 	}
+
 	return names
 }
 
@@ -80,6 +82,7 @@ func (m *Secrets) Get(name string) *Secret {
 			return secret
 		}
 	}
+
 	return nil
 }
 
@@ -87,6 +90,7 @@ func (m *Secrets) SelectMany() (*Secrets, error) {
 	if len(m.Items) == 0 {
 		return &Secrets{}, nil
 	}
+
 	names := m.FullNames()
 	prompt := &survey.MultiSelect{
 		Message: "Select the Secrets:",
@@ -94,6 +98,7 @@ func (m *Secrets) SelectMany() (*Secrets, error) {
 	}
 
 	var selects []string
+
 	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -103,15 +108,18 @@ func (m *Secrets) SelectMany() (*Secrets, error) {
 	for _, name := range selects {
 		secrets = append(secrets, m.Get(name))
 	}
+
 	return &Secrets{Items: secrets}, nil
 }
 
 func (m *Secrets) FullNames() []string {
 	secrets := m.Items
 	names := make([]string, 0, len(secrets))
+
 	for _, release := range secrets {
 		names = append(names, release.Metadata.Namespace+"/"+release.Metadata.Name)
 	}
+
 	return names
 }
 
@@ -123,6 +131,7 @@ func (m *Secrets) SelectOne() (*Secret, error) {
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Select the Secret:",
 		Options: names,
@@ -140,9 +149,11 @@ func (m *Secrets) SingleResult() (*Secret, error) {
 	if len(m.Items) == 0 {
 		return nil, nil
 	}
+
 	if len(m.Items) == 1 {
 		return m.Items[0], nil
 	}
+
 	return nil, errors.New("found more than one Secret")
 }
 

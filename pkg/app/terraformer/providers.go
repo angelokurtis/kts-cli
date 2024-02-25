@@ -1,7 +1,7 @@
 package terraformer
 
 import (
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 )
 
@@ -37,6 +37,7 @@ func ListProviders() Providers {
 
 func (p Providers) SelectProvider() (string, error) {
 	var selected string
+
 	if len(p) == 0 {
 		return "", nil
 	} else if len(p) > 1 {
@@ -57,4 +58,5 @@ func (p Providers) SelectProvider() (string, error) {
 }
 
 type Providers []string
+
 type Provider string

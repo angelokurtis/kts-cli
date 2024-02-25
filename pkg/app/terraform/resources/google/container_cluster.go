@@ -2,11 +2,13 @@ package google
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/pkg/app/gcloud"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
+	"strings"
+
 	"github.com/gookit/color"
 	changeCase "github.com/ku/go-change-case"
-	"strings"
+
+	"github.com/angelokurtis/kts-cli/pkg/app/gcloud"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 type ContainerCluster struct {
@@ -36,6 +38,7 @@ func (c *ContainerCluster) Import() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -44,6 +47,7 @@ func NewContainerCluster() (*ContainerCluster, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &ContainerCluster{
 		Name:     cluster.Name,
 		Project:  cluster.Project.ID,

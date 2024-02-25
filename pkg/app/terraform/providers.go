@@ -1,7 +1,7 @@
 package terraform
 
 import (
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/rodaine/hclencoder"
 )
@@ -21,6 +21,7 @@ func SelectProvider() (*Provider, error) {
 	providers := ListProviders()
 
 	var selected string
+
 	if len(providers) == 0 {
 		return nil, nil
 	} else if len(providers) > 1 {
@@ -59,5 +60,6 @@ func (p *Provider) Encode() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return hcl, nil
 }

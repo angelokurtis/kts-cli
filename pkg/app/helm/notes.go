@@ -16,5 +16,6 @@ func GetNotes(release string, revision int64, options ...OptionFunc) ([]byte, er
 	if o.Namespace != "" {
 		cmd += " -n " + o.Namespace
 	}
+
 	return bash.RunAndLogRead(cmd)
 }

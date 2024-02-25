@@ -35,5 +35,6 @@ func (r *Resource) Encode() ([]byte, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	return hcl, nil
 }

@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gookit/color"
-
 	"github.com/disiqueira/gotree"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/golang"
@@ -17,10 +16,12 @@ func packages(_ *cobra.Command, args []string) {
 	if len(args) > 0 {
 		dir = args[0]
 	}
+
 	dirs, err := golang.ListDirectories(dir)
 	check(err)
 
 	root := gotree.New(color.BgGray.Text(dir))
+
 	for _, ydir := range dirs {
 		pkg, err := golang.DescribePackage(ydir)
 		check(err)
@@ -31,6 +32,7 @@ func packages(_ *cobra.Command, args []string) {
 				if ydir != dir {
 					return root.Add(color.BgGray.Text(ydir))
 				}
+
 				return root
 			}()
 			for _, imp := range imports {
@@ -60,13 +62,17 @@ type LinkData struct {
 
 func dedupe(a []string, b ...string) []string {
 	check := make(map[string]int)
+
 	d := append(a, b...)
 	res := make([]string, 0)
+
 	for _, val := range d {
 		check[val] = 1
 	}
+
 	for letter := range check {
 		res = append(res, letter)
 	}
+
 	return res
 }

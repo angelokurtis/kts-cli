@@ -10,9 +10,11 @@ func CurrentContext() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	for scanner.Scan() {
 		return scanner.Text(), nil
 	}
+
 	return "", nil
 }

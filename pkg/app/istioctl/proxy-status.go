@@ -15,5 +15,6 @@ func ProxyStatus(pod *kubectl.Pod) error {
 
 	out, err := bash.RunAndLogRead(fmt.Sprintf("istioctl proxy-status %s.%s -i %s", pod.Metadata.Name, pod.Metadata.Namespace, ns))
 	fmt.Println(string(out))
+
 	return err
 }

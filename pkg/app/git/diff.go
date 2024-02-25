@@ -34,17 +34,21 @@ func ShowDiffFiles(branch string) ([]string, error) {
 	}
 
 	toplevels := strings.Split(string(out), "\n")
+
 	var toplevel string
+
 	for _, tl := range toplevels {
 		toplevel = tl
 		break
 	}
 
 	result := make([]string, 0, len(files))
+
 	for _, file := range files {
 		if len(file) == 0 {
 			continue
 		}
+
 		result = append(result, path.Join(toplevel, file))
 	}
 
@@ -67,11 +71,14 @@ func UncommittedFiles() ([]string, error) {
 			trimed := strings.TrimSpace(x)
 			return len(trimed) > 0
 		})
+
 		if len(splited) != 2 {
 			continue
 		}
+
 		change := splited[0]
 		file := splited[1]
+
 		if change != "??" {
 			files = append(files, file)
 		}
@@ -92,10 +99,12 @@ func UncommittedFiles() ([]string, error) {
 	}
 
 	result := make([]string, 0, len(files))
+
 	for _, file := range files {
 		if len(file) == 0 {
 			continue
 		}
+
 		result = append(result, filepath.Join(current, file))
 	}
 
@@ -107,15 +116,20 @@ func CountCommitsBetweenBranches(branch1, branch2 string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	lines := strings.Split(string(out), "\n")
+
 	var count int
+
 	for _, line := range lines {
 		count, err = strconv.Atoi(line)
 		if err != nil {
 			return 0, errors.WithStack(err)
 		}
+
 		break
 	}
+
 	return count, nil
 }
 
@@ -126,14 +140,17 @@ func CountCommitsByAuthor() (map[string]int64, error) {
 	}
 
 	count := make(map[string]int64)
+
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	for scanner.Scan() {
 		text := scanner.Text()
 		text = strings.TrimSpace(text)
+
 		splited := strings.Split(text, "\t")
 		if len(splited) != 2 {
 			continue
 		}
+
 		val, err := strconv.ParseInt(splited[0], 10, 64)
 		if err != nil {
 			return nil, errors.WithStack(err)

@@ -2,8 +2,9 @@ package kubectl
 
 import (
 	"encoding/json"
-	"github.com/pkg/errors"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func IstioIngress() (string, error) {
@@ -11,15 +12,18 @@ func IstioIngress() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	str := string(out)
 	str = str[1:]
 	str = str[:len(str)-1]
+
 	ingresses := strings.Split(str, " ")
 	if len(ingresses) == 1 && ingresses[0] != "" {
 		return ingresses[0], nil
 	} else if len(ingresses) > 1 {
 		return "", errors.New("found multiple Istio ingresses addresses")
 	}
+
 	return "127.0.0.1", nil
 }
 
@@ -29,6 +33,7 @@ func ListAllIstioGateways() ([]*IstioGateway, error) {
 		if strings.Contains(err.Error(), "the server doesn't have a resource type") {
 			return nil, nil
 		}
+
 		return nil, err
 	}
 

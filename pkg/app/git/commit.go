@@ -20,11 +20,12 @@ func DoCommit(message string, files []string) error {
 	return err
 }
 
-func GetCommitTime(commit string, dir string) (*time.Time, error) {
+func GetCommitTime(commit, dir string) (*time.Time, error) {
 	out, err := bash.Run("git -C " + dir + " show -s --format=%ci " + commit)
 	if err != nil {
 		return nil, err
 	}
+
 	split := strings.Split(string(out), "\n")
 	val := split[len(split)-2]
 	val = val[len(val)-25:]
@@ -33,27 +34,31 @@ func GetCommitTime(commit string, dir string) (*time.Time, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	return &t, nil
 }
 
-func GetCommitMessage(commit string, dir string) (string, error) {
+func GetCommitMessage(commit, dir string) (string, error) {
 	out, err := bash.Run("git -C " + dir + " show -s --format=%B " + commit)
 	if err != nil {
 		return "", err
 	}
+
 	return strings.TrimSpace(string(out)), nil
 }
 
-func GetCommitVerificationMessage(commit string, dir string) (string, error) {
+func GetCommitVerificationMessage(commit, dir string) (string, error) {
 	out, err := bash.Run("git -C " + dir + " show -s --format=%GG " + commit)
 	if err != nil {
 		return "", err
 	}
+
 	return strings.TrimSpace(string(out)), nil
 }
 
 func ListCommits(dir string) (Commits, error) {
 	cmd := "git -C " + dir + ` log --pretty=format:'{"commit": "%H","time": "%cI","message": "%f","verification_flag":"%G?","signer":"%GS","signer_key":"%GK","author":{"name":"%aN","email":"%aE","date":"%aD"},"commiter":{"name":"%cN","email":"%cE","date":"%cD"}}' | jq -s .`
+
 	j, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -72,6 +77,7 @@ type Commits []Commit
 func UnmarshalCommits(data []byte) (Commits, error) {
 	var r Commits
 	err := json.Unmarshal(data, &r)
+
 	return r, err
 }
 

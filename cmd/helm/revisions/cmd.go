@@ -23,6 +23,7 @@ func revisions(cmd *cobra.Command, args []string) {
 	if allNamespaces {
 		opt = append(opt, helm.OnAnyNamespace())
 	}
+
 	release := ""
 	if len(args) > 0 {
 		release = args[0]
@@ -32,9 +33,11 @@ func revisions(cmd *cobra.Command, args []string) {
 
 		r, err := releases.SelectOne()
 		dieOnErr(err)
+
 		release = r.Name
 		opt = append(opt, helm.OnNamespace(r.Namespace))
 	}
+
 	history, err := helm.GetHistory(release, opt...)
 	dieOnErr(err)
 

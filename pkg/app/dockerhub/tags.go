@@ -13,6 +13,7 @@ import (
 func UnmarshalTags(data []byte) (Tags, error) {
 	var r Tags
 	err := json.Unmarshal(data, &r)
+
 	return r, err
 }
 
@@ -68,6 +69,7 @@ func (c *Client) ListTags(repository string) ([]*Tag, int64, error) {
 	if !strings.Contains(repository, "/") {
 		repository = "library/" + repository
 	}
+
 	url := baseURL + "/v2/repositories/" + repository + "/tags/?page_size=1000000&page=1"
 	method := "GET"
 
@@ -75,6 +77,7 @@ func (c *Client) ListTags(repository string) ([]*Tag, int64, error) {
 	if err != nil {
 		return nil, 0, errors.WithStack(err)
 	}
+
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := c.client.Do(req)

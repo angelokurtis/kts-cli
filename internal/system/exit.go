@@ -1,10 +1,11 @@
 package system
 
 import (
-	"github.com/gookit/color"
-	"github.com/pkg/errors"
 	"log"
 	"os"
+
+	"github.com/gookit/color"
+	"github.com/pkg/errors"
 )
 
 func Exit(err error) {

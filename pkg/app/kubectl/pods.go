@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/enescakir/emoji"
 	"github.com/pkg/errors"
 )
@@ -20,9 +20,11 @@ func ListPods(namespace string, allNamespaces bool, selector string) (*Pods, err
 	} else if namespace != "" {
 		cmd = append(cmd, "-n", namespace)
 	}
+
 	if selector != "" {
 		cmd = append(cmd, "-l", selector)
 	}
+
 	out, err := run(cmd...)
 	if err != nil {
 		return nil, err
@@ -56,10 +58,12 @@ type Pods struct {
 
 func (s *Pods) Containers() *Containers {
 	c := make([]*Container, 0, 0)
+
 	for _, pod := range s.Items {
 		podName := pod.Metadata.Name
 		podNamespace := pod.Metadata.Namespace
 		podTemplateHash := pod.Metadata.Labels["pod-template-hash"]
+
 		for _, container := range pod.Spec.Containers {
 			container.Pod = podName
 			container.Namespace = podNamespace
@@ -67,6 +71,7 @@ func (s *Pods) Containers() *Containers {
 			container.Status = pod.GetContainerStatus(container.Name)
 			c = append(c, container)
 		}
+
 		for _, container := range pod.Spec.InitContainers {
 			container.Pod = podName
 			container.Namespace = podNamespace
@@ -75,15 +80,18 @@ func (s *Pods) Containers() *Containers {
 			c = append(c, container)
 		}
 	}
+
 	containers := &Containers{Items: c}
 	for _, container := range containers.Items {
 		container.Single = containers.CountByPod(container.Pod) == 1
 	}
+
 	return containers
 }
 
 func (s *Pods) Labels() map[string][]string {
 	labels := make(map[string][]string, 0)
+
 	for _, pod := range s.Items {
 		for k, v := range pod.Metadata.Labels {
 			values := labels[k]
@@ -91,11 +99,13 @@ func (s *Pods) Labels() map[string][]string {
 			labels[k] = values
 		}
 	}
+
 	return labels
 }
 
 func (s *Pods) SelectLabels() (map[string][]string, error) {
 	var options []string
+
 	for key, values := range s.Labels() {
 		for _, value := range values {
 			options = append(options, key+"="+value)
@@ -103,6 +113,7 @@ func (s *Pods) SelectLabels() (map[string][]string, error) {
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the pod labels:",
 		Options: options,
@@ -114,6 +125,7 @@ func (s *Pods) SelectLabels() (map[string][]string, error) {
 	}
 
 	labels := make(map[string][]string, 0)
+
 	for _, s := range selects {
 		spt := strings.Split(s, "=")
 		key := spt[0]
@@ -129,6 +141,7 @@ func (s *Pods) SelectLabels() (map[string][]string, error) {
 
 func (s *Pods) Namespaces(labels map[string][]string) []string {
 	m := make(map[string][]string)
+
 	for _, service := range s.Items {
 		for k, v := range service.Metadata.Labels {
 			label := k + "=" + v
@@ -137,7 +150,9 @@ func (s *Pods) Namespaces(labels map[string][]string) []string {
 			m[label] = ns
 		}
 	}
+
 	namespaces := make([]string, 0)
+
 	for k, values := range labels {
 		for _, v := range values {
 			label := k + "=" + v
@@ -145,6 +160,7 @@ func (s *Pods) Namespaces(labels map[string][]string) []string {
 			namespaces = dedupeStr(namespaces, ns...)
 		}
 	}
+
 	return namespaces
 }
 
@@ -156,6 +172,7 @@ func (s *Pods) SelectNamespace(labels map[string][]string) (string, error) {
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Select the namespace:",
 		Options: namespaces,
@@ -172,6 +189,7 @@ func (s *Pods) SelectNamespace(labels map[string][]string) (string, error) {
 func (s *Pods) SelectContainerPort(namespace string, labels map[string][]string) (int, error) {
 	pods := s.Pods(namespace, labels)
 	ports := make([]string, 0, 0)
+
 	for _, pod := range pods {
 		for _, container := range pod.Spec.Containers {
 			for _, port := range container.Ports {
@@ -185,6 +203,7 @@ func (s *Pods) SelectContainerPort(namespace string, labels map[string][]string)
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Select the container port:",
 		Options: ports,
@@ -200,28 +219,35 @@ func (s *Pods) SelectContainerPort(namespace string, labels map[string][]string)
 
 func (s *Pods) Pods(namespace string, labels map[string][]string) []*Pod {
 	pods := make([]*Pod, 0, 0)
+
 	for _, pod := range s.Items {
 		if pod.Metadata.Namespace != namespace {
 			continue
 		}
+
 		if !pod.ContainsLabels(labels) {
 			continue
 		}
+
 		pods = append(pods, pod)
 	}
+
 	return pods
 }
 
 func (s *Pods) SelectMany() (*Pods, error) {
 	pods := make(map[string]*Pod, 0)
 	names := make([]string, 0, 0)
+
 	for _, pod := range s.Items {
 		name := pod.Metadata.Namespace + "/" + pod.Metadata.Name
 		pods[name] = pod
+
 		names = append(names, name)
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the pods:",
 		Options: names,
@@ -243,9 +269,11 @@ func (s *Pods) SelectMany() (*Pods, error) {
 func (s *Pods) SelectOne() (*Pod, error) {
 	pods := make(map[string]*Pod, 0)
 	names := make([]string, 0, 0)
+
 	for _, pod := range s.Items {
 		name := pod.Metadata.Namespace + "/" + pod.Metadata.Name
 		pods[name] = pod
+
 		names = append(names, name)
 	}
 
@@ -254,6 +282,7 @@ func (s *Pods) SelectOne() (*Pod, error) {
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Select the pod:",
 		Options: names,
@@ -365,6 +394,7 @@ func (s *ContainerState) Event() ContainerStateEvent {
 	} else if s.Waiting != nil {
 		return s.Waiting
 	}
+
 	return nil
 }
 
@@ -373,38 +403,46 @@ func (cs *ContainerStatus) CurrentState() ContainerStateEvent {
 	if cs.LastState != nil {
 		states = append(states, cs.LastState)
 	}
+
 	if cs.State != nil {
 		states = append(states, cs.State)
 	}
+
 	sort.Slice(states, func(i, j int) bool {
 		future := time.Unix(1<<63-1, 0)
 
 		ie := states[i].Event()
 		it := &future
+
 		if ie != nil && ie.GetTime() != nil {
 			it = ie.GetTime()
 		}
 
 		je := states[j].Event()
 		jt := &future
+
 		if je != nil && je.GetTime() != nil {
 			jt = je.GetTime()
 		}
 
 		return it.Before(*jt)
 	})
+
 	state := states[len(states)-1]
 	event := state.Event()
+
 	return event
 }
 
 func (p *Pod) RestartCount() int {
 	restart := 0
+
 	for _, container := range p.Status.ContainerStatuses {
 		if container.RestartCount > 0 {
 			restart = container.RestartCount
 		}
 	}
+
 	return restart
 }
 
@@ -415,34 +453,43 @@ func (p *Pod) CurrentStatus() string {
 			return s.GetReason()
 		}
 	}
+
 	if p.Status.Phase == "Succeeded" {
 		return "Completed"
 	}
+
 	return p.Status.Phase
 }
 
 func (p *Pod) LastState() ContainerStateEvent {
 	states := make([]ContainerStateEvent, 0, 0)
+
 	for _, container := range p.Status.ContainerStatuses {
 		state := container.CurrentState()
 		if state != nil {
 			states = append(states, state)
 		}
 	}
+
 	sort.Slice(states, func(i, j int) bool {
 		t1 := states[i].GetTime()
 		t2 := states[j].GetTime()
+
 		if t1 == nil {
 			t1 = &time.Time{}
 		}
+
 		if t2 == nil {
 			t2 = &time.Time{}
 		}
+
 		return t1.Before(*t2)
 	})
+
 	if len(states) == 0 {
 		return nil
 	}
+
 	return states[len(states)-1]
 }
 
@@ -451,39 +498,48 @@ func (p *Pod) StatusColor() string {
 	restart := 0
 	ready := 0
 	desired := len(p.Spec.Containers)
+
 	for _, container := range containers {
 		state := container.CurrentState()
 		if state.GetReason() == "Error" {
 			return emoji.RedCircle.String()
 		}
+
 		if _, ok := state.(*ContainerStateRunning); ok {
 			ready++
 		}
+
 		if container.RestartCount > 0 {
 			restart = container.RestartCount
 		}
 	}
+
 	if p.CurrentStatus() == "Completed" {
 		return emoji.BlackCircle.String()
 	}
+
 	if ready < desired {
 		return emoji.YellowCircle.String()
 	}
+
 	if restart > 0 {
 		return emoji.YellowCircle.String()
 	}
+
 	return emoji.GreenCircle.String()
 }
 
 func (p *Pod) Ready() string {
 	containers := p.Status.ContainerStatuses
 	running := 0
+
 	for _, container := range containers {
 		state := container.CurrentState()
 		if _, ok := state.(*ContainerStateRunning); ok {
 			running++
 		}
 	}
+
 	return fmt.Sprintf("%d/%d", running, len(p.Spec.Containers))
 }
 
@@ -492,10 +548,12 @@ func (p *Pod) LastUpdate() *time.Time {
 	if state == nil {
 		return &p.Metadata.CreationTimestamp
 	}
+
 	t := state.GetTime()
 	if t == nil {
 		return &p.Metadata.CreationTimestamp
 	}
+
 	return t
 }
 
@@ -504,6 +562,7 @@ func (p *Pod) EnvironmentVariables() []*Env {
 	for _, container := range p.Spec.Containers {
 		envvars = append(envvars, container.Env...)
 	}
+
 	return envvars
 }
 
@@ -512,11 +571,13 @@ func (p *Pod) IsJob() bool {
 	if owners == nil || len(owners) == 0 {
 		return false
 	}
+
 	for _, owner := range owners {
 		if owner.Kind == "Job" {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -526,6 +587,7 @@ func (p *Pod) HasIstioSidecar() bool {
 		// log.Debugf("%s/%s has not sidecar", d.Metadata.Namespace, d.Metadata.Name)
 		return false
 	}
+
 	for _, container := range containers {
 		if container.Name == "istio-proxy" {
 			// log.Debugf("%s/%s has the sidecar", d.Metadata.Namespace, d.Metadata.Name)
@@ -542,11 +604,13 @@ func (p *Pod) GetContainerStatus(container string) *ContainerStatus {
 			return status
 		}
 	}
+
 	for _, status := range p.Status.InitContainerStatuses {
 		if status.Name == container {
 			return status
 		}
 	}
+
 	return nil
 }
 
@@ -555,12 +619,15 @@ func (p *Pod) ContainsLabels(labels map[string][]string) bool {
 	for k, v := range p.Metadata.Labels {
 		l = append(l, k+"="+v)
 	}
+
 	s := make([]string, 0, 0)
+
 	for k, values := range labels {
 		for _, v := range values {
 			s = append(s, k+"="+v)
 		}
 	}
+
 	for _, askLabel := range s {
 		for _, foundLabel := range l {
 			if foundLabel == askLabel {
@@ -568,11 +635,13 @@ func (p *Pod) ContainsLabels(labels map[string][]string) bool {
 			}
 		}
 	}
+
 	return false
 }
 
 func (p *Pod) SelectContainerPort() (int, error) {
 	ports := make([]string, 0, 0)
+
 	for _, container := range p.Spec.Containers {
 		for _, port := range container.Ports {
 			ports = dedupeStr(ports, strconv.Itoa(port.ContainerPort))
@@ -584,6 +653,7 @@ func (p *Pod) SelectContainerPort() (int, error) {
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Select the container port:",
 		Options: ports,

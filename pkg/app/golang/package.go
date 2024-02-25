@@ -15,6 +15,7 @@ import (
 func UnmarshalPackage(data []byte) (Package, error) {
 	var r Package
 	err := json.Unmarshal(data, &r)
+
 	return r, err
 }
 
@@ -41,27 +42,33 @@ func (p *Package) RelativeImportPath() string {
 	if p.ImportPath == p.Module.Path {
 		return "/"
 	}
+
 	return strings.ReplaceAll(p.ImportPath, p.Module.Path, ".")
 }
 
 func (p *Package) InternalImports() []string {
 	i := make([]string, 0)
+
 	for _, s := range p.Imports {
 		if strings.HasPrefix(s, p.Module.Path) && !strings.HasPrefix(s, p.ImportPath) {
 			i = append(i, strings.ReplaceAll(s, p.Module.Path, "."))
 		}
 	}
+
 	sort.Strings(i)
+
 	return i
 }
 
 func (p *Package) ImportsOf(dep string) []string {
 	i := make([]string, 0)
+
 	for _, s := range p.Imports {
 		if strings.HasPrefix(s, dep) {
 			i = append(i, s)
 		}
 	}
+
 	return i
 }
 
@@ -80,16 +87,19 @@ func (p Packages) Deps() []string {
 	for _, pkg := range p {
 		deps = dedupe(deps, pkg.Deps...)
 	}
+
 	return deps
 }
 
 func (p Packages) Usages(dep string) Packages {
 	owners := make([]*Package, 0, 0)
+
 	for _, pkg := range p {
 		if contains(pkg.Imports, dep) {
 			owners = append(owners, pkg)
 		}
 	}
+
 	return owners
 }
 
@@ -129,5 +139,6 @@ func contains(s []string, e string) bool {
 			return true
 		}
 	}
+
 	return false
 }

@@ -1,8 +1,9 @@
 package kubectl
 
 import (
-	"github.com/enescakir/emoji"
 	"time"
+
+	"github.com/enescakir/emoji"
 )
 
 type (
@@ -53,6 +54,7 @@ func (c *ContainerStateTerminated) GetTime() *time.Time {
 	if c.FinishedAt != nil {
 		return c.FinishedAt
 	}
+
 	return c.StartedAt
 }
 

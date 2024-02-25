@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 )
 
@@ -29,16 +29,19 @@ type Services struct {
 
 func (s *Services) FilterByType(t string) *Services {
 	items := make([]*Service, 0, 0)
+
 	for _, item := range s.Items {
 		if item.Spec.Type == t {
 			items = append(items, item)
 		}
 	}
+
 	return &Services{Items: items}
 }
 
 func (s *Services) SelectLabels() (map[string][]string, error) {
 	var options []string
+
 	for key, values := range s.Labels() {
 		for _, value := range values {
 			options = append(options, key+"="+value)
@@ -46,6 +49,7 @@ func (s *Services) SelectLabels() (map[string][]string, error) {
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the service labels:",
 		Options: options,
@@ -57,6 +61,7 @@ func (s *Services) SelectLabels() (map[string][]string, error) {
 	}
 
 	labels := make(map[string][]string, 0)
+
 	for _, s := range selects {
 		spt := strings.Split(s, "=")
 		key := spt[0]
@@ -72,6 +77,7 @@ func (s *Services) SelectLabels() (map[string][]string, error) {
 
 func (s *Services) Namespaces(labels map[string][]string) []string {
 	m := make(map[string][]string)
+
 	for _, service := range s.Items {
 		for k, v := range service.Metadata.Labels {
 			label := k + "=" + v
@@ -80,7 +86,9 @@ func (s *Services) Namespaces(labels map[string][]string) []string {
 			m[label] = ns
 		}
 	}
+
 	namespaces := make([]string, 0)
+
 	for k, values := range labels {
 		for _, v := range values {
 			label := k + "=" + v
@@ -88,11 +96,13 @@ func (s *Services) Namespaces(labels map[string][]string) []string {
 			namespaces = dedupeStr(namespaces, ns...)
 		}
 	}
+
 	return namespaces
 }
 
 func (s *Services) Labels() map[string][]string {
 	labels := make(map[string][]string, 0)
+
 	for _, service := range s.Items {
 		for k, v := range service.Metadata.Labels {
 			values := labels[k]
@@ -100,17 +110,21 @@ func (s *Services) Labels() map[string][]string {
 			labels[k] = values
 		}
 	}
+
 	return labels
 }
 
 func (s *Services) LabelKeys() []string {
 	keys := make([]string, 0)
+
 	for _, service := range s.Items {
 		for k := range service.Metadata.Labels {
 			keys = dedupeStr(keys, k)
 		}
 	}
+
 	sort.Strings(keys)
+
 	return keys
 }
 
@@ -144,9 +158,11 @@ func (s *Service) ExternalIP() string {
 		if ingress.Hostname != "" {
 			return ingress.Hostname
 		}
+
 		if ingress.IP != "" {
 			return ingress.IP
 		}
 	}
+
 	return ""
 }

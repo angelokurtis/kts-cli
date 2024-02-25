@@ -3,7 +3,7 @@ package helm
 import (
 	"encoding/json"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -21,6 +21,7 @@ func ListReleases(options ...OptionFunc) (Releases, error) {
 	} else if o.Namespace != "" {
 		cmd += " -n " + o.Namespace
 	}
+
 	out, err := bash.RunAndLogRead(cmd)
 	if err != nil {
 		return nil, err
@@ -41,6 +42,7 @@ func (r Releases) IDs() []string {
 	for _, release := range r {
 		ids = append(ids, release.Namespace+"/"+release.Name)
 	}
+
 	return ids
 }
 
@@ -50,6 +52,7 @@ func (r Releases) Get(id string) *Release {
 			return release
 		}
 	}
+
 	return nil
 }
 
@@ -61,6 +64,7 @@ func (r Releases) SelectOne() (*Release, error) {
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Select the release:",
 		Options: ids,

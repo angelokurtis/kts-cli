@@ -12,6 +12,7 @@ import (
 func UnmarshalRepositories(data []byte) (*Repositories, error) {
 	var r *Repositories
 	err := json.Unmarshal(data, &r)
+
 	return r, errors.WithStack(err)
 }
 
@@ -46,6 +47,7 @@ type Repository struct {
 }
 
 type Affiliation string
+
 type RepositoryType string
 
 func (c *Client) ListRepositories(hubuser string) ([]*Repository, error) {
@@ -56,6 +58,7 @@ func (c *Client) ListRepositories(hubuser string) ([]*Repository, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := c.client.Do(req)

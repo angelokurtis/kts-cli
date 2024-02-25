@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/martinusso/inflect"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -24,6 +24,7 @@ func commit(cmd *cobra.Command, args []string) {
 	author, err := git.GetUser()
 	if err != nil {
 		authors := lo.Keys(count)
+
 		author, err = selectAuthor(authors)
 		if err != nil {
 			log.Fatal(err)
@@ -45,11 +46,13 @@ func commit(cmd *cobra.Command, args []string) {
 	}
 
 	paths := make([]string, 0, len(files))
+
 	for _, file := range files {
 		path, err := filepath.Rel(current, file)
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		paths = append(paths, path)
 	}
 
@@ -69,6 +72,7 @@ func selectAuthor(authors []string) (string, error) {
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Choose the commit author:",
 		Options: authors,
@@ -88,6 +92,7 @@ func selectFiles(files []string) ([]string, error) {
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Choose the files you want to commit:",
 		Options: files,
@@ -107,6 +112,7 @@ func selectBranch(branches []string) ([]string, error) {
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Choose the remote branch:",
 		Options: branches,

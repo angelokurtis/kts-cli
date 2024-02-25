@@ -1,14 +1,16 @@
 package containers
 
 import (
-	"github.com/andanhm/go-prettytime"
-	"github.com/angelokurtis/kts-cli/internal/system"
-	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/olekukonko/tablewriter"
-	"github.com/spf13/cobra"
 	"os"
 	"strconv"
 	"strings"
+
+	prettytime "github.com/andanhm/go-prettytime"
+	"github.com/olekukonko/tablewriter"
+	"github.com/spf13/cobra"
+
+	"github.com/angelokurtis/kts-cli/internal/system"
+	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
 // kube containers list
@@ -17,6 +19,7 @@ func list(cmd *cobra.Command, args []string) {
 	if err != nil {
 		system.Exit(err)
 	}
+
 	if sortUpdated {
 		//sort.Slice(containers.Items, func(i, j int) bool {
 		//	it := containers.Items[i].LastUpdateTime()
@@ -24,12 +27,14 @@ func list(cmd *cobra.Command, args []string) {
 		//	return it.Before(*jt)
 		//})
 	}
+
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.SetColumnSeparator("")
 	table.SetBorder(false)
 	table.SetHeaderLine(false)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+
 	if allNamespaces {
 		table.SetHeader([]string{"", "Namespace", "Container", "Ports", "Image", "PullPolicy", "Pod", "Age"})
 	} else {
@@ -41,21 +46,27 @@ func list(cmd *cobra.Command, args []string) {
 		for _, port := range container.Ports {
 			ports = append(ports, strconv.Itoa(port.ContainerPort))
 		}
+
 		state := container.GetState()
 		color := ""
+
 		if state != nil {
 			color = state.GetColor()
 		}
+
 		timeStr := ""
 		updateTime := container.LastUpdateTime()
+
 		if updateTime != nil {
 			timeStr = prettytime.Format(*updateTime)
 		}
+
 		if allNamespaces {
 			table.Append([]string{color, container.Namespace, container.Name, strings.Join(ports, ","), container.Image, container.ImagePullPolicy, container.Pod, timeStr})
 		} else {
 			table.Append([]string{color, container.Name, strings.Join(ports, ","), container.Image, container.ImagePullPolicy, container.Pod, timeStr})
 		}
 	}
+
 	table.Render()
 }

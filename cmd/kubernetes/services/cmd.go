@@ -1,8 +1,9 @@
 package services
 
 import (
-	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/spf13/cobra"
+
+	"github.com/angelokurtis/kts-cli/internal/system"
 )
 
 var Command = &cobra.Command{

@@ -2,22 +2,26 @@ package kiali
 
 import (
 	"encoding/json"
-	"github.com/pkg/errors"
 	"net/http"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func LoadGraphInfo(ns ...string) (*Graph, error) {
 	url := "http://127.0.0.1:20001/kiali/api/namespaces/graph?appenders=deadNode,sidecarsCheck,serviceEntry,istio&namespaces=" + strings.Join(ns, ",")
 	client := &http.Client{}
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	defer res.Body.Close()
 
 	//body, err := ioutil.ReadAll(res.Body)
@@ -52,6 +56,7 @@ func (g *Graph) GetNodes() Nodes {
 	for _, node := range g.Elements.Nodes {
 		nodes[node.Data.ID] = node.Data
 	}
+
 	return nodes
 }
 
@@ -60,23 +65,28 @@ func (g *Graph) GetEdges() Edges {
 	for _, edge := range g.Elements.Edges {
 		edges = append(edges, edge.Data)
 	}
+
 	return edges
 }
 
 func (g *Graph) Inbound(n *Node) Nodes {
 	nodes := g.GetNodes()
 	r := make(Nodes, 0)
+
 	for _, id := range g.GetEdges().Inbound(n) {
 		r[id] = nodes[id]
 	}
+
 	return r
 }
 
 func (g *Graph) Outbound(n *Node) Nodes {
 	nodes := g.GetNodes()
 	r := make(Nodes, 0)
+
 	for _, id := range g.GetEdges().Outbound(n) {
 		r[id] = nodes[id]
 	}
+
 	return r
 }

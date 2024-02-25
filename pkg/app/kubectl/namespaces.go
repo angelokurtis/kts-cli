@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -31,9 +31,11 @@ type Namespaces struct {
 func (n *Namespaces) Names() []string {
 	namespaces := n.Items
 	names := make([]string, 0, len(namespaces))
+
 	for _, ns := range namespaces {
 		names = append(names, ns.Metadata.Name)
 	}
+
 	return names
 }
 
@@ -43,6 +45,7 @@ func (n *Namespaces) Get(name string) *Namespace {
 			return namespace
 		}
 	}
+
 	return nil
 }
 
@@ -54,6 +57,7 @@ func (n *Namespaces) SelectOne() (*Namespace, error) {
 	}
 
 	var selected string
+
 	prompt := &survey.Select{
 		Message: "Select the namespace:",
 		Options: names,
@@ -71,6 +75,7 @@ func (n *Namespaces) SelectMany() (*Namespaces, error) {
 	if len(n.Items) == 0 {
 		return &Namespaces{}, nil
 	}
+
 	names := n.Names()
 	prompt := &survey.MultiSelect{
 		Message: "Select the Namespaces:",
@@ -78,6 +83,7 @@ func (n *Namespaces) SelectMany() (*Namespaces, error) {
 	}
 
 	var selects []string
+
 	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -87,6 +93,7 @@ func (n *Namespaces) SelectMany() (*Namespaces, error) {
 	for _, name := range selects {
 		ns = append(ns, n.Get(name))
 	}
+
 	return &Namespaces{Items: ns}, nil
 }
 

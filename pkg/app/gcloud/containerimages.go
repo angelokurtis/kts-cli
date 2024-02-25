@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/cheggaaa/pb/v3"
+	survey "github.com/AlecAivazis/survey/v2"
+	pb "github.com/cheggaaa/pb/v3"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
 )
@@ -18,6 +18,7 @@ func SelectContainerRepositories() ([]string, error) {
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the images repositories:",
 		Options: repositories,
@@ -38,6 +39,7 @@ func ListContainerRepositories() ([]string, error) {
 	}
 
 	repos := make([]string, 0)
+
 	for _, project := range projects {
 		r, err := listContainerRepositories(project)
 		if err != nil {
@@ -45,8 +47,10 @@ func ListContainerRepositories() ([]string, error) {
 				!strings.Contains(err.Error(), "Access denied:") {
 				return nil, err
 			}
+
 			color.Yellow.Println("[WARN] You don't have permissions to list container images on project '" + project.Name + "'")
 		}
+
 		repos = append(repos, r...)
 	}
 
@@ -68,6 +72,7 @@ func listContainerRepositories(project *Project) ([]string, error) {
 	for _, v := range decoded {
 		images = append(images, v["name"])
 	}
+
 	return images, nil
 }
 
@@ -76,20 +81,25 @@ func ListContainerImages(repository string) ([]*ContainerImage, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var tags []*ContainerImage
 	if err := json.Unmarshal(out, &tags); err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	for _, tag := range tags {
 		timestamp := &tag.Timestamp
+
 		location, err := time.LoadLocation("America/Sao_Paulo")
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
+
 		timestamp.Datetime = time.Date(timestamp.Year, time.Month(timestamp.Month), timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second, 0, location)
 		tag.Repository = repository
 		tag.FullyQualifiedDigest = repository + "@" + tag.Digest
 	}
+
 	return tags, nil
 }
 
@@ -98,11 +108,14 @@ func ListContainerImagesWithoutTags(repository string) ([]*ContainerImage, error
 	if err != nil {
 		return nil, err
 	}
+
 	var tags []*ContainerImage
 	if err := json.Unmarshal(out, &tags); err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	images := make([]*ContainerImage, 0, 0)
+
 	for _, tag := range tags {
 		if len(tag.Tags) == 0 {
 			tag.Repository = repository
@@ -110,6 +123,7 @@ func ListContainerImagesWithoutTags(repository string) ([]*ContainerImage, error
 			images = append(images, tag)
 		}
 	}
+
 	return images, nil
 }
 
@@ -118,36 +132,45 @@ func DeleteContainerImage(image *ContainerImage) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func SelectTags() ([]string, error) {
 	color.Secondary.Println("gcloud container images list")
+
 	repositories, err := SelectContainerRepositories()
 	if err != nil {
 		return nil, err
 	}
 
 	tags := make([]string, 0, 0)
+
 	if len(repositories) > 0 {
 		color.Secondary.Println("gcloud container images list-tags gcr.io/<PROJECT_ID>/<IMAGE_PATH>")
+
 		bar := pb.StartNew(len(repositories))
+
 		for _, repository := range repositories {
 			images, err := ListContainerImages(repository)
 			if err != nil {
 				return nil, err
 			}
+
 			for _, image := range images {
 				for _, tag := range image.Tags {
 					tags = append(tags, image.Repository+":"+tag)
 				}
 			}
+
 			bar.Increment()
 		}
+
 		bar.Finish()
 	}
 
 	var selects []string
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the images tags:",
 		Options: tags,
@@ -163,14 +186,18 @@ func SelectTags() ([]string, error) {
 
 func UntagImages(tags []string) error {
 	bar := pb.StartNew(len(tags))
+
 	for _, tag := range tags {
 		err := UntagImage(tag)
 		if err != nil {
 			return err
 		}
+
 		bar.Increment()
 	}
+
 	bar.Finish()
+
 	return nil
 }
 
@@ -179,6 +206,7 @@ func UntagImage(tag string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

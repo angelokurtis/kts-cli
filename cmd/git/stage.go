@@ -23,11 +23,13 @@ func stage(cmd *cobra.Command, args []string) {
 	}
 
 	paths := make([]string, 0, len(files))
+
 	for _, file := range files {
 		path, err := filepath.Rel(current, file)
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		paths = append(paths, path)
 	}
 

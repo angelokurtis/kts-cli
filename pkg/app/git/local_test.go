@@ -9,6 +9,7 @@ func TestNewLocalDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}
+
 	address := dir.SSHAddress()
 	if address != "git@github.com:angelokurtis/hellognome.git" {
 		t.Errorf("Expect that `SSHAddress()` return correctly but got %s", address)
@@ -20,6 +21,7 @@ func TestNewLocalDir2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}
+
 	address := dir.SSHAddress()
 	if address != "git@github.com:angelokurtis/hellognome.git" {
 		t.Errorf("Expect that `SSHAddress()` return correctly but got %s", address)

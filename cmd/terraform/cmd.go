@@ -1,11 +1,12 @@
 package terraform
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/cmd/terraform/commands"
 	"github.com/angelokurtis/kts-cli/cmd/terraform/providers"
 	"github.com/angelokurtis/kts-cli/cmd/terraform/resources"
 	"github.com/angelokurtis/kts-cli/internal/system"
-	"github.com/spf13/cobra"
 )
 
 var Command = &cobra.Command{

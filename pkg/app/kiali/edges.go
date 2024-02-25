@@ -25,22 +25,26 @@ type (
 func (e Edges) Inbound(n *Node) []string {
 	ids := make([]string, 0, 0)
 	ids = append(ids, n.ID)
+
 	for _, edge := range e {
 		if edge.HasTargets(n.ID) {
 			ids = dedupe(ids, edge.Source)
 		}
 	}
+
 	return ids
 }
 
 func (e Edges) Outbound(n *Node) []string {
 	ids := make([]string, 0, 0)
 	ids = append(ids, n.ID)
+
 	for _, edge := range e {
 		if edge.HasSources(n.ID) {
 			ids = dedupe(ids, edge.Target)
 		}
 	}
+
 	return ids
 }
 
@@ -58,18 +62,23 @@ func contains(s []string, e string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
 func dedupe(a []string, b ...string) []string {
 	check := make(map[string]int)
+
 	d := append(a, b...)
 	res := make([]string, 0)
+
 	for _, val := range d {
 		check[val] = 1
 	}
+
 	for letter := range check {
 		res = append(res, letter)
 	}
+
 	return res
 }

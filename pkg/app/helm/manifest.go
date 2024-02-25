@@ -16,5 +16,6 @@ func GetManifests(release string, revision int64, options ...OptionFunc) ([]byte
 	if o.Namespace != "" {
 		cmd += " -n " + o.Namespace
 	}
+
 	return bash.RunAndLogRead(cmd)
 }

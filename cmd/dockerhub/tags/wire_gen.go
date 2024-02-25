@@ -16,5 +16,6 @@ import (
 func newDockerhubClient() *dockerhub.Client {
 	client := &http.Client{}
 	dockerhubClient := dockerhub.NewClient(client)
+
 	return dockerhubClient
 }

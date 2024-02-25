@@ -2,12 +2,14 @@ package kubernetes
 
 import (
 	"fmt"
-	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
-	"github.com/angelokurtis/kts-cli/pkg/bash"
+	"strings"
+
 	"github.com/gookit/color"
 	changeCase "github.com/ku/go-change-case"
 	"github.com/pkg/errors"
-	"strings"
+
+	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
+	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 type (
@@ -37,6 +39,7 @@ func (c *ConfigMap) Import() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -45,11 +48,13 @@ func NewConfigMap() (*ConfigMap, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	configMap, err := configMaps.SelectOne()
 	if err != nil {
 		return nil, err
 	} else if configMap == nil {
 		return nil, errors.New("configmap was not found")
 	}
+
 	return &ConfigMap{Metadata: Metadata{Name: configMap.Metadata.Name, Namespace: configMap.Metadata.Namespace}}, nil
 }

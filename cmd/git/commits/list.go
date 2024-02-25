@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/andanhm/go-prettytime"
+	prettytime "github.com/andanhm/go-prettytime"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 
@@ -20,6 +20,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	brazil = loc
 }
 
@@ -36,12 +37,14 @@ func list(_ *cobra.Command, _ []string) {
 	table.SetHeaderLine(false)
 	table.SetColWidth(100)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+
 	for _, commit := range commits {
 		commitTime := commit.Time
 		t := fmt.Sprintf("%s (%s)", commitTime.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(commitTime))
 		signed := fmt.Sprintf("%v %s", commit.VerificationStatus(), commit.Verification())
 		table.Append([]string{commit.Commit, t, signed, commit.Signer})
 	}
+
 	table.Render()
 }
 

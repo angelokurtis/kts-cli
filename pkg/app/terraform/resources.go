@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/AlecAivazis/survey/v2"
+	survey "github.com/AlecAivazis/survey/v2"
 	changeCase "github.com/ku/go-change-case"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
@@ -63,6 +63,7 @@ func ListProviderResources(provider string) []string {
 			// "kubernetes_validating_webhook_configuration",
 		}
 	}
+
 	return nil
 }
 
@@ -70,6 +71,7 @@ func SelectResource(provider string) (*Resource, error) {
 	r := ListProviderResources(provider)
 
 	var selected string
+
 	if len(r) == 0 {
 		return nil, errors.New("no resources where found")
 	} else if len(r) > 1 {
@@ -94,11 +96,14 @@ func YAMLDecode(filename string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	r := &kubeResource{}
+
 	err = yaml.Unmarshal(out, r)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
 	out, err = bash.RunAndLogRead(fmt.Sprintf("echo 'yamldecode(file(\"%s\"))' | terraform console", filename))
 	if err != nil {
 		return nil, err
@@ -106,6 +111,7 @@ func YAMLDecode(filename string) ([]byte, error) {
 
 	prefix := fmt.Sprintf("resource \"kubernetes_manifest\" \"%s\" {\n provider = kubernetes-alpha\n\n manifest =\n", changeCase.Snake(r.Metadata.Name+"_"+r.Kind))
 	suffix := "\n}"
+
 	return []byte(prefix + string(out) + suffix), err
 }
 

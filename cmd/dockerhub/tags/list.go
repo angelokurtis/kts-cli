@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andanhm/go-prettytime"
+	prettytime "github.com/andanhm/go-prettytime"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/language"
@@ -27,6 +27,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	brazil = loc
 	printer = message.NewPrinter(language.BrazilianPortuguese)
 }
@@ -34,19 +35,23 @@ func init() {
 func list(cmd *cobra.Command, args []string) {
 	dockerhub := newDockerhubClient()
 	repo := args[0]
+
 	tags, total, err := dockerhub.ListTags(repo)
 	if err != nil {
 		return
 	}
+
 	arch := runtime.GOARCH
 	_ = arch
 	imgMap := make(map[string]*Image, 0)
+
 	for _, tag := range tags {
 		for _, image := range tag.Images {
 			img := imgMap[image.Digest]
 			if img == nil {
 				img = new(Image)
 			}
+
 			img.Pushed = image.LastPushed
 			img.Size = image.Size
 			img.Architecture = image.Architecture
@@ -57,6 +62,7 @@ func list(cmd *cobra.Command, args []string) {
 	}
 
 	images := make([]*Image, 0, len(imgMap))
+
 	for _, image := range imgMap {
 		if image.Architecture == runtime.GOARCH {
 			images = append(images, image)
@@ -68,10 +74,12 @@ func list(cmd *cobra.Command, args []string) {
 		if it == nil {
 			it = new(time.Time)
 		}
+
 		jt := images[j].Pushed
 		if jt == nil {
 			jt = new(time.Time)
 		}
+
 		return it.After(*jt)
 	})
 
@@ -84,16 +92,20 @@ func list(cmd *cobra.Command, args []string) {
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 
 	table.SetHeader([]string{"IMAGE", "TAG", "DIGEST", "SIZE", "UPDATED"})
+
 	for _, img := range images {
 		var updated string
+
 		if img.Pushed != nil {
 			t := *img.Pushed
 			updated = fmt.Sprintf("%s (%s)", t.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(t))
 		}
+
 		table.Append([]string{repo, strings.Join(img.TagNames(), ", "), img.Digest, ByteCount(img.Size), updated})
 	}
 
 	table.Render()
+
 	link := fmt.Sprintf("https://hub.docker.com/%s?tab=tags", func() string {
 		if strings.Contains(repo, "/") {
 			return "r/" + repo
@@ -109,11 +121,13 @@ func ByteCount(b int64) string {
 	if b < unit {
 		return fmt.Sprintf("%d B", b)
 	}
+
 	div, exp := int64(unit), 0
 	for n := b / unit; n >= unit; n /= unit {
 		div *= unit
 		exp++
 	}
+
 	return fmt.Sprintf("%.1f %cB", float64(b)/float64(div), "kMGTPE"[exp])
 }
 
@@ -129,6 +143,7 @@ func (i *Image) Add(t *Tag) {
 	if i.Tags == nil {
 		i.Tags = make([]*Tag, 0, 0)
 	}
+
 	i.Tags = append(i.Tags, t)
 }
 
@@ -137,6 +152,7 @@ func (i *Image) TagNames() []string {
 	for _, tag := range i.Tags {
 		names = append(names, tag.Name)
 	}
+
 	return names
 }
 
