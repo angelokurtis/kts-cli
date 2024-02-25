@@ -10,6 +10,7 @@ import (
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/enescakir/emoji"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
@@ -209,16 +210,22 @@ func (d *Deployments) ListContainers() (*Containers, error) {
 }
 
 func (d *Deployments) Rollout() error {
-	namespaces := d.Namespaces()
-	if len(namespaces) != 1 {
-		return errors.New("the deployment rollout restart just can be done on a single namespace")
+	byNamespace := lo.GroupBy(d.Items, func(item *Deployment) string {
+		return item.Metadata.Namespace
+	})
+
+	for namespace, deployments := range byNamespace {
+		names := lo.Map(deployments, func(deployment *Deployment, index int) string {
+			return deployment.Metadata.Name
+		})
+
+		_, err := bash.RunAndLogWrite(fmt.Sprintf("kubectl rollout restart deployment %s -n %s", strings.Join(names, " "), namespace))
+		if err != nil {
+			return err
+		}
 	}
 
-	ns := namespaces[0]
-	names := d.Names()
-	_, err := bash.RunAndLogWrite(fmt.Sprintf("kubectl rollout restart deployment %s -n %s", strings.Join(names, " "), ns))
-
-	return err
+	return nil
 }
 
 type (
