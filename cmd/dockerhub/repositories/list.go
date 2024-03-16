@@ -3,9 +3,11 @@ package repositories
 import (
 	"fmt"
 	"os"
+	"sort"
 	"time"
 
 	prettytime "github.com/andanhm/go-prettytime"
+	ptr "github.com/gotidy/ptr"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/language"
@@ -37,6 +39,13 @@ func list(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	sort.Slice(repos, func(i, j int) bool {
+		t1 := ptr.To(repos[i].LastUpdated)
+		t2 := ptr.To(repos[j].LastUpdated)
+
+		return t1.After(t2)
+	})
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"REPOSITORY", "UPDATED", "PULL COUNT", "WEBPAGE"})

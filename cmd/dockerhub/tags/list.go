@@ -9,6 +9,7 @@ import (
 	"time"
 
 	prettytime "github.com/andanhm/go-prettytime"
+	"github.com/gotidy/ptr"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/language"
@@ -70,17 +71,9 @@ func list(cmd *cobra.Command, args []string) {
 	}
 
 	sort.Slice(images, func(i, j int) bool {
-		it := images[i].Pushed
-		if it == nil {
-			it = new(time.Time)
-		}
-
-		jt := images[j].Pushed
-		if jt == nil {
-			jt = new(time.Time)
-		}
-
-		return it.After(*jt)
+		t1 := ptr.To(images[i].Pushed)
+		t2 := ptr.To(images[j].Pushed)
+		return t1.After(t2)
 	})
 
 	table := tablewriter.NewWriter(os.Stdout)
