@@ -72,12 +72,16 @@ func UncommittedFiles() ([]string, error) {
 			return len(trimed) > 0
 		})
 
-		if len(splited) != 2 {
+		if len(splited) < 2 {
 			continue
 		}
 
 		change := splited[0]
-		file := splited[1]
+
+		file, err := lo.Last(splited)
+		if err != nil {
+			return nil, err
+		}
 
 		if change != "??" {
 			files = append(files, file)
