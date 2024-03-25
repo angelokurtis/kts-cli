@@ -1,6 +1,8 @@
 package git
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -29,4 +31,18 @@ func Unstage(files []string) error {
 	}
 
 	return nil
+}
+
+func ListStagedFiles() ([]string, error) {
+	out, err := bash.RunAndLogRead("git diff --name-only --cached")
+	if err != nil {
+		return nil, err
+	}
+	files := make([]string, 0)
+	scanner := bufio.NewScanner(bytes.NewReader(out))
+	for scanner.Scan() {
+		text := scanner.Text()
+		files = append(files, text)
+	}
+	return files, err
 }
