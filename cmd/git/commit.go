@@ -91,15 +91,20 @@ func selectFiles(files []string) ([]string, error) {
 		return nil, errors.New("there's nothing available to commit")
 	}
 
+	defaults, err := git.ListStagedFiles()
+	if err != nil {
+		return nil, err
+	}
+
 	var selects []string
 
 	prompt := &survey.MultiSelect{
 		Message: "Choose the files you want to commit:",
 		Options: files,
+		Default: defaults,
 	}
 
-	err := survey.AskOne(prompt, &selects, survey.WithPageSize(20), survey.WithKeepFilter(true))
-	if err != nil {
+	if err = survey.AskOne(prompt, &selects, survey.WithPageSize(20), survey.WithKeepFilter(true)); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
