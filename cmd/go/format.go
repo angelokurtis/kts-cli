@@ -1,10 +1,11 @@
 package golang
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/git"
 	"github.com/angelokurtis/kts-cli/pkg/app/golangci_lint"
-	"github.com/spf13/cobra"
 )
 
 func format(cmd *cobra.Command, args []string) {

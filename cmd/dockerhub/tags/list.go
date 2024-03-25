@@ -73,6 +73,7 @@ func list(cmd *cobra.Command, args []string) {
 	sort.Slice(images, func(i, j int) bool {
 		t1 := ptr.To(images[i].Pushed)
 		t2 := ptr.To(images[j].Pushed)
+
 		return t1.After(t2)
 	})
 
