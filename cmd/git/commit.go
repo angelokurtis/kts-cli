@@ -2,8 +2,6 @@ package git
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/martinusso/inflect"
@@ -40,23 +38,12 @@ func commit(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	current, err := os.Getwd()
+	selectedFiles, err := files.SelectFiles()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	paths := make([]string, 0, len(files))
-
-	for _, file := range files {
-		path, err := filepath.Rel(current, file)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		paths = append(paths, path)
-	}
-
-	paths, err = selectFiles(paths)
+	paths, err := selectedFiles.RelativePaths()
 	if err != nil {
 		log.Fatal(err)
 	}
