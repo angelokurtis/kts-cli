@@ -38,11 +38,14 @@ func ListStagedFiles() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	files := make([]string, 0)
+
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	for scanner.Scan() {
 		text := scanner.Text()
 		files = append(files, text)
 	}
+
 	return files, err
 }
