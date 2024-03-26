@@ -4,14 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"os"
 	"path"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/samber/lo"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
@@ -55,64 +52,29 @@ func ShowDiffFiles(branch string) ([]string, error) {
 	return result, nil
 }
 
-func UncommittedFiles() ([]string, error) {
+func UncommittedFiles() (Files, error) {
 	out, err := bash.RunAndLogRead("git status -s")
 	if err != nil {
 		return nil, err
 	}
 
-	files := make([]string, 0)
+	files := make(Files, 0)
 
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	for scanner.Scan() {
-		text := scanner.Text()
-		splited := strings.Split(text, " ")
-		splited = lo.Filter(splited, func(x string, index int) bool {
-			trimed := strings.TrimSpace(x)
-			return len(trimed) > 0
-		})
-
-		if len(splited) < 2 {
-			continue
-		}
-
-		change := splited[0]
-
-		file, err := lo.Last(splited)
+		file, err := NewFileFromShortStatus(scanner.Text())
 		if err != nil {
 			return nil, err
 		}
 
-		if change != "??" {
-			files = append(files, file)
-		}
+		files = append(files, file)
 	}
 
 	if len(files) == 0 {
 		return nil, nil
 	}
 
-	out, err = bash.Run("git rev-parse --show-toplevel")
-	if err != nil {
-		return nil, err
-	}
-
-	current, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]string, 0, len(files))
-
-	for _, file := range files {
-		if len(file) == 0 {
-			continue
-		}
-
-		result = append(result, filepath.Join(current, file))
-	}
-
-	return result, nil
+	return files, nil
 }
 
 func CountCommitsBetweenBranches(branch1, branch2 string) (int, error) {
