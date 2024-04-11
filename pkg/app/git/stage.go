@@ -14,7 +14,7 @@ func Stage(files []string) error {
 		return nil
 	}
 
-	if _, err := bash.RunAndLogWrite(fmt.Sprintf("git add %s", strings.Join(files, " "))); err != nil {
+	if _, err := bash.RunAndLogWrite(fmt.Sprintf("git add -A -- %s", strings.Join(files, " "))); err != nil {
 		return err
 	}
 
@@ -26,7 +26,7 @@ func Unstage(files []string) error {
 		return nil
 	}
 
-	if _, err := bash.RunAndLogWrite(fmt.Sprintf("git restore --staged %s", strings.Join(files, " "))); err != nil {
+	if _, err := bash.RunAndLogWrite(fmt.Sprintf("git restore --staged -- %s", strings.Join(files, " "))); err != nil {
 		return err
 	}
 
