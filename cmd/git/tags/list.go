@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/Masterminds/semver"
@@ -26,7 +27,6 @@ func init() {
 	brazil = loc
 }
 
-// git tags list
 func list(_ *cobra.Command, _ []string) {
 	tags, err := git.ListTags(dir)
 	if err != nil {
@@ -47,14 +47,14 @@ func list(_ *cobra.Command, _ []string) {
 	})
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"TAG", "COMMIT", "CREATED"})
+	table.SetHeader([]string{"TAG", "COMMIT", "BRANCHES", "CREATED"})
 	table.SetRowLine(false)
 	table.SetBorder(false)
 	table.SetColWidth(50)
 
 	for _, tag := range tags {
 		t := fmt.Sprintf("%s (%s)", tag.Time.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(*tag.Time))
-		table.Append([]string{tag.Name, tag.CommitID, t})
+		table.Append([]string{tag.Name, tag.CommitID, strings.Join(tag.Branches, "\n"), t})
 	}
 
 	table.Render()

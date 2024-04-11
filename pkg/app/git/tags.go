@@ -41,6 +41,7 @@ type Tag struct {
 	Time     *time.Time
 	CommitID string
 	Name     string
+	Branches []string
 }
 
 func newTag(commitID, name, dir string) (*Tag, error) {
@@ -49,5 +50,10 @@ func newTag(commitID, name, dir string) (*Tag, error) {
 		return nil, err
 	}
 
-	return &Tag{Time: t, CommitID: commitID, Name: name}, nil
+	branches, err := GetCommitBranches(commitID, dir)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Tag{Time: t, CommitID: commitID, Name: name, Branches: branches}, nil
 }

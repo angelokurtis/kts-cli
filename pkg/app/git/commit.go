@@ -9,6 +9,7 @@ import (
 
 	"github.com/enescakir/emoji"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
@@ -36,6 +37,23 @@ func GetCommitTime(commit, dir string) (*time.Time, error) {
 	}
 
 	return &t, nil
+}
+
+func GetCommitBranches(commit, dir string) ([]string, error) {
+	out, err := bash.Run("git -C " + dir + " branch -r --contains " + commit)
+	if err != nil {
+		return nil, err
+	}
+
+	parts := strings.Split(string(out), "\n")
+	parts = lo.Map(parts, func(item string, index int) string {
+		return strings.TrimSpace(item)
+	})
+	parts = lo.Filter(parts, func(item string, index int) bool {
+		return !strings.HasPrefix(item, "origin/HEAD") && item != ""
+	})
+
+	return parts, nil
 }
 
 func GetCommitMessage(commit, dir string) (string, error) {
