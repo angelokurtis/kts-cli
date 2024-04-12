@@ -119,7 +119,7 @@ func NewFileFromShortStatus(text string) (*File, error) {
 
 	// Determine the file status flags.
 	untracked := status == "??"
-	staged := lo.Contains([]string{"M ", "AM", "A "}, status)
+	staged := lo.Contains([]string{"M ", "AM", "A ", "D "}, status)
 
 	return &File{Path: abspath, Untracked: untracked, Staged: staged}, nil
 }
