@@ -53,7 +53,7 @@ func ShowDiffFiles(branch string) ([]string, error) {
 }
 
 func UncommittedFiles() (Files, error) {
-	out, err := bash.RunAndLogRead("git status -s")
+	out, err := bash.RunAndLogRead("git status -u -s")
 	if err != nil {
 		return nil, err
 	}
