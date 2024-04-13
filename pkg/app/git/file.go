@@ -119,7 +119,7 @@ func NewFileFromShortStatus(text string) (*File, error) {
 
 	// Determine the file status flags.
 	untracked := status == "??"
-	staged := lo.Contains([]string{"M ", "AM", "A ", "D "}, status)
+	staged := !isUnstaged(status)
 
 	return &File{Path: abspath, Untracked: untracked, Staged: staged}, nil
 }
@@ -136,4 +136,21 @@ func (f *File) RelativePath() (string, error) {
 	}
 
 	return relpath, nil
+}
+
+func isUnstaged(status string) bool {
+	if len(status) < 2 {
+		return false // Incorrect or incomplete status input
+	}
+
+	// Get the second character which represents the working directory status
+	workingDirectoryStatus := strings.TrimSpace(string(status[1]))
+
+	// Check for any of the known unstaged statuses
+	switch workingDirectoryStatus {
+	case "M", "D", "?":
+		return true
+	default:
+		return false
+	}
 }
