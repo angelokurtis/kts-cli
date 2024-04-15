@@ -49,3 +49,37 @@ func ListStagedFiles() ([]string, error) {
 
 	return files, err
 }
+
+func isUnstaged(status string) bool {
+	if len(status) < 2 {
+		return false // Incorrect or incomplete status input
+	}
+
+	// Get the second character which represents the working directory status
+	workingDirectoryStatus := strings.TrimSpace(string(status[1]))
+
+	// Check for any of the known unstaged statuses
+	switch workingDirectoryStatus {
+	case "M", "D", "?":
+		return true
+	default:
+		return false
+	}
+}
+
+func isStaged(status string) bool {
+	if len(status) < 1 {
+		return false // Incorrect status input
+	}
+
+	// Get the first character which represents the staging area status
+	stagingStatus := strings.TrimSpace(string(status[0]))
+
+	// Check for any of the known staged statuses
+	switch stagingStatus {
+	case "A", "M", "D", "R", "C":
+		return true
+	default:
+		return false
+	}
+}

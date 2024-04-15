@@ -43,13 +43,13 @@ func (f Files) SelectFiles() (Files, error) {
 
 func (f Files) StagedFiles() Files {
 	return lo.Filter(f, func(file *File, _ int) bool {
-		return file.Staged
+		return isStaged(file.Status) && !isUnstaged(file.Status)
 	})
 }
 
 func (f Files) UnStagedFiles() Files {
 	return lo.Filter(f, func(file *File, _ int) bool {
-		return !file.Staged
+		return isUnstaged(file.Status) && !isStaged(file.Status)
 	})
 }
 
@@ -86,9 +86,8 @@ func (f Files) FilterByRelativePaths(relpaths []string) (Files, error) {
 }
 
 type File struct {
-	Path      string
-	Untracked bool
-	Staged    bool
+	Path   string
+	Status string
 }
 
 func NewFileFromShortStatus(text string) (*File, error) {
@@ -117,11 +116,7 @@ func NewFileFromShortStatus(text string) (*File, error) {
 		return nil, err
 	}
 
-	// Determine the file status flags.
-	untracked := status == "??"
-	staged := !isUnstaged(status)
-
-	return &File{Path: abspath, Untracked: untracked, Staged: staged}, nil
+	return &File{Path: abspath, Status: status}, nil
 }
 
 func (f *File) RelativePath() (string, error) {
@@ -136,21 +131,4 @@ func (f *File) RelativePath() (string, error) {
 	}
 
 	return relpath, nil
-}
-
-func isUnstaged(status string) bool {
-	if len(status) < 2 {
-		return false // Incorrect or incomplete status input
-	}
-
-	// Get the second character which represents the working directory status
-	workingDirectoryStatus := strings.TrimSpace(string(status[1]))
-
-	// Check for any of the known unstaged statuses
-	switch workingDirectoryStatus {
-	case "M", "D", "?":
-		return true
-	default:
-		return false
-	}
 }
