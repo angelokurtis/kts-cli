@@ -114,6 +114,10 @@ type Commit struct {
 	Commiter         Author    `json:"commiter"`
 }
 
+func (c *Commit) ShortCommit() string {
+	return c.Commit[:7]
+}
+
 // show "G" for a good (valid) signature, "B" for a bad signature, "U" for a good signature with unknown validity, "X"
 // for a good signature that has expired, "Y" for a good signature made by an expired key, "R" for a good signature
 // made by a revoked key, "E" if the signature cannot be checked (e.g. missing key) and "N" for no signature

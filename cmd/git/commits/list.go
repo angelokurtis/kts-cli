@@ -30,7 +30,7 @@ func list(_ *cobra.Command, _ []string) {
 	check(err)
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"COMMIT", "CREATED", "SIGNED", "SIGNER"})
+	table.SetHeader([]string{"COMMIT", "MESSAGE", "AUTHOR", "SIGNED", "CREATED"})
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.SetColumnSeparator("")
 	table.SetBorder(false)
@@ -42,7 +42,7 @@ func list(_ *cobra.Command, _ []string) {
 		commitTime := commit.Time
 		t := fmt.Sprintf("%s (%s)", commitTime.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(commitTime))
 		signed := fmt.Sprintf("%v %s", commit.VerificationStatus(), commit.Verification())
-		table.Append([]string{commit.Commit, t, signed, commit.Signer})
+		table.Append([]string{commit.ShortCommit(), commit.Message, commit.Signer, signed, t})
 	}
 
 	table.Render()
