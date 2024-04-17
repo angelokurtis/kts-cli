@@ -43,13 +43,13 @@ func (f Files) SelectFiles() (Files, error) {
 
 func (f Files) StagedFiles() Files {
 	return lo.Filter(f, func(file *File, _ int) bool {
-		return isStaged(file.Status) && !isUnstaged(file.Status)
+		return isStaged(file.Status)
 	})
 }
 
 func (f Files) UnStagedFiles() Files {
 	return lo.Filter(f, func(file *File, _ int) bool {
-		return isUnstaged(file.Status) && !isStaged(file.Status)
+		return isUnstaged(file.Status)
 	})
 }
 
