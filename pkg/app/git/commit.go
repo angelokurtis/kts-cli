@@ -3,6 +3,7 @@ package git
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gookit/color"
 	"os/exec"
 	"strings"
 	"time"
@@ -75,7 +76,8 @@ func GetCommitVerificationMessage(commit, dir string) (string, error) {
 }
 
 func ListCommits(dir string) (Commits, error) {
-	cmd := "git -C " + dir + ` log --pretty=format:'{"commit": "%H","time": "%cI","message": "%f","verification_flag":"%G?","signer":"%GS","signer_key":"%GK","author":{"name":"%aN","email":"%aE","date":"%aD"},"commiter":{"name":"%cN","email":"%cE","date":"%cD"}}' | jq -s .`
+	color.Primary.Println("git -C " + dir + `log --pretty=format:'%h | %s | %GS | %G? | %cD'`)
+	cmd := "git -C " + dir + ` log --pretty=format:'{"commit": "%H","time": "%cI","message": "%s","verification_flag":"%G?","signer":"%GS","signer_key":"%GK","author":{"name":"%aN","email":"%aE","date":"%aD"},"commiter":{"name":"%cN","email":"%cE","date":"%cD"}}' | jq -s .`
 
 	j, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
