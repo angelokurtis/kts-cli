@@ -3,12 +3,12 @@ package git
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gookit/color"
 	"os/exec"
 	"strings"
 	"time"
 
 	"github.com/enescakir/emoji"
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 
@@ -19,6 +19,11 @@ const timeLayout = "2006-01-02 15:04:05 -0700"
 
 func DoCommit(message string, files []string) error {
 	_, err := bash.RunAndLogWrite(fmt.Sprintf(`git commit -o %s -m "%s"`, strings.Join(files, " -o "), message))
+	return err
+}
+
+func DoCommitStagedFiles(message string) error {
+	_, err := bash.RunAndLogWrite(fmt.Sprintf(`git commit -m "%s"`, message))
 	return err
 }
 

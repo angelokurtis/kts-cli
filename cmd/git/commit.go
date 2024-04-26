@@ -13,7 +13,7 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/app/git"
 )
 
-func commit(cmd *cobra.Command, args []string) {
+func sillyCommit(cmd *cobra.Command, args []string) {
 	count, err := git.CountCommitsByAuthor()
 	if err != nil {
 		log.Fatal(err)
@@ -33,22 +33,7 @@ func commit(cmd *cobra.Command, args []string) {
 
 	message := fmt.Sprintf("Commit number %s", inflect.IntoWords(float64(total+1)))
 
-	files, err := git.UncommittedFiles()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	selectedFiles, err := files.SelectFiles()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	paths, err := selectedFiles.RelativePaths()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err = git.DoCommit(message, paths); err != nil {
+	if err = git.DoCommitStagedFiles(message); err != nil {
 		log.Fatal(err)
 	}
 }
