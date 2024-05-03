@@ -30,7 +30,7 @@ func list(cmd *cobra.Command, args []string) {
 	if since != time.Second*0 {
 		events.Items = lo.Filter(events.Items, func(item *kubectl.Event, index int) bool {
 			from := time.Now().Add(since * -1)
-			return item.Metadata.CreationTimestamp.After(from)
+			return item.LastSeenTimestamp().After(from)
 		})
 	}
 
@@ -46,7 +46,7 @@ func list(cmd *cobra.Command, args []string) {
 	table.SetColumnSeparator("")
 	table.SetBorder(false)
 	table.SetHeaderLine(false)
-	table.SetColWidth(100)
+	table.SetColWidth(1000)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 
 	if allNamespaces {
@@ -56,8 +56,8 @@ func list(cmd *cobra.Command, args []string) {
 	}
 
 	for _, event := range events.Items {
-		timeFormatted := event.Metadata.CreationTimestamp
-		prettyTimestamp := fmt.Sprintf("%s (%s)", timeFormatted.In(spTimeZone).Format("02/01/2006 15:04"), prettytime.Format(timeFormatted))
+		lastSeenTimestamp := event.LastSeenTimestamp()
+		prettyTimestamp := fmt.Sprintf("%s (%s)", lastSeenTimestamp.In(spTimeZone).Format("02/01/2006 15:04"), prettytime.Format(lastSeenTimestamp))
 		eventResource := event.InvolvedObject.Kind + "/" + event.InvolvedObject.Name
 
 		if allNamespaces {

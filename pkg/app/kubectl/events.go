@@ -2,6 +2,7 @@ package kubectl
 
 import (
 	"encoding/json"
+	"github.com/gotidy/ptr"
 	"time"
 
 	"github.com/pkg/errors"
@@ -35,11 +36,11 @@ type Events struct {
 type Event struct {
 	APIVersion         string         `json:"apiVersion"`
 	Count              *int64         `json:"count,omitempty"`
-	EventTime          time.Time      `json:"eventTime"`
-	FirstTimestamp     time.Time      `json:"firstTimestamp"`
+	EventTime          *time.Time     `json:"eventTime"`
+	FirstTimestamp     *time.Time     `json:"firstTimestamp"`
 	InvolvedObject     InvolvedObject `json:"involvedObject"`
 	Kind               string         `json:"kind"`
-	LastTimestamp      time.Time      `json:"lastTimestamp"`
+	LastTimestamp      *time.Time     `json:"lastTimestamp"`
 	Message            string         `json:"message"`
 	Metadata           ItemMetadata   `json:"metadata"`
 	Reason             string         `json:"reason"`
@@ -77,4 +78,8 @@ type Series struct {
 type Source struct {
 	Component *string `json:"component,omitempty"`
 	Host      *string `json:"host,omitempty"`
+}
+
+func (e *Event) LastSeenTimestamp() time.Time {
+	return ptr.ToDef(e.LastTimestamp, e.Metadata.CreationTimestamp)
 }
