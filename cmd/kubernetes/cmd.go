@@ -7,6 +7,7 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/clusters"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/containers"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/deployments"
+	"github.com/angelokurtis/kts-cli/cmd/kubernetes/events"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/ingresses"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/labels"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/pods"
@@ -31,6 +32,7 @@ var (
 func init() {
 	Command.AddCommand(clusters.Command)
 	Command.AddCommand(containers.Command)
+	Command.AddCommand(events.Command)
 	Command.AddCommand(ingresses.Command)
 	Command.AddCommand(services.Command)
 	Command.AddCommand(labels.Command)
