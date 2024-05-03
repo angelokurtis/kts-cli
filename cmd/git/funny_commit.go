@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -12,6 +13,16 @@ import (
 )
 
 func funnyCommit(cmd *cobra.Command, args []string) {
+	files, err := git.ListStagedFiles()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(files) == 0 {
+		log.Info("Nothing to commit")
+		return
+	}
+
 	message, err := whatTheCommit()
 	if err != nil {
 		log.Fatal(err)
@@ -42,5 +53,5 @@ func whatTheCommit() (string, error) {
 		return "", fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	return string(bodyText), nil
+	return strings.TrimSpace(string(bodyText)), nil
 }
