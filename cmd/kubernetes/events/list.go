@@ -3,10 +3,12 @@ package events
 import (
 	"fmt"
 	"os"
+	"sort"
 	"time"
 
 	prettytime "github.com/andanhm/go-prettytime"
 	"github.com/olekukonko/tablewriter"
+	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/internal/system"
@@ -25,6 +27,20 @@ func list(cmd *cobra.Command, args []string) {
 		system.Exit(err)
 	}
 
+	if since != time.Second*0 {
+		events.Items = lo.Filter(events.Items, func(item *kubectl.Event, index int) bool {
+			from := time.Now().Add(since * -1)
+			return item.Metadata.CreationTimestamp.After(from)
+		})
+	}
+
+	sort.Slice(events.Items, func(a, b int) bool {
+		timeA := events.Items[a].Metadata.CreationTimestamp
+		timeB := events.Items[b].Metadata.CreationTimestamp
+
+		return timeA.Before(timeB)
+	})
+
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.SetColumnSeparator("")
@@ -34,18 +50,18 @@ func list(cmd *cobra.Command, args []string) {
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 
 	if allNamespaces {
-		table.SetHeader([]string{"LAST SEEN", "TYPE", "REASON", "OBJECT", "MESSAGE"})
-	} else {
 		table.SetHeader([]string{"NAMESPACE", "LAST SEEN", "TYPE", "REASON", "OBJECT", "MESSAGE"})
+	} else {
+		table.SetHeader([]string{"LAST SEEN", "TYPE", "REASON", "OBJECT", "MESSAGE"})
 	}
 
 	for _, event := range events.Items {
-		timeFormatted := event.FirstTimestamp
+		timeFormatted := event.Metadata.CreationTimestamp
 		prettyTimestamp := fmt.Sprintf("%s (%s)", timeFormatted.In(spTimeZone).Format("02/01/2006 15:04"), prettytime.Format(timeFormatted))
 		eventResource := event.InvolvedObject.Kind + "/" + event.InvolvedObject.Name
 
 		if allNamespaces {
-			table.Append([]string{namespace, prettyTimestamp, event.Type, event.Reason, eventResource, event.Message})
+			table.Append([]string{event.InvolvedObject.Namespace, prettyTimestamp, event.Type, event.Reason, eventResource, event.Message})
 		} else {
 			table.Append([]string{prettyTimestamp, event.Type, event.Reason, eventResource, event.Message})
 		}
