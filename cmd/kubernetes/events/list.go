@@ -35,8 +35,8 @@ func list(cmd *cobra.Command, args []string) {
 	}
 
 	sort.Slice(events.Items, func(a, b int) bool {
-		timeA := events.Items[a].Metadata.CreationTimestamp
-		timeB := events.Items[b].Metadata.CreationTimestamp
+		timeA := events.Items[a].LastSeenTimestamp()
+		timeB := events.Items[b].LastSeenTimestamp()
 
 		return timeA.Before(timeB)
 	})
@@ -56,8 +56,8 @@ func list(cmd *cobra.Command, args []string) {
 	}
 
 	for _, event := range events.Items {
-		lastSeenTimestamp := event.LastSeenTimestamp()
-		prettyTimestamp := fmt.Sprintf("%s (%s)", lastSeenTimestamp.In(spTimeZone).Format("02/01/2006 15:04"), prettytime.Format(lastSeenTimestamp))
+		lastSeenTimestamp := event.LastSeenTimestamp().In(spTimeZone)
+		prettyTimestamp := fmt.Sprintf("%s (%s)", lastSeenTimestamp.Format("02/01/2006 15:04"), prettytime.Format(lastSeenTimestamp))
 		eventResource := event.InvolvedObject.Kind + "/" + event.InvolvedObject.Name
 
 		if allNamespaces {
