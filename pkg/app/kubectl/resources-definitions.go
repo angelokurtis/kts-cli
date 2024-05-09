@@ -39,6 +39,10 @@ func ListResourceDefinitions() (*ResourcesDefinitions, error) {
 				continue
 			}
 
+			if rsrc.Name == "events" && (gv.Group == "" || gv.Group == "events.k8s.io") && gv.Version == "v1" {
+				continue
+			}
+
 			resources = append(resources, &ResourceDefinition{
 				Name:       rsrc.Name,
 				ShortNames: rsrc.ShortNames,

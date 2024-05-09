@@ -2,9 +2,9 @@ package kubectl
 
 import (
 	"encoding/json"
-	"github.com/gotidy/ptr"
 	"time"
 
+	"github.com/gotidy/ptr"
 	"github.com/pkg/errors"
 )
 
