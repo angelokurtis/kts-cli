@@ -44,12 +44,11 @@ type (
 		Items []*Container
 	}
 	Container struct {
-		Namespace       string
-		Pod             string
-		PodTemplateHash string
-		Single          bool
-		Name            string `json:"name"`
-		Ports           []*struct {
+		Namespace string
+		Pod       string
+		Single    bool
+		Name      string `json:"name"`
+		Ports     []*struct {
 			ContainerPort int    `json:"containerPort"`
 			Name          string `json:"name"`
 			Protocol      string `json:"protocol"`
@@ -182,8 +181,7 @@ func (c *Containers) Pods() []string {
 	p := make([]string, 0, 0)
 
 	for _, container := range c.Items {
-		prefix := strings.Split(container.Pod, "-"+container.PodTemplateHash)[0]
-		p = dedupeStr(p, prefix)
+		p = dedupeStr(p, container.Pod)
 	}
 
 	return p

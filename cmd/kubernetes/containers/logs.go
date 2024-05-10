@@ -38,8 +38,13 @@ func stern(containers *kubectl.Containers, since string) {
 		ns = fmt.Sprintf("-n %s", namespaces[0])
 	}
 
-	c := containers.Names()
-	p := containers.Pods()
-	cmd := fmt.Sprintf("stern %s -c '%s' '%s' --since %s", ns, strings.Join(c, "|"), strings.Join(p, "|"), since)
-	color.Secondary.Println(cmd)
+	cmd := []string{"stern", ns}
+	cmd = append(cmd, fmt.Sprintf("-c '^(%s)$'", strings.Join(containers.Names(), "|")))
+	cmd = append(cmd, fmt.Sprintf("'^(%s)$'", strings.Join(containers.Pods(), "|")))
+
+	if since != "0s" {
+		cmd = append(cmd, fmt.Sprintf("--since %s", since))
+	}
+
+	color.Secondary.Println(strings.Join(cmd, " "))
 }

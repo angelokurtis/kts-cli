@@ -62,12 +62,10 @@ func (s *Pods) Containers() *Containers {
 	for _, pod := range s.Items {
 		podName := pod.Metadata.Name
 		podNamespace := pod.Metadata.Namespace
-		podTemplateHash := pod.Metadata.Labels["pod-template-hash"]
 
 		for _, container := range pod.Spec.Containers {
 			container.Pod = podName
 			container.Namespace = podNamespace
-			container.PodTemplateHash = podTemplateHash
 			container.Status = pod.GetContainerStatus(container.Name)
 			c = append(c, container)
 		}
@@ -75,7 +73,6 @@ func (s *Pods) Containers() *Containers {
 		for _, container := range pod.Spec.InitContainers {
 			container.Pod = podName
 			container.Namespace = podNamespace
-			container.PodTemplateHash = podTemplateHash
 			container.Status = pod.GetContainerStatus(container.Name)
 			c = append(c, container)
 		}
