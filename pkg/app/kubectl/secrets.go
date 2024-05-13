@@ -53,7 +53,7 @@ func SearchSecret(label string) (*Secrets, error) {
 }
 
 func GetSecretKeyValue(ref *KeyRef, namespace string) (string, error) {
-	out, err := bash.Run(fmt.Sprintf("kubectl get secret --namespace %s %s -o jsonpath=\"{.data.%s}\" | base64 --decode", namespace, ref.Name, ref.Key))
+	out, err := bash.RunAndLogRead(fmt.Sprintf("kubectl get secret --namespace %s %s -o jsonpath=\"{.data.%s}\" | base64 --decode", namespace, ref.Name, ref.Key))
 	if err != nil {
 		return "", err
 	}
