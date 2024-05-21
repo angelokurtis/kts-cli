@@ -20,26 +20,31 @@ func list(cmd *cobra.Command, args []string) {
 	dieOnErr(err)
 	defer apiClient.Close()
 
-	summaries, err := apiClient.ImageList(ctx, image.ListOptions{})
+	rawSummaries, err := apiClient.ImageList(ctx, image.ListOptions{})
 	dieOnErr(err)
 
-	sort.Slice(summaries, func(i, j int) bool {
-		t1 := summaries[i].Size
-		t2 := summaries[j].Size
+	sort.Slice(rawSummaries, func(i, j int) bool {
+		t1 := rawSummaries[i].Size
+		t2 := rawSummaries[j].Size
 
 		return t1 < t2
 	})
+
+	summaries := wrapImageSummaries(rawSummaries)
+	if tagged {
+		summaries = summaries.FilterTagged()
+	}
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetRowLine(true)
 	table.SetBorder(false)
 	table.SetHeader([]string{"ID", "TAGS", "SIZE"})
 
-	for _, summary := range summaries {
+	for _, summary := range summaries.wrapped {
 		table.Append([]string{
-			summary.ID,
-			strings.Join(summary.RepoTags, "\n"),
-			byteCount(summary.Size),
+			summary.wrapped.ID,
+			strings.Join(summary.wrapped.RepoTags, "\n"),
+			byteCount(summary.wrapped.Size),
 		})
 	}
 

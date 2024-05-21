@@ -13,6 +13,18 @@ type imageSummariesWrapper struct {
 	wrapped []*imageSummaryWrapper
 }
 
+func (w *imageSummariesWrapper) FilterTagged() *imageSummariesWrapper {
+	summaries := make([]*imageSummaryWrapper, 0)
+
+	for _, summary := range w.wrapped {
+		if len(summary.wrapped.RepoTags) > 0 {
+			summaries = append(summaries, summary)
+		}
+	}
+
+	return &imageSummariesWrapper{wrapped: summaries}
+}
+
 func (w *imageSummariesWrapper) Select() (*imageSummariesWrapper, error) {
 	options := make([]string, 0)
 

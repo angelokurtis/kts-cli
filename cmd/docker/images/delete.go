@@ -28,6 +28,10 @@ func del(cmd *cobra.Command, args []string) {
 	})
 
 	summaries := wrapImageSummaries(rawSummaries)
+	if tagged {
+		summaries = summaries.FilterTagged()
+	}
+
 	summaries, err = summaries.Select()
 	dieOnErr(err)
 
