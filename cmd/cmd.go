@@ -9,6 +9,7 @@ import (
 
 	"github.com/angelokurtis/kts-cli/cmd/aws"
 	"github.com/angelokurtis/kts-cli/cmd/digitalocean"
+	"github.com/angelokurtis/kts-cli/cmd/docker"
 	"github.com/angelokurtis/kts-cli/cmd/dockerhub"
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
 	"github.com/angelokurtis/kts-cli/cmd/git"
@@ -64,6 +65,7 @@ func init() {
 	cmd.AddCommand(completion)
 	cmd.AddCommand(aws.Command)
 	cmd.AddCommand(digitalocean.Command)
+	cmd.AddCommand(docker.Command)
 	cmd.AddCommand(dockerhub.Command)
 	cmd.AddCommand(gcp.Command)
 	cmd.AddCommand(git.Command)
