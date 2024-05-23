@@ -1,12 +1,16 @@
 package golang
 
 import (
-	"github.com/pkg/errors"
 	"os"
 	"os/exec"
+	"strings"
+
+	"github.com/gookit/color"
+	"github.com/pkg/errors"
 )
 
 func Run(dir, dep string, arg ...string) error {
+	color.Primary.Println(strings.Join(append([]string{"go", "run", "-mod=mod", dep}, arg...), " "))
 	cmd := exec.Command("go", append([]string{"run", "-mod=mod", dep}, arg...)...)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
@@ -20,6 +24,7 @@ func Run(dir, dep string, arg ...string) error {
 }
 
 func RunSilently(dir, dep string, arg ...string) error {
+	color.Primary.Println(strings.Join(append([]string{"go", "run", "-mod=mod", dep}, arg...), " "))
 	cmd := exec.Command("go", append([]string{"run", "-mod=mod", dep}, arg...)...)
 	cmd.Dir = dir
 
