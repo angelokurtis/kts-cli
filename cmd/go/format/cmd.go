@@ -6,10 +6,10 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/lmittmann/tint"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/golang"
@@ -23,36 +23,38 @@ var Command = &cobra.Command{
 func runFormat(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 
-	slog.InfoContext(ctx, "Running format command")
-
-	var path string
+	var filename string
 	if len(args) > 0 {
-		path = args[0]
+		filename = args[0]
 	}
 
-	if path == "" {
-		return errors.New("no path provided")
-	}
-
-	slog.InfoContext(ctx, "Describing package", slog.String("path", path))
-
-	abs, err := filepath.Abs(path)
+	info, err := os.Stat(filename)
 	if err != nil {
-		return fmt.Errorf("failed to get absolute path: %w", err)
+		return fmt.Errorf("failed to retrieve file information for path '%s': %w", filename, err)
 	}
 
-	slog.InfoContext(ctx, "Obtained absolute path", slog.String("absPath", abs))
+	if info.IsDir() {
+		return fmt.Errorf("the specified path '%s' is a directory, expected a file", filename)
+	}
 
-	pkgDetails, err := golang.DescribePackage(abs)
+	absFilename, err := filepath.Abs(filename)
 	if err != nil {
-		return fmt.Errorf("failed to describe package: %w", err)
+		return fmt.Errorf("failed to get absolute file path for '%s': %w", filename, err)
 	}
 
-	slog.InfoContext(ctx, "Package described successfully", slog.String("path", path))
+	dir := path.Dir(filename)
+
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for directory '%s': %w", dir, err)
+	}
+
+	pkgDetails, err := golang.DescribePackage(absDir)
+	if err != nil {
+		return fmt.Errorf("failed to describe package in directory '%s': %w", absDir, err)
+	}
 
 	files := append(pkgDetails.GoFiles, pkgDetails.TestGoFiles...)
-
-	slog.InfoContext(ctx, "Creating temporary directory for format operation")
 
 	temp, err := os.MkdirTemp("", "kts-cli-format-")
 	if err != nil {
@@ -64,26 +66,64 @@ func runFormat(cmd *cobra.Command, args []string) error {
 			slog.WarnContext(ctx, "Failed to remove temporary directory", slog.String("tempDir", temp), tint.Err(err))
 			return
 		}
-
-		slog.InfoContext(ctx, "Temporary directory removed successfully", slog.String("tempDir", temp))
 	}()
 
-	slog.InfoContext(ctx, "Temporary directory created", slog.String("tempDir", temp))
-
 	for _, file := range files {
-		src := filepath.Join(abs, file)
+		src := filepath.Join(absDir, file)
 		dst := filepath.Join(temp, file)
 
-		slog.InfoContext(ctx, "Copying file", slog.String("src", src), slog.String("dst", dst))
-
 		if err = copyFile(src, dst); err != nil {
-			return fmt.Errorf("failed to copy file: %w", err)
+			return fmt.Errorf("failed to copy file from '%s' to '%s': %w", src, dst, err)
 		}
-
-		slog.InfoContext(ctx, "File copied successfully", slog.String("src", src), slog.String("dst", dst))
 	}
 
-	slog.InfoContext(ctx, "Format command completed successfully")
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+
+	fileArgs := make([]string, 0, len(files))
+
+	for _, file := range files {
+		f := filepath.Join(absDir, file)
+
+		rel, err := filepath.Rel(wd, f)
+		if err != nil {
+			return fmt.Errorf("failed to get relative path from '%s' to '%s': %w", wd, f, err)
+		}
+
+		fileArgs = append(fileArgs, rel)
+	}
+
+	runArgs := append([]string{"-set-alias", "-use-cache", "-rm-unused", "-format"}, fileArgs...)
+
+	if err = golang.Run(wd, "github.com/incu6us/goimports-reviser/v3@latest", fileArgs...); err != nil {
+		slog.WarnContext(ctx, "Failed to run goimports-reviser")
+	}
+
+	runArgs = append([]string{"-w", "-extra"}, fileArgs...)
+
+	if err = golang.Run(wd, "mvdan.cc/gofumpt@latest", fileArgs...); err != nil {
+		slog.WarnContext(ctx, "Failed to run gofumpt")
+	}
+
+	runArgs = append([]string{"-fix"}, fileArgs...)
+	if err = golang.Run(wd, "github.com/bombsimon/wsl/v4/cmd...@latest", runArgs...); err != nil {
+		slog.WarnContext(ctx, "Failed to run wsl")
+	}
+
+	for _, file := range files {
+		src := filepath.Join(temp, file)
+
+		dst := filepath.Join(absDir, file)
+		if absFilename == dst {
+			continue
+		}
+
+		if err = copyFile(src, dst); err != nil {
+			return fmt.Errorf("failed to copy file from '%s' to '%s': %w", src, dst, err)
+		}
+	}
 
 	return nil
 }
