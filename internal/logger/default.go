@@ -1,12 +1,13 @@
 package logger
 
 import (
-	"github.com/angelokurtis/kts-cli/internal/otel"
 	"log/slog"
 	"os"
 	"time"
 
 	"github.com/lmittmann/tint"
+
+	"github.com/angelokurtis/kts-cli/internal/otel"
 )
 
 // SetUp initializes the logger with predefined settings and returns the logger instance.
