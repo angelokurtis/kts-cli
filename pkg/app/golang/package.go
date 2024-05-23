@@ -30,6 +30,7 @@ type Package struct {
 	Stale       bool     `json:"Stale"`
 	StaleReason string   `json:"StaleReason"`
 	GoFiles     []string `json:"GoFiles"`
+	TestGoFiles []string `json:"TestGoFiles"`
 	Imports     []string `json:"Imports"`
 	Deps        []string `json:"Deps"`
 }
