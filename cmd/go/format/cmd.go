@@ -77,13 +77,13 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
 
-	slog.DebugContext(ctx, "Temporary directory created", slog.String("tempDir", temp))
+	slog.InfoContext(ctx, "Temporary directory created", slog.String("tempDir", temp))
 
 	defer func() {
 		if err = os.RemoveAll(temp); err != nil {
 			slog.WarnContext(ctx, "Failed to remove temporary directory", slog.String("tempDir", temp), tint.Err(err))
 		} else {
-			slog.DebugContext(ctx, "Temporary directory removed", slog.String("tempDir", temp))
+			slog.InfoContext(ctx, "Temporary directory removed", slog.String("tempDir", temp))
 		}
 	}()
 
@@ -108,12 +108,8 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get relative path from '%s' to '%s': %w", wd, src, err)
 		}
-		dstRel, err := filepath.Rel(wd, dst)
-		if err != nil {
-			return fmt.Errorf("failed to get relative path from '%s' to '%s': %w", wd, dst, err)
-		}
 
-		slog.DebugContext(ctx, "Copied file", slog.String("src", srcRel), slog.String("dst", dstRel))
+		slog.DebugContext(ctx, "Copied file", slog.String("src", "./"+srcRel), slog.String("dst", dst))
 	}
 
 	slog.DebugContext(ctx, "Obtained current working directory", slog.String("wd", wd))
@@ -124,6 +120,7 @@ func runFormat(cmd *cobra.Command, args []string) error {
 	for _, file := range files {
 		f := filepath.Join(absDir, file)
 		rel, err := filepath.Rel(wd, f)
+
 		if err != nil {
 			return fmt.Errorf("failed to get relative path from '%s' to '%s': %w", wd, f, err)
 		}
@@ -135,27 +132,30 @@ func runFormat(cmd *cobra.Command, args []string) error {
 
 	// Run goimports-reviser, gofumpt, and wsl on the files
 	runArgs := append([]string{"-set-alias", "-use-cache", "-rm-unused", "-format"}, fileArgs...)
-	slog.InfoContext(ctx, "Running goimports-reviser", slog.String("args", strings.Join(runArgs, " ")))
 
-	if err = golang.Run(wd, "github.com/incu6us/goimports-reviser/v3@latest", fileArgs...); err != nil {
+	slog.InfoContext(ctx, "Running goimports-reviser")
+
+	if err = golang.RunSilently(wd, "github.com/incu6us/goimports-reviser/v3@latest", fileArgs...); err != nil {
 		slog.WarnContext(ctx, "Failed to run goimports-reviser", tint.Err(err))
 	} else {
 		slog.InfoContext(ctx, "Successfully ran goimports-reviser")
 	}
 
 	runArgs = append([]string{"-w", "-extra"}, fileArgs...)
-	slog.InfoContext(ctx, "Running gofumpt", slog.String("args", strings.Join(runArgs, " ")))
 
-	if err = golang.Run(wd, "mvdan.cc/gofumpt@latest", fileArgs...); err != nil {
+	slog.InfoContext(ctx, "Running gofumpt")
+
+	if err = golang.RunSilently(wd, "mvdan.cc/gofumpt@latest", fileArgs...); err != nil {
 		slog.WarnContext(ctx, "Failed to run gofumpt", tint.Err(err))
 	} else {
 		slog.InfoContext(ctx, "Successfully ran gofumpt")
 	}
 
 	runArgs = append([]string{"-fix"}, fileArgs...)
-	slog.InfoContext(ctx, "Running wsl", slog.String("args", strings.Join(runArgs, " ")))
 
-	if err = golang.Run(wd, "github.com/bombsimon/wsl/v4/cmd...@latest", runArgs...); err != nil {
+	slog.InfoContext(ctx, "Running wsl")
+
+	if err = golang.RunSilently(wd, "github.com/bombsimon/wsl/v4/cmd...@latest", runArgs...); err != nil {
 		slog.WarnContext(ctx, "Failed to run wsl", tint.Err(err))
 	} else {
 		slog.InfoContext(ctx, "Successfully ran wsl")
@@ -176,16 +176,12 @@ func runFormat(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("failed to copy file from '%s' to '%s': %w", src, dst, err)
 		}
 
-		srcRel, err := filepath.Rel(wd, src)
-		if err != nil {
-			return fmt.Errorf("failed to get relative path from '%s' to '%s': %w", wd, src, err)
-		}
 		dstRel, err := filepath.Rel(wd, dst)
 		if err != nil {
 			return fmt.Errorf("failed to get relative path from '%s' to '%s': %w", wd, dst, err)
 		}
 
-		slog.InfoContext(ctx, "Copied file back", slog.String("src", srcRel), slog.String("dst", dstRel))
+		slog.InfoContext(ctx, "Copied file back", slog.String("src", src), slog.String("dst", "./"+dstRel))
 	}
 
 	slog.DebugContext(ctx, "Format run completed successfully", slog.String("filename", filename))
