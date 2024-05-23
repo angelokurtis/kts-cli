@@ -1,8 +1,10 @@
 package git
 
 import (
-	log "log/slog"
+	"context"
+	slog "log/slog"
 
+	"github.com/lmittmann/tint"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/git"
@@ -10,33 +12,39 @@ import (
 )
 
 func clone(cmd *cobra.Command, args []string) {
+	ctx := context.Background()
+
 	repo := args[0]
 
 	dir, err := git.NewLocalDir(repo)
 	if err != nil {
-		log.Error(err.Error())
+		slog.ErrorContext(ctx, "Failed to create local directory", slog.String("repo", repo), tint.Err(err))
 		return
 	}
 
 	if !dir.Exist() {
-		log.Info("cloning repo", "repo", repo)
+		slog.InfoContext(ctx, "Cloning repository", slog.String("repo", repo))
 
 		err = git.Clone(repo)
 		if err != nil {
-			log.Error(err.Error())
+			slog.ErrorContext(ctx, "Failed to clone repository", slog.String("repo", repo), tint.Err(err))
 			return
 		}
+
+		slog.InfoContext(ctx, "Repository cloned successfully", slog.String("repo", repo))
 	} else {
-		log.Info("local repository was found at the path", "path", dir.Path())
+		slog.InfoContext(ctx, "Local repository found", slog.String("path", dir.Path()))
 	}
 
 	if open {
-		log.Info("opening on IntelliJ IDEA", "path", dir.Path())
+		slog.InfoContext(ctx, "Opening repository in IntelliJ IDEA", slog.String("path", dir.Path()))
 
 		err = idea.Open(dir.Path())
 		if err != nil {
-			log.Error(err.Error())
+			slog.ErrorContext(ctx, "Failed to open repository in IntelliJ IDEA", slog.String("path", dir.Path()), tint.Err(err))
 			return
 		}
+
+		slog.InfoContext(ctx, "Repository opened in IntelliJ IDEA", slog.String("path", dir.Path()))
 	}
 }
