@@ -1,6 +1,7 @@
 package golang
 
 import (
+	"github.com/angelokurtis/kts-cli/cmd/go/format"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/cmd/go/packages"
@@ -15,6 +16,7 @@ var Command = &cobra.Command{
 }
 
 func init() {
+	Command.AddCommand(format.Command)
 	Command.AddCommand(packages.Command)
 	Command.AddCommand(versions.Command)
 	Command.AddCommand(&cobra.Command{Use: "lint", Run: lint})
