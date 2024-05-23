@@ -3,6 +3,7 @@ package logger
 import (
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/lmittmann/tint"
@@ -10,12 +11,31 @@ import (
 	"github.com/angelokurtis/kts-cli/internal/otel"
 )
 
+const ktsLoglevelEnv = "KTS_LOGLEVEL"
+
 // SetUp initializes the logger with predefined settings and returns the logger instance.
 func SetUp() *slog.Logger {
+	var lvl slog.Leveler = slog.LevelInfo
+
+	// Adjust log level based on the environment variable value
+	env, ok := os.LookupEnv(ktsLoglevelEnv)
+	if ok {
+		switch strings.ToLower(env) {
+		case "debug":
+			lvl = slog.LevelDebug
+		case "info":
+			lvl = slog.LevelInfo
+		case "warn":
+			lvl = slog.LevelWarn
+		case "error":
+			lvl = slog.LevelError
+		}
+	}
+
 	// Create a new handler with tint colorized output
 	handler := tint.NewHandler(os.Stderr, &tint.Options{
 		AddSource:  true,
-		Level:      slog.LevelDebug,
+		Level:      lvl,
 		TimeFormat: time.Kitchen,
 	})
 
