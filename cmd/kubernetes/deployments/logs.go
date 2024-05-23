@@ -2,12 +2,12 @@ package deployments
 
 import (
 	"fmt"
+	log "log/slog"
 	"strings"
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
@@ -15,18 +15,21 @@ import (
 func logs(cmd *cobra.Command, args []string) {
 	deploys, err := kubectl.ListDeployments(namespace, allNamespaces)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	deploy, err := deploys.SelectOne()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	if download {
 		containers, err := kubectl.ListContainersByDeployment(deploy)
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 
 		kubectl.SaveLogs(containers, since, previous)

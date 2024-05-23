@@ -2,6 +2,7 @@ package istio
 
 import (
 	"fmt"
+	log "log/slog"
 	"os"
 	"sort"
 	"strconv"
@@ -11,7 +12,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
@@ -19,7 +19,8 @@ import (
 func list(cmd *cobra.Command, args []string) {
 	deployments, err := kubectl.ListDeployments(namespace, allNamespaces)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)

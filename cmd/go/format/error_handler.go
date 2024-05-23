@@ -1,7 +1,8 @@
 package format
 
 import (
-	"github.com/angelokurtis/kts-cli/internal/log"
+	log "log/slog"
+
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +13,8 @@ type simpleCommandFunc func(cmd *cobra.Command, args []string)
 func wrapWithErrorHandler(fn commandFunc) simpleCommandFunc {
 	return func(cmd *cobra.Command, args []string) {
 		if err := fn(cmd, args); err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 	}
 }

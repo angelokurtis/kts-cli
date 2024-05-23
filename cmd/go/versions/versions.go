@@ -2,11 +2,11 @@ package versions
 
 import (
 	"fmt"
+	log "log/slog"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
@@ -24,6 +24,7 @@ func versions(_ *cobra.Command, args []string) {
 
 func check(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }

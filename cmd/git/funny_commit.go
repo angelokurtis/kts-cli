@@ -3,19 +3,20 @@ package git
 import (
 	"fmt"
 	"io"
+	log "log/slog"
 	"net/http"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/git"
 )
 
 func funnyCommit(cmd *cobra.Command, args []string) {
 	files, err := git.ListStagedFiles()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	if len(files) == 0 {
@@ -25,11 +26,13 @@ func funnyCommit(cmd *cobra.Command, args []string) {
 
 	message, err := whatTheCommit()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	if err = git.DoCommitStagedFiles(message); err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }
 

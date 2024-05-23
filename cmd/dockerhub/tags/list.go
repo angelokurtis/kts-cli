@@ -2,6 +2,7 @@ package tags
 
 import (
 	"fmt"
+	log "log/slog"
 	"os"
 	"runtime"
 	"sort"
@@ -14,8 +15,6 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-
-	"github.com/angelokurtis/kts-cli/internal/log"
 )
 
 var (
@@ -26,7 +25,8 @@ var (
 func init() {
 	loc, err := time.LoadLocation("America/Sao_Paulo")
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	brazil = loc

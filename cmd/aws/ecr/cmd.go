@@ -2,11 +2,11 @@ package ecr
 
 import (
 	"fmt"
+	log "log/slog"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/aws"
 )
@@ -24,18 +24,21 @@ func init() {
 func images(cmd *cobra.Command, args []string) {
 	repos, err := aws.ListECRRepositories()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	repos, err = repos.SelectMany()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	for _, repo := range repos.Items {
 		images, err := aws.ListECRImages(repo)
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 
 		for _, image := range images.Items {

@@ -2,9 +2,9 @@ package otel
 
 import (
 	"context"
-	"github.com/pkg/errors"
 	"log/slog"
 
+	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/trace"
 )
 

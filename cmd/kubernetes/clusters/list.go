@@ -2,11 +2,11 @@ package clusters
 
 import (
 	"fmt"
+	log "log/slog"
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/aws"
 	"github.com/angelokurtis/kts-cli/pkg/app/gcloud"
 )

@@ -2,11 +2,11 @@ package ingresses
 
 import (
 	"fmt"
+	log "log/slog"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 	"github.com/angelokurtis/kts-cli/pkg/app/linux"
@@ -25,7 +25,7 @@ func hostsMapping(cmd *cobra.Command, args []string) {
 	}
 
 	if len(ingresses) > 0 {
-		log.Debugf("found %d ingresses\n", len(ingresses))
+		log.Debug("found ingresses", "ingresses-count", len(ingresses))
 	}
 
 	gateways, err := kubectl.ListAllIstioGateways()
@@ -34,7 +34,7 @@ func hostsMapping(cmd *cobra.Command, args []string) {
 	}
 
 	if len(gateways) > 0 {
-		log.Debugf("found %d gateways\n", len(gateways))
+		log.Debug("found gateways", "gateways-count", len(gateways))
 	}
 
 	hosts, err := linux.LoadHostsFile()

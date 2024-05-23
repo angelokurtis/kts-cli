@@ -1,9 +1,10 @@
 package format
 
 import (
-	"github.com/angelokurtis/kts-cli/pkg/app/golang"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/angelokurtis/kts-cli/pkg/app/golang"
 )
 
 var Command = &cobra.Command{
@@ -25,7 +26,8 @@ func runFormat(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Errorf("failed to describe package: %v", err)
 	}
+
 	_ = pkgDetails
-	//TODO:
+	// TODO:
 	return nil
 }

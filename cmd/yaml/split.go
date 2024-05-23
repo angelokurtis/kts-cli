@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"io/ioutil"
+	log "log/slog"
 	"strings"
 
 	changeCase "github.com/ku/go-change-case"
@@ -11,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v3"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
@@ -20,7 +20,8 @@ func split(cmd *cobra.Command, args []string) {
 
 	out, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Fatal(errors.WithStack(err))
+		log.Error(err.Error())
+		return
 	}
 
 	file := make([]string, 0, 0)
@@ -49,7 +50,8 @@ func split(cmd *cobra.Command, args []string) {
 
 		err = yaml.Unmarshal([]byte(f), r)
 		if err != nil {
-			log.Fatal(errors.WithStack(err))
+			log.Error(err.Error())
+			return
 		}
 
 		resources = append(resources, r)
@@ -60,7 +62,8 @@ func split(cmd *cobra.Command, args []string) {
 
 	err = SaveMany(files, directory)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }
 
@@ -86,7 +89,7 @@ func SaveOne(file, directory string) error {
 
 	err = yaml.Unmarshal(out, r)
 	if err != nil {
-		log.Fatal(errors.WithStack(err))
+		return errors.WithStack(err)
 	}
 
 	filename := directory + "/" + r.Metadata.Name + "." + changeCase.Param(r.Kind) + ".yaml"

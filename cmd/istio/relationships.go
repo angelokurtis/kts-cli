@@ -2,10 +2,10 @@ package istio
 
 import (
 	"fmt"
+	log "log/slog"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kiali"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
@@ -17,12 +17,14 @@ func relationships(cmd *cobra.Command, args []string) {
 	if namespace == "" {
 		namespaces, err := kubectl.ListNamespaces()
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 
 		namespaces, err = namespaces.SelectMany()
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 
 		nss = make([]string, 0, len(namespaces.Items))
@@ -35,14 +37,16 @@ func relationships(cmd *cobra.Command, args []string) {
 
 	graph, err := kiali.LoadGraphInfo(nss...)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	nodes := graph.GetNodes()
 
 	node, err := nodes.SelectOne()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	res := graph.Inbound(node).Join(graph.Outbound(node))

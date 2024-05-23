@@ -1,9 +1,10 @@
 package git
 
 import (
+	log "log/slog"
+
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/git"
 	"github.com/angelokurtis/kts-cli/pkg/app/idea"
 )
@@ -13,26 +14,29 @@ func clone(cmd *cobra.Command, args []string) {
 
 	dir, err := git.NewLocalDir(repo)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	if !dir.Exist() {
-		log.Infof("cloning repo %s", repo)
+		log.Info("cloning repo", "repo", repo)
 
 		err = git.Clone(repo)
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 	} else {
-		log.Infof("local repository was found at the path %s", dir.Path())
+		log.Info("local repository was found at the path", "path", dir.Path())
 	}
 
 	if open {
-		log.Infof("opening %s on IntelliJ IDEA", dir.Path())
+		log.Info("opening on IntelliJ IDEA", "path", dir.Path())
 
 		err = idea.Open(dir.Path())
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 	}
 }

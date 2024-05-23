@@ -2,10 +2,10 @@ package profiles
 
 import (
 	"fmt"
+	log "log/slog"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/aws"
 )
@@ -25,7 +25,8 @@ func init() {
 func list(cmd *cobra.Command, args []string) {
 	profiles, err := aws.ListProfiles()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	for _, p := range profiles {

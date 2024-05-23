@@ -1,9 +1,10 @@
 package resources
 
 import (
+	log "log/slog"
+
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/terraformer"
 )
@@ -28,7 +29,8 @@ func importCmd(cmd *cobra.Command, args []string) {
 
 		p, err := providers.SelectProvider()
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 
 		provider = p
@@ -36,16 +38,19 @@ func importCmd(cmd *cobra.Command, args []string) {
 
 	resources, err := terraformer.ListResources(provider)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	resources, err = resources.SelectMany()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	err = resources.Import()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }

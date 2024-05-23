@@ -2,7 +2,7 @@ package packages
 
 import (
 	"fmt"
-	"log"
+	log "log/slog"
 
 	"github.com/disiqueira/gotree"
 	"github.com/gookit/color"
@@ -46,7 +46,8 @@ func packages(_ *cobra.Command, args []string) {
 
 func check(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }
 

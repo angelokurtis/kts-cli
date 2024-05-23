@@ -3,11 +3,11 @@ package providers
 import (
 	"fmt"
 	"io/ioutil"
+	log "log/slog"
 	"os"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/terraform"
 )
@@ -25,16 +25,19 @@ func init() {
 func importCmd(cmd *cobra.Command, args []string) {
 	provider, err := terraform.SelectProvider()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	out, err := provider.Encode()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	err = ioutil.WriteFile(fmt.Sprintf("%s.tf", provider.Name), out, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }

@@ -2,6 +2,7 @@ package tags
 
 import (
 	"fmt"
+	log "log/slog"
 	"os"
 	"sort"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/git"
 )
 
@@ -21,7 +21,8 @@ var brazil *time.Location
 func init() {
 	loc, err := time.LoadLocation("America/Sao_Paulo")
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	brazil = loc
@@ -30,7 +31,8 @@ func init() {
 func list(_ *cobra.Command, _ []string) {
 	tags, err := git.ListTags(dir)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	sort.Slice(tags, func(i, j int) bool {

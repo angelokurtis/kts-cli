@@ -3,6 +3,7 @@ package resources
 import (
 	"fmt"
 	"io/ioutil"
+	log "log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/internal/colors"
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/terraform"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -50,14 +50,16 @@ func convert(cmd *cobra.Command, args []string) {
 		if strings.HasSuffix(file, ".yaml") || strings.HasSuffix(file, ".yml") {
 			out, err := terraform.YAMLDecode(file)
 			if err != nil {
-				log.Fatal(err)
+				log.Error(err.Error())
+				return
 			}
 
 			filename := strings.Replace(file, ".yaml", ".tf", -1)
 			filename = strings.Replace(filename, ".yml", ".tf", -1)
 
 			if err = ioutil.WriteFile(filename, out, 0o644); err != nil {
-				log.Fatal(err)
+				log.Error(err.Error())
+				return
 			}
 		}
 	}
@@ -67,7 +69,8 @@ func importCmd(cmd *cobra.Command, args []string) {
 	if provider == "" {
 		p, err := terraform.SelectProvider()
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 
 		provider = p.Name
@@ -75,33 +78,39 @@ func importCmd(cmd *cobra.Command, args []string) {
 
 	resource, err := terraform.SelectResource(provider)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	out, err := resource.Encode()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	filename := fmt.Sprintf("%s.tf", changeCase.Param(resource.Name))
 
 	err = ioutil.WriteFile(filename, out, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	err = resource.Import()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	state, err := bash.Run("terraform state show " + resource.GetID())
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	err = ioutil.WriteFile(filename, colors.Strip(state), os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }

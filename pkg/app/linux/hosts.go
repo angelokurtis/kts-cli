@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	log "log/slog"
 	"os"
 	"strings"
 
 	"github.com/pkg/errors"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
@@ -127,7 +127,7 @@ func (h *HostsFile) Add(context string, ingresses []*kubectl.Ingress, gateways [
 
 func (h *HostsFile) Write() error {
 	content := []byte(h.String())
-	log.Debugf("\n%s", content)
+	log.Debug(string(content))
 
 	err := ioutil.WriteFile("/etc/hosts", content, 0o644)
 	if err != nil {

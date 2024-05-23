@@ -1,9 +1,10 @@
 package images
 
 import (
+	log "log/slog"
+
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 )
 
@@ -22,6 +23,7 @@ func init() {
 
 func dieOnErr(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }

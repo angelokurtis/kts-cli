@@ -2,12 +2,12 @@ package deployments
 
 import (
 	"fmt"
+	log "log/slog"
 	"strings"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
@@ -15,17 +15,20 @@ import (
 func updateImages(cmd *cobra.Command, args []string) {
 	deploys, err := kubectl.ListDeployments(namespace, allNamespaces)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	deploys, err = deploys.SelectMany()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	containers, err := deploys.SelectContainers()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	tag := ""
@@ -33,7 +36,8 @@ func updateImages(cmd *cobra.Command, args []string) {
 
 	err = survey.AskOne(prompt, &tag, survey.WithKeepFilter(true))
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	for _, deploy := range deploys.Items {

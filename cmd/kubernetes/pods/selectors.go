@@ -2,11 +2,11 @@ package pods
 
 import (
 	"fmt"
+	log "log/slog"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
@@ -15,7 +15,8 @@ import (
 func selectors(cmd *cobra.Command, args []string) {
 	pods, err := kubectl.ListPods(namespace, allNamespaces, "")
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	labels, err := pods.SelectLabels()

@@ -2,11 +2,11 @@ package pods
 
 import (
 	"fmt"
+	log "log/slog"
 	"sort"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
@@ -14,12 +14,14 @@ import (
 func variables(cmd *cobra.Command, args []string) {
 	pods, err := kubectl.ListPods(namespace, allNamespaces, selector)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	pod, err := pods.SelectOne()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	vars := make(map[string]string)
@@ -30,14 +32,16 @@ func variables(cmd *cobra.Command, args []string) {
 		} else if env.ValueFrom != nil && env.ValueFrom.ConfigMapKeyRef != nil {
 			value, err := kubectl.GetConfigMapKeyValue(env.ValueFrom.ConfigMapKeyRef, pod.Metadata.Namespace)
 			if err != nil {
-				log.Fatal(err)
+				log.Error(err.Error())
+				return
 			}
 
 			vars[env.Name] = value
 		} else if env.ValueFrom != nil && env.ValueFrom.SecretKeyRef != nil {
 			value, err := kubectl.GetSecretKeyValue(env.ValueFrom.SecretKeyRef, pod.Metadata.Namespace)
 			if err != nil {
-				log.Fatal(err)
+				log.Error(err.Error())
+				return
 			}
 
 			vars[env.Name] = value

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fmt"
+	log "log/slog"
 	"os"
 	"sort"
 	"time"
@@ -12,8 +13,6 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-
-	"github.com/angelokurtis/kts-cli/internal/log"
 )
 
 var (
@@ -24,7 +23,8 @@ var (
 func init() {
 	loc, err := time.LoadLocation("America/Sao_Paulo")
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	brazil = loc
@@ -37,7 +37,8 @@ func list(cmd *cobra.Command, args []string) {
 
 	repos, err := dockerhub.ListRepositories(hubuser)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	sort.Slice(repos, func(i, j int) bool {

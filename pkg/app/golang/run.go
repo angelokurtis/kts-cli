@@ -1,9 +1,10 @@
 package golang
 
 import (
-	"github.com/pkg/errors"
 	"os"
 	"os/exec"
+
+	"github.com/pkg/errors"
 )
 
 func Run(dir, dep string, arg ...string) error {

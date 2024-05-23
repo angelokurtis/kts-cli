@@ -3,7 +3,7 @@ package revisions
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	log "log/slog"
 
 	"github.com/spf13/cobra"
 
@@ -81,6 +81,7 @@ func init() {
 
 func dieOnErr(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }

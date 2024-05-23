@@ -2,10 +2,10 @@ package certificates
 
 import (
 	"fmt"
+	log "log/slog"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
@@ -20,6 +20,7 @@ func list(cmd *cobra.Command, args []string) {
 
 func check(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }

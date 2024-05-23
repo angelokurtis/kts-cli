@@ -2,11 +2,11 @@ package groups
 
 import (
 	"fmt"
+	log "log/slog"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/m3u"
 )
@@ -52,6 +52,7 @@ func edit(cmd *cobra.Command, args []string) {
 
 func dieOnErr(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }

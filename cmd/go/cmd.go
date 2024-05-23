@@ -1,9 +1,9 @@
 package golang
 
 import (
-	"github.com/angelokurtis/kts-cli/cmd/go/format"
 	"github.com/spf13/cobra"
 
+	"github.com/angelokurtis/kts-cli/cmd/go/format"
 	"github.com/angelokurtis/kts-cli/cmd/go/packages"
 	"github.com/angelokurtis/kts-cli/cmd/go/versions"
 	"github.com/angelokurtis/kts-cli/internal/system"

@@ -2,6 +2,7 @@ package ifood
 
 import (
 	"fmt"
+	log "log/slog"
 	"os"
 	"sort"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/ifood"
 )
@@ -31,7 +31,8 @@ var (
 func init() {
 	loc, err := time.LoadLocation("America/Sao_Paulo")
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	brazil = loc
@@ -44,7 +45,8 @@ func init() {
 func list(cmd *cobra.Command, args []string) {
 	orders, err := ifood.List()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	orders = orders.FilterByStatus("CONCLUDED")
@@ -52,7 +54,8 @@ func list(cmd *cobra.Command, args []string) {
 	if from != "" {
 		f, err := time.Parse(dateTimeFormat, from+" 00:00")
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 
 		orders = orders.FilterFrom(f)
@@ -61,7 +64,8 @@ func list(cmd *cobra.Command, args []string) {
 	if to != "" {
 		t, err := time.Parse(dateTimeFormat, to+" 23:59")
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 
 		orders = orders.FilterTo(t)

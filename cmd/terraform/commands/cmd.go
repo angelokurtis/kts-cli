@@ -2,10 +2,10 @@ package commands
 
 import (
 	"fmt"
+	log "log/slog"
 
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/internal/system"
 	"github.com/angelokurtis/kts-cli/pkg/app/terraform"
 )
@@ -24,12 +24,14 @@ func init() {
 func apply(cmd *cobra.Command, args []string) {
 	resources, err := terraform.ListResources()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	resources, err = resources.SelectMany()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	fmt.Println(resources.ApplyCommand())
@@ -38,12 +40,14 @@ func apply(cmd *cobra.Command, args []string) {
 func destroy(cmd *cobra.Command, args []string) {
 	resources, err := terraform.ListResources()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	resources, err = resources.SelectMany()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	fmt.Println(resources.DestroyCommand())

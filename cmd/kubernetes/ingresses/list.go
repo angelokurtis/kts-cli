@@ -1,36 +1,39 @@
 package ingresses
 
 import (
+	log "log/slog"
 	"os"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
 func list(cmd *cobra.Command, args []string) {
 	ingresses, err := kubectl.ListIngresses()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	services, err := kubectl.ListServices()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	services = services.FilterByType("LoadBalancer")
 
 	gateways, err := kubectl.ListAllIstioGateways()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	if len(gateways) > 0 {
-		log.Debugf("found %d gateways\n", len(gateways))
+		log.Debug("found gateways", "gateways-count", len(gateways))
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -59,7 +62,8 @@ func list(cmd *cobra.Command, args []string) {
 	if len(gateways) > 0 {
 		istioIngress, err = kubectl.IstioIngress()
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 	}
 

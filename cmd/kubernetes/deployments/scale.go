@@ -1,25 +1,27 @@
 package deployments
 
 import (
+	log "log/slog"
 	"strconv"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
 func scale(cmd *cobra.Command, args []string) {
 	deploys, err := kubectl.ListDeployments(namespace, allNamespaces)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	deploys, err = deploys.SelectMany()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	answers := struct {
@@ -45,11 +47,13 @@ func scale(cmd *cobra.Command, args []string) {
 		Transform: survey.Title,
 	}}, &answers)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	err = deploys.Scale(answers.Replicas)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }

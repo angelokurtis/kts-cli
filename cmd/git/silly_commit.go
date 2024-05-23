@@ -2,6 +2,7 @@ package git
 
 import (
 	"fmt"
+	log "log/slog"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/martinusso/inflect"
@@ -9,14 +10,14 @@ import (
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 
-	"github.com/angelokurtis/kts-cli/internal/log"
 	"github.com/angelokurtis/kts-cli/pkg/app/git"
 )
 
 func sillyCommit(cmd *cobra.Command, args []string) {
 	count, err := git.CountCommitsByAuthor()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 
 	author, err := git.GetUser()
@@ -25,7 +26,8 @@ func sillyCommit(cmd *cobra.Command, args []string) {
 
 		author, err = selectAuthor(authors)
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			return
 		}
 	}
 
@@ -34,7 +36,8 @@ func sillyCommit(cmd *cobra.Command, args []string) {
 	message := fmt.Sprintf("Commit number %s", inflect.IntoWords(float64(total+1)))
 
 	if err = git.DoCommitStagedFiles(message); err != nil {
-		log.Fatal(err)
+		log.Error(err.Error())
+		return
 	}
 }
 
