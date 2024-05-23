@@ -21,13 +21,16 @@ var Command = &cobra.Command{
 }
 
 func runFormat(cmd *cobra.Command, args []string) error {
+	// Create a new context
 	ctx := context.Background()
 
+	// Determine the filename from arguments
 	var filename string
 	if len(args) > 0 {
 		filename = args[0]
 	}
 
+	// Check if the file exists and is not a directory
 	info, err := os.Stat(filename)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve file information for path '%s': %w", filename, err)
@@ -37,18 +40,18 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("the specified path '%s' is a directory, expected a file", filename)
 	}
 
+	// Get absolute paths for the file and its directory
 	absFilename, err := filepath.Abs(filename)
 	if err != nil {
 		return fmt.Errorf("failed to get absolute file path for '%s': %w", filename, err)
 	}
 
-	dir := path.Dir(filename)
-
-	absDir, err := filepath.Abs(dir)
+	absDir, err := filepath.Abs(path.Dir(filename))
 	if err != nil {
-		return fmt.Errorf("failed to get absolute path for directory '%s': %w", dir, err)
+		return fmt.Errorf("failed to get absolute path for directory '%s': %w", path.Dir(filename), err)
 	}
 
+	// Describe the Go package in the directory
 	pkgDetails, err := golang.DescribePackage(absDir)
 	if err != nil {
 		return fmt.Errorf("failed to describe package in directory '%s': %w", absDir, err)
@@ -56,6 +59,7 @@ func runFormat(cmd *cobra.Command, args []string) error {
 
 	files := append(pkgDetails.GoFiles, pkgDetails.TestGoFiles...)
 
+	// Create a temporary directory and ensure it's removed afterwards
 	temp, err := os.MkdirTemp("", "kts-cli-format-")
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
@@ -68,6 +72,7 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
+	// Copy package files to the temporary directory
 	for _, file := range files {
 		src := filepath.Join(absDir, file)
 		dst := filepath.Join(temp, file)
@@ -77,13 +82,14 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// Get the current working directory
 	wd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
+	// Prepare file arguments for formatting tools
 	fileArgs := make([]string, 0, len(files))
-
 	for _, file := range files {
 		f := filepath.Join(absDir, file)
 
@@ -95,6 +101,7 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		fileArgs = append(fileArgs, rel)
 	}
 
+	// Run goimports-reviser, gofumpt, and wsl on the files
 	runArgs := append([]string{"-set-alias", "-use-cache", "-rm-unused", "-format"}, fileArgs...)
 
 	if err = golang.Run(wd, "github.com/incu6us/goimports-reviser/v3@latest", fileArgs...); err != nil {
@@ -112,6 +119,7 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		slog.WarnContext(ctx, "Failed to run wsl")
 	}
 
+	// Copy files back to the original directory
 	for _, file := range files {
 		src := filepath.Join(temp, file)
 
