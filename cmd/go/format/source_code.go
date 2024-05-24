@@ -136,6 +136,20 @@ func (c SourceCodes) FilterByRelativeDirPaths(relativeDirPaths []string) SourceC
 	return result
 }
 
+func (c SourceCodes) FilterByRelativeFilePaths(relativeFilePaths []string) SourceCodes {
+	result := make(SourceCodes, 0)
+
+	for _, code := range c {
+		for _, relativeFilePath := range relativeFilePaths {
+			if code.RelativeFilePath() == relativeFilePath {
+				result = append(result, code)
+			}
+		}
+	}
+
+	return result
+}
+
 func (c SourceCodes) Contains(srcCode *SourceCode) bool {
 	for _, code := range c {
 		if code.RelativeFilePath() == srcCode.RelativeFilePath() {

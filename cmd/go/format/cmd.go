@@ -9,12 +9,19 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/angelokurtis/kts-cli/pkg/app/git"
 	"github.com/angelokurtis/kts-cli/pkg/app/golang"
 )
+
+var filterUpdated = false
 
 var Command = &cobra.Command{
 	Use: "format",
 	Run: wrapWithErrorHandler(runFormat),
+}
+
+func init() {
+	Command.PersistentFlags().BoolVarP(&filterUpdated, "updated", "u", false, "")
 }
 
 func runFormat(cmd *cobra.Command, args []string) error {
@@ -39,13 +46,31 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create source codes from the listed packages: %w", err)
 	}
 
+	selectedFiles := make(SourceCodes, 0)
+	// Filter the source codes to include only uncommitted files if the --updated flag is enabled
+	if filterUpdated {
+		uncommittedFiles, err := git.UncommittedFiles()
+		if err != nil {
+			return fmt.Errorf("failed to retrieve uncommitted files: %w", err)
+		}
+
+		relativePaths, err := uncommittedFiles.RelativePaths()
+		if err != nil {
+			return fmt.Errorf("failed to get relative paths from uncommitted files: %w", err)
+		}
+
+		selectedFiles = srcCodes.FilterByRelativeFilePaths(relativePaths)
+	} else {
+		copy(selectedFiles, srcCodes)
+	}
+
 	// Check if there are any source codes to process; return an error if none are found
-	if len(srcCodes) == 0 {
+	if len(selectedFiles) == 0 {
 		return errors.New("no source codes found in the working directory")
 	}
 
 	// Select multiple source files for formatting
-	selectedFiles, err := srcCodes.SelectMany()
+	selectedFiles, err = selectedFiles.SelectMany()
 	if err != nil {
 		return fmt.Errorf("failed to select multiple source files: %w", err)
 	}
