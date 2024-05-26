@@ -10,8 +10,8 @@ import (
 )
 
 func Run(dir, dep string, arg ...string) error {
-	color.Primary.Println(strings.Join(append([]string{"go", "run", "-mod=mod", dep}, arg...), " "))
-	cmd := exec.Command("go", append([]string{"run", "-mod=mod", dep}, arg...)...)
+	color.Primary.Println(strings.Join(append([]string{"go", "run", "-mod=readonly", dep}, arg...), " "))
+	cmd := exec.Command("go", append([]string{"run", "-mod=readonly", dep}, arg...)...)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -24,8 +24,8 @@ func Run(dir, dep string, arg ...string) error {
 }
 
 func RunSilently(dir, dep string, arg ...string) error {
-	color.Primary.Println(strings.Join(append([]string{"go", "run", "-mod=mod", dep}, arg...), " "))
-	cmd := exec.Command("go", append([]string{"run", "-mod=mod", dep}, arg...)...)
+	color.Primary.Println(strings.Join(append([]string{"go", "run", "-mod=readonly", dep}, arg...), " "))
+	cmd := exec.Command("go", append([]string{"run", "-mod=readonly", dep}, arg...)...)
 	cmd.Dir = dir
 
 	if err := cmd.Run(); err != nil {
