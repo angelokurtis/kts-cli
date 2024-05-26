@@ -13,8 +13,10 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/app/golang"
 )
 
-var filterUpdated = false
-var all = false
+var (
+	filterUpdated = false
+	all           = false
+)
 
 var Command = &cobra.Command{
 	Use: "format",
@@ -99,7 +101,7 @@ func runFormat(cmd *cobra.Command, args []string) error {
 	defer cleanup()
 
 	// Backup the affected files to the temporary directory
-	if err = Backup(ctx, srcCodes, tempDir); err != nil {
+	if err = Backup(ctx, affectedFiles, tempDir); err != nil {
 		return fmt.Errorf("failed to backup affected files to the temporary directory: %w", err)
 	}
 
@@ -112,7 +114,7 @@ func runFormat(cmd *cobra.Command, args []string) error {
 	}
 
 	// Restore the formatted files back to their original locations
-	if err = Restore(ctx, srcCodes, selectedFiles, tempDir); err != nil {
+	if err = Restore(ctx, affectedFiles, selectedFiles, tempDir); err != nil {
 		return fmt.Errorf("failed to restore affected files from the temporary directory: %w", err)
 	}
 
