@@ -71,7 +71,9 @@ func runFormat(cmd *cobra.Command, args []string) error {
 
 		selectedFiles = srcCodes.FilterByRelativeFilePaths(relativePaths)
 	} else {
-		copy(selectedFiles, srcCodes)
+		for _, srcCode := range srcCodes {
+			selectedFiles = append(selectedFiles, srcCode)
+		}
 	}
 
 	// Check if there are any source codes to process; return an error if none are found
