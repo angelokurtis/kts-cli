@@ -14,6 +14,7 @@ import (
 )
 
 var filterUpdated = false
+var all = false
 
 var Command = &cobra.Command{
 	Use: "format",
@@ -22,6 +23,7 @@ var Command = &cobra.Command{
 
 func init() {
 	Command.PersistentFlags().BoolVarP(&filterUpdated, "updated", "u", false, "")
+	Command.PersistentFlags().BoolVar(&all, "all", false, "")
 }
 
 func runFormat(cmd *cobra.Command, args []string) error {
@@ -32,6 +34,14 @@ func runFormat(cmd *cobra.Command, args []string) error {
 	workingDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+
+	if all {
+		runImportsReviser(ctx, workingDir, "./...")
+		runGofumpt(ctx, workingDir, ".")
+		runWsl(ctx, workingDir, "./...")
+
+		return err
 	}
 
 	// List all Go packages in the current working directory, which will be processed
@@ -75,6 +85,10 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to select multiple source files: %w", err)
 	}
 
+	selectedDirs := selectedFiles.RelativeDirPaths()
+
+	affectedFiles := srcCodes.FilterByRelativeDirPaths(selectedDirs)
+
 	// Create a temporary directory for backing up files before formatting and ensure that it is cleaned up after the operation
 	tempDir, cleanup, err := createTemporaryDirectory(ctx)
 	if err != nil {
@@ -88,9 +102,12 @@ func runFormat(cmd *cobra.Command, args []string) error {
 	}
 
 	// Run goimports-reviser, gofumpt, and wsl on the files
-	runImportsReviser(ctx, workingDir, "./...")
-	runGofumpt(ctx, workingDir, ".")
-	runWsl(ctx, workingDir, "./...")
+	for _, relativeDirPath := range affectedFiles.RelativeDirPaths() {
+		fileArgs := affectedFiles.FilterByRelativeDirPaths([]string{relativeDirPath}).RelativeFilePaths()
+		runImportsReviser(ctx, workingDir, fileArgs...)
+		runGofumpt(ctx, workingDir, fileArgs...)
+		runWsl(ctx, workingDir, fileArgs...)
+	}
 
 	// Restore the formatted files back to their original locations
 	if err = Restore(ctx, srcCodes, selectedFiles, tempDir); err != nil {

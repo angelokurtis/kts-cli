@@ -3,6 +3,7 @@ package golang
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gookit/color"
 	"os/exec"
 	"sort"
 	"strings"
@@ -120,7 +121,7 @@ func DescribePackage(dir string) (*Package, error) {
 
 func ListPackages(dir string) (Packages, error) {
 	cmd := "cd " + dir + ` && go list -json ./... | jq -s .`
-	// color.Primary.Println(cmd)
+	color.Primary.Println(cmd)
 	j, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
 		return nil, errors.WithStack(err)
