@@ -20,6 +20,17 @@ import (
 func sillyCommit(cmd *cobra.Command, args []string) {
 	ctx := context.Background() // Assuming a context is available
 
+	files, err := git.ListStagedFiles()
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to list staged files", tint.Err(err))
+		return
+	}
+
+	if len(files) == 0 {
+		slog.WarnContext(ctx, "No staged files to commit")
+		return
+	}
+
 	commits, err := git.CountCommitsByAuthor()
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to count commits by author", tint.Err(err))
@@ -43,17 +54,6 @@ func sillyCommit(cmd *cobra.Command, args []string) {
 	slog.DebugContext(ctx, "Commit count for author", slog.String("author", author), slog.Int64("total_commits", total))
 
 	msg := fmt.Sprintf("Commit number %s", inflect.IntoWords(float64(total+1)))
-
-	files, err := git.ListStagedFiles()
-	if err != nil {
-		slog.ErrorContext(ctx, "Failed to list staged files", tint.Err(err))
-		return
-	}
-
-	if len(files) == 0 {
-		slog.WarnContext(ctx, "No staged files to commit")
-		return
-	}
 
 	slog.DebugContext(ctx, "Staged files detected", slog.Int("file_count", len(files)))
 
