@@ -1,9 +1,12 @@
 package git
 
 import (
+	"context"
 	"fmt"
-	log "log/slog"
+	"log/slog"
 	"strings"
+
+	"github.com/lmittmann/tint"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/martinusso/inflect"
@@ -15,54 +18,74 @@ import (
 )
 
 func sillyCommit(cmd *cobra.Command, args []string) {
-	count, err := git.CountCommitsByAuthor()
+	ctx := context.Background() // Assuming a context is available
+
+	commits, err := git.CountCommitsByAuthor()
 	if err != nil {
-		log.Error(err.Error())
+		slog.ErrorContext(ctx, "Failed to count commits by author", tint.Err(err))
 		return
 	}
 
 	author, err := git.GetUser()
 	if err != nil {
-		authors := lo.Keys(count)
+		slog.WarnContext(ctx, "Failed to get user, selecting author manually", tint.Err(err))
+
+		authors := lo.Keys(commits)
 
 		author, err = selectAuthor(authors)
 		if err != nil {
-			log.Error(err.Error())
+			slog.ErrorContext(ctx, "Failed to select author", tint.Err(err))
 			return
 		}
 	}
 
-	total := count[author]
+	total := commits[author]
+	slog.DebugContext(ctx, "Commit count for author", slog.String("author", author), slog.Int64("total_commits", total))
 
-	message := fmt.Sprintf("Commit number %s", inflect.IntoWords(float64(total+1)))
+	msg := fmt.Sprintf("Commit number %s", inflect.IntoWords(float64(total+1)))
 
 	files, err := git.ListStagedFiles()
 	if err != nil {
-		log.Error(err.Error())
+		slog.ErrorContext(ctx, "Failed to list staged files", tint.Err(err))
 		return
 	}
 
-	sb := strings.Builder{}
+	if len(files) == 0 {
+		slog.WarnContext(ctx, "No staged files to commit")
+		return
+	}
+
+	slog.DebugContext(ctx, "Staged files detected", slog.Int("file_count", len(files)))
+
+	var sb strings.Builder
 	for _, file := range files {
 		sb.WriteString("\t" + file + "\n")
 	}
 
 	fmt.Printf("◇  Detected %d staged files:\n%s\n", len(files), sb.String())
 
-	name := false
+	var confirm bool
+
 	prompt := &survey.Confirm{
-		Message: fmt.Sprintf("Use this commit message?\n\t%s\n\n", message),
+		Message: fmt.Sprintf("Use this commit message?\n\t%s\n\n", msg),
 	}
 
-	if err = survey.AskOne(prompt, &name); err != nil {
-		log.Error(err.Error())
+	if err = survey.AskOne(prompt, &confirm); err != nil {
+		slog.ErrorContext(ctx, "Failed to confirm commit message", tint.Err(err))
 		return
 	}
 
-	if err = git.DoCommitStagedFiles(message); err != nil {
-		log.Error(err.Error())
+	if !confirm {
+		slog.DebugContext(ctx, "Commit message not confirmed by user")
 		return
 	}
+
+	if err = git.DoCommitStagedFiles(msg); err != nil {
+		slog.ErrorContext(ctx, "Failed to commit staged files", tint.Err(err))
+		return
+	}
+
+	slog.DebugContext(ctx, "Commit successful", slog.String("message", msg))
 }
 
 func selectAuthor(authors []string) (string, error) {
