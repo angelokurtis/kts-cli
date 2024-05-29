@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	log "log/slog"
+	"strings"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/martinusso/inflect"
@@ -34,6 +35,29 @@ func sillyCommit(cmd *cobra.Command, args []string) {
 	total := count[author]
 
 	message := fmt.Sprintf("Commit number %s", inflect.IntoWords(float64(total+1)))
+
+	files, err := git.ListStagedFiles()
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+
+	sb := strings.Builder{}
+	for _, file := range files {
+		sb.WriteString("\t" + file + "\n")
+	}
+
+	fmt.Printf("◇  Detected %d staged files:\n%s\n", len(files), sb.String())
+
+	name := false
+	prompt := &survey.Confirm{
+		Message: fmt.Sprintf("Use this commit message?\n\t%s\n\n", message),
+	}
+
+	if err = survey.AskOne(prompt, &name); err != nil {
+		log.Error(err.Error())
+		return
+	}
 
 	if err = git.DoCommitStagedFiles(message); err != nil {
 		log.Error(err.Error())
