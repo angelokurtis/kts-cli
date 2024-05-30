@@ -38,6 +38,10 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
+	if err = installAll(); err != nil {
+		return err
+	}
+
 	if all {
 		runImportsReviser(ctx, workingDir, "./...")
 		runGofumpt(ctx, workingDir, ".")
