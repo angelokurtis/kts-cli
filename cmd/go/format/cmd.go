@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/signal"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -46,9 +47,11 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		if err = runImportsReviser(ctx, workingDir, "./..."); err != nil {
 			return err
 		}
+
 		if err = runGofumpt(ctx, workingDir, "."); err != nil {
 			return err
 		}
+
 		if err = runWsl(ctx, workingDir, "./..."); err != nil {
 			return err
 		}
@@ -103,6 +106,13 @@ func runFormat(cmd *cobra.Command, args []string) error {
 
 	affectedFiles := srcCodes.FilterByRelativeDirPaths(selectedDirs)
 
+	// Notify the channel on receiving interrupt and termination signals.
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		<-c
+	}()
+
 	// Create a temporary directory for backing up files before formatting and ensure that it is cleaned up after the operation
 	tempDir, cleanup, err := createTemporaryDirectory(ctx)
 	if err != nil {
@@ -118,9 +128,15 @@ func runFormat(cmd *cobra.Command, args []string) error {
 	// Run goimports-reviser, gofumpt, and wsl on the files
 	for _, relativeDirPath := range affectedFiles.RelativeDirPaths() {
 		fileArgs := affectedFiles.FilterByRelativeDirPaths([]string{relativeDirPath}).RelativeFilePaths()
-		runImportsReviser(ctx, workingDir, fileArgs...)
-		runGofumpt(ctx, workingDir, fileArgs...)
-		runWsl(ctx, workingDir, fileArgs...)
+		if err = runImportsReviser(ctx, workingDir, fileArgs...); err != nil {
+			return err
+		}
+		if err = runGofumpt(ctx, workingDir, fileArgs...); err != nil {
+			return err
+		}
+		if err = runWsl(ctx, workingDir, fileArgs...); err != nil {
+			return err
+		}
 	}
 
 	// Restore the formatted files back to their original locations

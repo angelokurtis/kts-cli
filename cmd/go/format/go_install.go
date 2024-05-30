@@ -25,7 +25,9 @@ func installImportsReviser() error {
 
 	// Capture the output and error
 	var out bytes.Buffer
+
 	var stderr bytes.Buffer
+
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
@@ -54,7 +56,9 @@ func installGofumpt() error {
 
 	// Capture the output and error
 	var out bytes.Buffer
+
 	var stderr bytes.Buffer
+
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
@@ -83,7 +87,9 @@ func installWsl() error {
 
 	// Capture the output and error
 	var out bytes.Buffer
+
 	var stderr bytes.Buffer
+
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
@@ -99,11 +105,14 @@ func installAll() error {
 	if err := installImportsReviser(); err != nil {
 		return err
 	}
+
 	if err := installGofumpt(); err != nil {
 		return err
 	}
+
 	if err := installWsl(); err != nil {
 		return err
 	}
+
 	return nil
 }
