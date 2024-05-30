@@ -1,56 +1,104 @@
 package format
 
 import (
+	"bytes"
 	"context"
-	"log/slog"
-	"time"
+	"fmt"
+	"os/exec"
+	"strings"
 
-	"github.com/lmittmann/tint"
-
-	"github.com/angelokurtis/kts-cli/pkg/app/golang"
+	"github.com/pkg/errors"
 )
 
-func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...string) {
-	runArgs := append([]string{"-set-alias", "-use-cache", "-rm-unused", "-format"}, fileArgs...)
+func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...string) error {
+	// Define the shell script as a string
+	shellScript := fmt.Sprintf(`
+	#!/bin/bash
+	set -xe
+	goimports-reviser -set-alias -use-cache -rm-unused -format %s
+	`, strings.Join(fileArgs, " "))
 
-	slog.DebugContext(ctx, "Running goimports-reviser")
+	// Create a new command to run the script
+	cmd := exec.Command("bash", "-c", shellScript)
 
-	start := time.Now()
-	if err := golang.RunSilently(workingDir, "github.com/incu6us/goimports-reviser/v3@latest", runArgs...); err != nil {
-		elapsed := time.Since(start)
-		slog.WarnContext(ctx, "Failed to run goimports-reviser", tint.Err(err), slog.Duration("duration", elapsed))
-	} else {
-		elapsed := time.Since(start)
-		slog.InfoContext(ctx, "Successfully ran goimports-reviser", slog.Duration("duration", elapsed))
+	// Capture the output and error
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	// Run the command
+	err := cmd.Run()
+	if err != nil {
+		// Check if the error is of type *exec.ExitError
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) && exitError.ExitCode() != 0 {
+			return errors.New(strings.TrimSpace(stderr.String()))
+		}
 	}
+
+	return nil
 }
 
-func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) {
-	runArgs := append([]string{"-w", "-extra"}, fileArgs...)
+func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) error {
+	// Define the shell script as a string
+	shellScript := fmt.Sprintf(`
+	#!/bin/bash
+	set -xe
+	gofumpt -w -extra %s
+	`, strings.Join(fileArgs, " "))
 
-	slog.DebugContext(ctx, "Running gofumpt")
+	// Create a new command to run the script
+	cmd := exec.Command("bash", "-c", shellScript)
 
-	start := time.Now()
-	if err := golang.RunSilently(workingDir, "mvdan.cc/gofumpt@latest", runArgs...); err != nil {
-		elapsed := time.Since(start)
-		slog.WarnContext(ctx, "Failed to run gofumpt", tint.Err(err), slog.Duration("duration", elapsed))
-	} else {
-		elapsed := time.Since(start)
-		slog.InfoContext(ctx, "Successfully ran gofumpt", slog.Duration("duration", elapsed))
+	// Capture the output and error
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	// Run the command
+	err := cmd.Run()
+	if err != nil {
+		// Check if the error is of type *exec.ExitError
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) && exitError.ExitCode() != 0 {
+			return errors.New(strings.TrimSpace(stderr.String()))
+		}
 	}
+
+	return nil
 }
 
-func runWsl(ctx context.Context, workingDir string, fileArgs ...string) {
-	runArgs := append([]string{"-fix"}, fileArgs...)
+func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
+	// Define the shell script as a string
+	shellScript := fmt.Sprintf(`
+	#!/bin/bash
+	set -xe
+	wsl -force-err-cuddling -allow-cuddle-declarations -fix %s
+	`, strings.Join(fileArgs, " "))
 
-	slog.DebugContext(ctx, "Running wsl")
+	// Join the arguments into a single string
+	argsString := strings.Join(fileArgs, " ")
 
-	start := time.Now()
-	if err := golang.RunSilently(workingDir, "github.com/bombsimon/wsl/v4/cmd...@latest", runArgs...); err != nil {
-		elapsed := time.Since(start)
-		slog.WarnContext(ctx, "Failed to run wsl", tint.Err(err), slog.Duration("duration", elapsed))
-	} else {
-		elapsed := time.Since(start)
-		slog.InfoContext(ctx, "Successfully ran wsl", slog.Duration("duration", elapsed))
+	// Create a new command to run the script with the arguments
+	cmd := exec.Command("bash", "-c", shellScript+" "+argsString)
+
+	// Capture the output and error
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	// Run the command
+	err := cmd.Run()
+	if err != nil {
+		// Check if the error is of type *exec.ExitError
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) && exitError.ExitCode() != 0 && exitError.ExitCode() != 3 {
+			return errors.New(strings.TrimSpace(stderr.String()))
+		}
 	}
+
+	return nil
 }

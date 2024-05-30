@@ -43,9 +43,17 @@ func runFormat(cmd *cobra.Command, args []string) error {
 	}
 
 	if all {
-		runImportsReviser(ctx, workingDir, "./...")
-		runGofumpt(ctx, workingDir, ".")
-		runWsl(ctx, workingDir, "./...")
+		if err = runImportsReviser(ctx, workingDir, "./..."); err != nil {
+			return err
+		}
+		if err = runGofumpt(ctx, workingDir, "."); err != nil {
+			return err
+		}
+		if err = runWsl(ctx, workingDir, "./..."); err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	// List all Go packages in the current working directory, which will be processed
