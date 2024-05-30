@@ -46,8 +46,8 @@ func revisions(cmd *cobra.Command, args []string) {
 	history, err = history.SelectMany()
 	dieOnErr(err)
 
-	chartMetadata := getChartMetadata(release)
-	saveChartMetadata(release, chartMetadata)
+	chartMetadata, chartValues := getChartMetadata(release)
+	saveChart(release, chartMetadata, chartValues)
 
 	for _, revision := range history {
 		_, err = bash.Run(fmt.Sprintf("mkdir -p helm-releases/%s/%d", release.Name, revision.Number))
@@ -79,7 +79,7 @@ func revisions(cmd *cobra.Command, args []string) {
 	}
 }
 
-func getChartMetadata(release *helm.Release) []byte {
+func getChartMetadata(release *helm.Release) ([]byte, []byte) {
 	secretVal, err := kubectl.GetSecretKeyValue(&kubectl.KeyRef{Name: fmt.Sprintf("sh.helm.release.v1.%s.v1", release.Name), Key: "release"}, release.Namespace)
 	dieOnErr(err)
 
@@ -95,20 +95,30 @@ func getChartMetadata(release *helm.Release) []byte {
 	chartMeta, _, _, err := jsonparser.Get(decompressed, "chart", "metadata")
 	dieOnErr(err)
 
-	return chartMeta
+	chartValues, _, _, err := jsonparser.Get(decompressed, "chart", "values")
+	dieOnErr(err)
+
+	return chartMeta, chartValues
 }
 
-func saveChartMetadata(release *helm.Release, chartMetadata []byte) {
-	input := strings.NewReader(string(chartMetadata))
-
-	var output strings.Builder
-	err := json2yaml.Convert(&output, input)
+func saveChart(release *helm.Release, metadata, values []byte) {
+	metaReader := strings.NewReader(string(metadata))
+	var metaYAML strings.Builder
+	err := json2yaml.Convert(&metaYAML, metaReader)
 	dieOnErr(err)
 
 	_, err = bash.Run(fmt.Sprintf("mkdir -p helm-releases/%s", release.Name))
 	dieOnErr(err)
 
-	err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/Chart.yaml", release.Name), []byte(output.String()), 0o644)
+	err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/Chart.yaml", release.Name), []byte(metaYAML.String()), 0o644)
+	dieOnErr(err)
+
+	valuesReader := strings.NewReader(string(values))
+	var valuesYAML strings.Builder
+	err = json2yaml.Convert(&valuesYAML, valuesReader)
+	dieOnErr(err)
+
+	err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/values.yaml", release.Name), []byte(valuesYAML.String()), 0o644)
 	dieOnErr(err)
 }
 
