@@ -1,13 +1,21 @@
 package revisions
 
 import (
+	"bytes"
+	"compress/gzip"
+	b64 "encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	log "log/slog"
+	"strings"
 
+	"github.com/buger/jsonparser"
+	"github.com/itchyny/json2yaml"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/helm"
+	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
@@ -24,54 +32,84 @@ func revisions(cmd *cobra.Command, args []string) {
 		opt = append(opt, helm.OnAnyNamespace())
 	}
 
-	release := ""
-	if len(args) > 0 {
-		release = args[0]
-	} else {
-		releases, err := helm.ListReleases(opt...)
-		dieOnErr(err)
+	releases, err := helm.ListReleases(opt...)
+	dieOnErr(err)
 
-		r, err := releases.SelectOne()
-		dieOnErr(err)
+	release, err := releases.SelectOne()
+	dieOnErr(err)
 
-		release = r.Name
-		opt = append(opt, helm.OnNamespace(r.Namespace))
-	}
+	opt = append(opt, helm.OnNamespace(release.Namespace))
 
-	history, err := helm.GetHistory(release, opt...)
+	history, err := helm.GetHistory(release.Name, opt...)
 	dieOnErr(err)
 
 	history, err = history.SelectMany()
 	dieOnErr(err)
 
+	chartMetadata := getChartMetadata(release)
+	saveChartMetadata(release, chartMetadata)
+
 	for _, revision := range history {
-		_, err = bash.Run(fmt.Sprintf("mkdir -p helm-releases/%s/%d", release, revision.Number))
+		_, err = bash.Run(fmt.Sprintf("mkdir -p helm-releases/%s/%d", release.Name, revision.Number))
 		dieOnErr(err)
 
-		manifests, err := helm.GetManifests(release, revision.Number, opt...)
+		manifests, err := helm.GetManifests(release.Name, revision.Number, opt...)
 		dieOnErr(err)
 
-		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/manifests.yaml", release, revision.Number), manifests, 0o644)
+		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/manifests.yaml", release.Name, revision.Number), manifests, 0o644)
 		dieOnErr(err)
 
-		svalues, err := helm.GetSuppliedValues(release, revision.Number, opt...)
+		svalues, err := helm.GetSuppliedValues(release.Name, revision.Number, opt...)
 		dieOnErr(err)
 
-		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/values.supplied.yaml", release, revision.Number), svalues, 0o644)
+		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/values.supplied.yaml", release.Name, revision.Number), svalues, 0o644)
 		dieOnErr(err)
 
-		cvalues, err := helm.GetComputedValues(release, revision.Number, opt...)
+		cvalues, err := helm.GetComputedValues(release.Name, revision.Number, opt...)
 		dieOnErr(err)
 
-		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/values.computed.yaml", release, revision.Number), cvalues, 0o644)
+		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/values.computed.yaml", release.Name, revision.Number), cvalues, 0o644)
 		dieOnErr(err)
 
-		notes, err := helm.GetNotes(release, revision.Number, opt...)
+		notes, err := helm.GetNotes(release.Name, revision.Number, opt...)
 		dieOnErr(err)
 
-		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/notes.txt", release, revision.Number), notes, 0o644)
+		err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/%d/notes.txt", release.Name, revision.Number), notes, 0o644)
 		dieOnErr(err)
 	}
+}
+
+func getChartMetadata(release *helm.Release) []byte {
+	secretVal, err := kubectl.GetSecretKeyValue(&kubectl.KeyRef{Name: fmt.Sprintf("sh.helm.release.v1.%s.v1", release.Name), Key: "release"}, release.Namespace)
+	dieOnErr(err)
+
+	compressed, err := b64.StdEncoding.DecodeString(secretVal)
+	dieOnErr(err)
+
+	gzipReader, err := gzip.NewReader(bytes.NewReader(compressed))
+	dieOnErr(err)
+
+	decompressed, err := io.ReadAll(gzipReader)
+	dieOnErr(err)
+
+	chartMeta, _, _, err := jsonparser.Get(decompressed, "chart", "metadata")
+	dieOnErr(err)
+
+	return chartMeta
+}
+
+func saveChartMetadata(release *helm.Release, chartMetadata []byte) {
+	input := strings.NewReader(string(chartMetadata))
+
+	var output strings.Builder
+	err := json2yaml.Convert(&output, input)
+	dieOnErr(err)
+
+	_, err = bash.Run(fmt.Sprintf("mkdir -p helm-releases/%s", release.Name))
+	dieOnErr(err)
+
+	err = ioutil.WriteFile(fmt.Sprintf("helm-releases/%s/Chart.yaml", release.Name), []byte(output.String()), 0o644)
+	dieOnErr(err)
 }
 
 func init() {
@@ -82,6 +120,6 @@ func init() {
 func dieOnErr(err error) {
 	if err != nil {
 		log.Error(err.Error())
-		return
+		panic(nil)
 	}
 }

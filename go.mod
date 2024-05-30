@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/andanhm/go-prettytime v1.1.0
 	github.com/angelokurtis/go-otel/starter v1.0.6
+	github.com/buger/jsonparser v1.1.1
 	github.com/charmbracelet/glamour v0.7.0
 	github.com/cheggaaa/pb/v3 v3.1.5
 	github.com/disiqueira/gotree v1.0.0
@@ -15,6 +16,7 @@ require (
 	github.com/google/wire v0.6.0
 	github.com/gookit/color v1.5.4
 	github.com/gotidy/ptr v1.4.0
+	github.com/itchyny/json2yaml v0.1.4
 	github.com/jamesnetherton/m3u v0.4.0
 	github.com/ku/go-change-case v0.0.1
 	github.com/lmittmann/tint v1.0.4
