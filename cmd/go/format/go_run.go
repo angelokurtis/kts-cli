@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log/slog"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -30,6 +32,8 @@ func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...strin
 	cmd.Stderr = &stderr
 
 	// Run the command
+	start := time.Now()
+
 	err := cmd.Run()
 	if err != nil {
 		// Check if the error is of type *exec.ExitError
@@ -38,6 +42,9 @@ func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...strin
 			return errors.New(strings.TrimSpace(stderr.String()))
 		}
 	}
+
+	elapsed := time.Since(start)
+	slog.InfoContext(ctx, "Successfully ran goimports-reviser", slog.Duration("duration", elapsed))
 
 	return nil
 }
@@ -63,6 +70,8 @@ func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) erro
 
 	// Run the command
 	err := cmd.Run()
+	start := time.Now()
+
 	if err != nil {
 		// Check if the error is of type *exec.ExitError
 		var exitError *exec.ExitError
@@ -70,6 +79,9 @@ func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) erro
 			return errors.New(strings.TrimSpace(stderr.String()))
 		}
 	}
+
+	elapsed := time.Since(start)
+	slog.InfoContext(ctx, "Successfully ran gofumpt", slog.Duration("duration", elapsed))
 
 	return nil
 }
@@ -82,11 +94,8 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 	wsl -force-err-cuddling -allow-cuddle-declarations -fix %s
 	`, strings.Join(fileArgs, " "))
 
-	// Join the arguments into a single string
-	argsString := strings.Join(fileArgs, " ")
-
 	// Create a new command to run the script with the arguments
-	cmd := exec.Command("bash", "-c", shellScript+" "+argsString)
+	cmd := exec.Command("bash", "-c", shellScript)
 
 	// Capture the output and error
 	var out bytes.Buffer
@@ -97,6 +106,8 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 	cmd.Stderr = &stderr
 
 	// Run the command
+	start := time.Now()
+
 	err := cmd.Run()
 	if err != nil {
 		// Check if the error is of type *exec.ExitError
@@ -105,6 +116,9 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 			return errors.New(strings.TrimSpace(stderr.String()))
 		}
 	}
+
+	elapsed := time.Since(start)
+	slog.InfoContext(ctx, "Successfully ran wsl", slog.Duration("duration", elapsed))
 
 	return nil
 }
