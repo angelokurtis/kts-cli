@@ -3,15 +3,30 @@ package images
 import (
 	"context"
 	"fmt"
+	"github.com/andanhm/go-prettytime"
+	log "log/slog"
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
+
+var brazil *time.Location
+
+func init() {
+	loc, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+
+	brazil = loc
+}
 
 func list(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
@@ -38,13 +53,17 @@ func list(cmd *cobra.Command, args []string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetRowLine(true)
 	table.SetBorder(false)
-	table.SetHeader([]string{"ID", "TAGS", "SIZE"})
+	table.SetHeader([]string{"ID", "TAGS", "SIZE", "CREATED"})
 
 	for _, summary := range summaries.wrapped {
+		createdTime := time.Unix(summary.wrapped.Created, 0).In(brazil)
+		formattedTime := fmt.Sprintf("%s (%s)", createdTime.Format("02/01/2006 15:04"), prettytime.Format(createdTime))
+
 		table.Append([]string{
 			summary.wrapped.ID,
 			strings.Join(summary.wrapped.RepoTags, "\n"),
 			byteCount(summary.wrapped.Size),
+			formattedTime,
 		})
 	}
 
