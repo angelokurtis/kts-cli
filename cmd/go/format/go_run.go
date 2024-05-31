@@ -30,6 +30,7 @@ func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...strin
 
 	var stderr bytes.Buffer
 
+	cmd.Dir = workingDir
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
@@ -68,6 +69,7 @@ func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) erro
 
 	var stderr bytes.Buffer
 
+	cmd.Dir = workingDir
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
@@ -106,6 +108,7 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 
 	var stderr bytes.Buffer
 
+	cmd.Dir = workingDir
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
