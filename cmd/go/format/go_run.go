@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 )
 
 func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...string) error {
@@ -44,7 +46,8 @@ func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...strin
 	}
 
 	elapsed := time.Since(start)
-	slog.InfoContext(ctx, "Successfully ran goimports-reviser", slog.Duration("duration", elapsed))
+	dirs := lo.Map(fileArgs, func(item string, index int) string { return filepath.Dir(item) })
+	slog.DebugContext(ctx, "Successfully ran goimports-reviser", slog.Duration("duration", elapsed), slog.Any("paths", lo.Uniq(dirs)))
 
 	return nil
 }
@@ -81,7 +84,8 @@ func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) erro
 	}
 
 	elapsed := time.Since(start)
-	slog.InfoContext(ctx, "Successfully ran gofumpt", slog.Duration("duration", elapsed))
+	dirs := lo.Map(fileArgs, func(item string, index int) string { return filepath.Dir(item) })
+	slog.DebugContext(ctx, "Successfully ran gofumpt", slog.Duration("duration", elapsed), slog.Any("paths", lo.Uniq(dirs)))
 
 	return nil
 }
@@ -118,7 +122,8 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 	}
 
 	elapsed := time.Since(start)
-	slog.InfoContext(ctx, "Successfully ran wsl", slog.Duration("duration", elapsed))
+	dirs := lo.Map(fileArgs, func(item string, index int) string { return filepath.Dir(item) })
+	slog.DebugContext(ctx, "Successfully ran wsl", slog.Duration("duration", elapsed), slog.Any("paths", lo.Uniq(dirs)))
 
 	return nil
 }

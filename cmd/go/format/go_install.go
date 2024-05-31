@@ -2,6 +2,7 @@ package format
 
 import (
 	"bytes"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -12,10 +13,14 @@ func installImportsReviser() error {
 	shellScript := `
 	#!/bin/bash
 	
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
 	# Check if goimports-reviser is installed
 	if ! command -v goimports-reviser &> /dev/null
 	then
-		echo "goimports-reviser is not installed. Installing..."
+		echo -e '${BLUE}go install github.com/incu6us/goimports-reviser/v3@latest${NC}'
 		go install github.com/incu6us/goimports-reviser/v3@latest
 	fi
 	`
@@ -24,11 +29,9 @@ func installImportsReviser() error {
 	cmd := exec.Command("bash", "-c", shellScript)
 
 	// Capture the output and error
-	var out bytes.Buffer
-
 	var stderr bytes.Buffer
 
-	cmd.Stdout = &out
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = &stderr
 
 	// Run the command
@@ -43,10 +46,14 @@ func installGofumpt() error {
 	shellScript := `
 	#!/bin/bash
 	
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
 	# Check if gofumpt is installed
 	if ! command -v gofumpt &> /dev/null
 	then
-		echo "gofumpt is not installed. Installing..."
+		echo -e '${BLUE}go install mvdan.cc/gofumpt@latest${NC}'
 		go install mvdan.cc/gofumpt@latest
 	fi
 	`
@@ -55,11 +62,9 @@ func installGofumpt() error {
 	cmd := exec.Command("bash", "-c", shellScript)
 
 	// Capture the output and error
-	var out bytes.Buffer
-
 	var stderr bytes.Buffer
 
-	cmd.Stdout = &out
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = &stderr
 
 	// Run the command
@@ -74,10 +79,14 @@ func installWsl() error {
 	shellScript := `
 	#!/bin/bash
 	
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
 	# Check if wsl is installed
 	if ! command -v wsl &> /dev/null
 	then
-		echo "wsl is not installed. Installing..."
+		echo -e '${BLUE}go install go install mvdan.cc/wsl@latest${NC}'
 		go install mvdan.cc/wsl@latest
 	fi
 	`
@@ -86,11 +95,9 @@ func installWsl() error {
 	cmd := exec.Command("bash", "-c", shellScript)
 
 	// Capture the output and error
-	var out bytes.Buffer
-
 	var stderr bytes.Buffer
 
-	cmd.Stdout = &out
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = &stderr
 
 	// Run the command
