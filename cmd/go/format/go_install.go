@@ -20,7 +20,7 @@ func installImportsReviser() error {
 	# Check if goimports-reviser is installed
 	if ! command -v goimports-reviser &> /dev/null
 	then
-		echo -e '${BLUE}go install github.com/incu6us/goimports-reviser/v3@latest${NC}'
+		echo -e "${BLUE}go install github.com/incu6us/goimports-reviser/v3@latest${NC}"
 		go install github.com/incu6us/goimports-reviser/v3@latest
 	fi
 	`
@@ -53,7 +53,7 @@ func installGofumpt() error {
 	# Check if gofumpt is installed
 	if ! command -v gofumpt &> /dev/null
 	then
-		echo -e '${BLUE}go install mvdan.cc/gofumpt@latest${NC}'
+		echo -e "${BLUE}go install mvdan.cc/gofumpt@latest${NC}"
 		go install mvdan.cc/gofumpt@latest
 	fi
 	`
@@ -86,8 +86,8 @@ func installWsl() error {
 	# Check if wsl is installed
 	if ! command -v wsl &> /dev/null
 	then
-		echo -e '${BLUE}go install go install mvdan.cc/wsl@latest${NC}'
-		go install mvdan.cc/wsl@latest
+		echo -e "${BLUE}go install github.com/bombsimon/wsl/v4/cmd...@latest${NC}"
+		go install github.com/bombsimon/wsl/v4/cmd...@@latest
 	fi
 	`
 
