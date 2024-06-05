@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -16,22 +17,26 @@ import (
 
 func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...string) error {
 	// Define the shell script as a string
+	args := strings.Join(fileArgs, " ")
 	shellScript := fmt.Sprintf(`
 	#!/bin/bash
-	set -xe
+
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
+	echo -e "${BLUE}goimports-reviser -set-alias -use-cache -rm-unused -format %s${NC}"
 	goimports-reviser -set-alias -use-cache -rm-unused -format %s
-	`, strings.Join(fileArgs, " "))
+	`, args, args)
 
 	// Create a new command to run the script
 	cmd := exec.Command("bash", "-c", shellScript)
 
 	// Capture the output and error
-	var out bytes.Buffer
-
 	var stderr bytes.Buffer
 
 	cmd.Dir = workingDir
-	cmd.Stdout = &out
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = &stderr
 
 	// Run the command
@@ -55,22 +60,26 @@ func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...strin
 
 func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) error {
 	// Define the shell script as a string
+	args := strings.Join(fileArgs, " ")
 	shellScript := fmt.Sprintf(`
 	#!/bin/bash
-	set -xe
+
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
+	echo -e "${BLUE}gofumpt -w -extra %s${NC}"
 	gofumpt -w -extra %s
-	`, strings.Join(fileArgs, " "))
+	`, args, args)
 
 	// Create a new command to run the script
 	cmd := exec.Command("bash", "-c", shellScript)
 
 	// Capture the output and error
-	var out bytes.Buffer
-
 	var stderr bytes.Buffer
 
 	cmd.Dir = workingDir
-	cmd.Stdout = &out
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = &stderr
 
 	// Run the command
@@ -94,22 +103,26 @@ func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) erro
 
 func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 	// Define the shell script as a string
+	args := strings.Join(fileArgs, " ")
 	shellScript := fmt.Sprintf(`
 	#!/bin/bash
-	set -xe
+
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
+	echo -e "${BLUE}wsl -force-err-cuddling -allow-cuddle-declarations -fix %s${NC}"
 	wsl -force-err-cuddling -allow-cuddle-declarations -fix %s
-	`, strings.Join(fileArgs, " "))
+	`, args, args)
 
 	// Create a new command to run the script with the arguments
 	cmd := exec.Command("bash", "-c", shellScript)
 
 	// Capture the output and error
-	var out bytes.Buffer
-
 	var stderr bytes.Buffer
 
 	cmd.Dir = workingDir
-	cmd.Stdout = &out
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = &stderr
 
 	// Run the command

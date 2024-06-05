@@ -120,16 +120,16 @@ func runFormat(cmd *cobra.Command, args []string) error {
 
 	// Run goimports-reviser, gofumpt, and wsl on the files
 	for _, relativeDirPath := range affectedFiles.RelativeDirPaths() {
-		fileArgs := affectedFiles.FilterByRelativeDirPaths([]string{relativeDirPath}).RelativeFilePaths()
-		if err = runImportsReviser(ctx, workingDir, fileArgs...); err != nil {
+		pathArg := fmt.Sprintf("./%s/", relativeDirPath)
+		if err = runImportsReviser(ctx, workingDir, pathArg); err != nil {
 			return err
 		}
 
-		if err = runGofumpt(ctx, workingDir, fileArgs...); err != nil {
+		if err = runGofumpt(ctx, workingDir, pathArg); err != nil {
 			return err
 		}
 
-		if err = runWsl(ctx, workingDir, fileArgs...); err != nil {
+		if err = runWsl(ctx, workingDir, pathArg); err != nil {
 			return err
 		}
 	}
