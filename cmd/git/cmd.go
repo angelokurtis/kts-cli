@@ -3,6 +3,7 @@ package git
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/angelokurtis/kts-cli/cmd/git/branch"
 	"github.com/angelokurtis/kts-cli/cmd/git/commits"
 	"github.com/angelokurtis/kts-cli/cmd/git/tags"
 	"github.com/angelokurtis/kts-cli/internal/system"
@@ -25,6 +26,7 @@ func init() {
 	cloneCommand.PersistentFlags().BoolVar(&open, "open", false, "")
 	Command.AddCommand(cloneCommand)
 	Command.AddCommand(commits.Command)
+	Command.AddCommand(branch.Command)
 
 	Command.AddCommand(&cobra.Command{Use: "silly-commit", Run: sillyCommit})
 	Command.AddCommand(&cobra.Command{Use: "funny-commit", Run: funnyCommit})
