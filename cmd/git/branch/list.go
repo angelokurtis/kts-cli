@@ -46,6 +46,7 @@ func runBranchList(ctx context.Context, workingDir string) error {
 	// Capture the output and error
 	var stderr bytes.Buffer
 
+	cmd.Dir = workingDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = &stderr
 
