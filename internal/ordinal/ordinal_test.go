@@ -9,7 +9,7 @@ import (
 func TestFromInt(t *testing.T) {
 	tests := []struct {
 		name   string
-		number uint
+		number int
 		want   string
 	}{
 		{"Test for 1", 1, "First"},

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func convertNumberToWords(number uint) string {
+func convertNumberToWords(number int) string {
 	underTwenty := []string{
 		"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
 		"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
@@ -42,7 +42,7 @@ func convertNumberToWords(number uint) string {
 	return strings.Join(words, " ")
 }
 
-func FromNumber(number uint) (string, error) {
+func FromNumber(number int) (string, error) {
 	if number < 1 {
 		return "", errors.New("input must be a positive integer")
 	}
