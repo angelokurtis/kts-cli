@@ -22,7 +22,7 @@ func GetUser() (string, error) {
 }
 
 func GetUserName() (string, error) {
-	out, err := bash.RunAndLogRead("git config user.name")
+	out, err := bash.Run("git config user.name")
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +36,7 @@ func GetUserName() (string, error) {
 }
 
 func GetUserEmail() (string, error) {
-	out, err := bash.RunAndLogRead("git config user.email")
+	out, err := bash.Run("git config user.email")
 	if err != nil {
 		return "", err
 	}
