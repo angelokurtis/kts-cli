@@ -6,14 +6,14 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/lmittmann/tint"
-
 	survey "github.com/AlecAivazis/survey/v2"
-	"github.com/martinusso/inflect"
+	changeCase "github.com/ku/go-change-case"
+	"github.com/lmittmann/tint"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 
+	"github.com/angelokurtis/kts-cli/internal/ordinal"
 	"github.com/angelokurtis/kts-cli/pkg/app/git"
 )
 
@@ -53,7 +53,13 @@ func sillyCommit(cmd *cobra.Command, args []string) {
 	total := commits[author]
 	slog.DebugContext(ctx, "Commit count for author", slog.String("author", author), slog.Int64("total_commits", total))
 
-	msg := fmt.Sprintf("Commit number %s", inflect.IntoWords(float64(total+1)))
+	number, err := ordinal.FromNumber(total + 1)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to write commit number in ordinal word form", tint.Err(err))
+		return
+	}
+
+	msg := fmt.Sprintf("%s commit", changeCase.UcFirst(number))
 
 	slog.DebugContext(ctx, "Staged files detected", slog.Int("file_count", len(files)))
 

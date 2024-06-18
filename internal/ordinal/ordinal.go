@@ -5,9 +5,14 @@ import (
 	"strings"
 
 	"github.com/martinusso/inflect"
+	"golang.org/x/exp/constraints"
 )
 
-func FromNumber(number int) (string, error) {
+type Number interface {
+	constraints.Integer | constraints.Float
+}
+
+func FromNumber[T Number](number T) (string, error) {
 	if number < 1 {
 		return "", errors.New("input must be a positive integer")
 	}
