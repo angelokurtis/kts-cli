@@ -3,6 +3,7 @@ package git
 import (
 	"context"
 	"log/slog"
+	"os"
 
 	"github.com/lmittmann/tint"
 	"github.com/samber/lo"
@@ -18,14 +19,14 @@ func stage(cmd *cobra.Command, args []string) {
 	files, err := git.UncommittedFiles()
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to fetch uncommitted files", tint.Err(err))
-		return
+		os.Exit(1)
 	}
 
 	// Select files from the uncommitted files list
 	selectedFiles, err := files.SelectFiles()
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to select files from uncommitted files list", tint.Err(err))
-		return
+		os.Exit(1)
 	}
 
 	// Determine unselected files by finding the difference
@@ -34,13 +35,13 @@ func stage(cmd *cobra.Command, args []string) {
 	// Stage selected but unstaged files
 	if err = stageSelectedFiles(selectedFiles); err != nil {
 		slog.ErrorContext(ctx, "Failed to stage selected files", tint.Err(err))
-		return
+		os.Exit(1)
 	}
 
 	// Unstage the files that were not selected but are currently staged
 	if err = unstageUnselectedFiles(unselectedFiles); err != nil {
 		slog.ErrorContext(ctx, "Failed to unstage unselected files", tint.Err(err))
-		return
+		os.Exit(1)
 	}
 }
 
