@@ -81,9 +81,9 @@ func sillyCommit(cmd *cobra.Command, args []string) {
 				Title("Are you sure?").
 				Value(&confirm),
 		),
-	)
+	).WithTheme(huh.ThemeDracula())
 
-	if err = form.WithTheme(huh.ThemeDracula()).Run(); err != nil {
+	if err = form.Run(); err != nil {
 		slog.ErrorContext(ctx, "unable to confirm the commit message", tint.Err(err))
 		return
 	}
