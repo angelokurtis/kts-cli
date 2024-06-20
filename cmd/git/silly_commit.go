@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	survey "github.com/AlecAivazis/survey/v2"
+	"github.com/charmbracelet/huh"
 	changeCase "github.com/ku/go-change-case"
 	"github.com/lmittmann/tint"
 	"github.com/pkg/errors"
@@ -68,16 +69,22 @@ func sillyCommit(cmd *cobra.Command, args []string) {
 		sb.WriteString("\t" + file + "\n")
 	}
 
-	fmt.Printf("◇  Detected %d staged files:\n%s\n", len(files), sb.String())
+	fmt.Printf("◇  The following %d files will be committed:\n%s\n", len(files), sb.String())
 
 	var confirm bool
 
-	prompt := &survey.Confirm{
-		Message: fmt.Sprintf("Use this commit message?\n\t%s\n\n", msg),
-	}
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Affirmative("Yes").
+				Negative("No").
+				Title("Are you sure?").
+				Value(&confirm),
+		),
+	)
 
-	if err = survey.AskOne(prompt, &confirm); err != nil {
-		slog.ErrorContext(ctx, "Failed to confirm commit message", tint.Err(err))
+	if err = form.WithTheme(huh.ThemeDracula()).Run(); err != nil {
+		slog.ErrorContext(ctx, "unable to confirm the commit message", tint.Err(err))
 		return
 	}
 
