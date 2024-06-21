@@ -1,16 +1,16 @@
 package commits
 
 import (
-	"fmt"
+	"bytes"
+	"context"
 	log "log/slog"
 	"os"
+	"os/exec"
+	"strings"
 	"time"
 
-	prettytime "github.com/andanhm/go-prettytime"
-	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/angelokurtis/kts-cli/pkg/app/git"
 )
 
 var brazil *time.Location
@@ -27,26 +27,10 @@ func init() {
 
 // git commits list
 func list(_ *cobra.Command, _ []string) {
-	commits, err := git.ListCommits(dir)
+	ctx := context.Background()
+
+	err := runCommitList(ctx, dir)
 	check(err)
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"COMMIT", "MESSAGE", "AUTHOR", "SIGNED", "CREATED"})
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetColumnSeparator("")
-	table.SetBorder(false)
-	table.SetHeaderLine(false)
-	table.SetColWidth(100)
-	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-
-	for _, commit := range commits {
-		commitTime := commit.Time
-		t := fmt.Sprintf("%s (%s)", commitTime.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(commitTime))
-		signed := fmt.Sprintf("%v %s", commit.VerificationStatus(), commit.Verification())
-		table.Append([]string{commit.ShortCommit(), commit.Message, commit.Signer, signed, t})
-	}
-
-	table.Render()
 }
 
 func check(err error) {
@@ -54,4 +38,35 @@ func check(err error) {
 		log.Error(err.Error())
 		return
 	}
+}
+
+func runCommitList(ctx context.Context, workingDir string) error {
+	// Define the shell script as a string
+	shellScript := `
+	#!/bin/bash
+
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
+	echo -e "${BLUE}git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit${NC}"
+	git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	`
+
+	// Create a new command to run the script
+	cmd := exec.Command("bash", "-c", shellScript)
+
+	// Capture the output and error
+	var stderr bytes.Buffer
+
+	cmd.Dir = workingDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = &stderr
+
+	// Run the command
+	if err := cmd.Run(); err != nil {
+		return errors.Errorf("failed to list commits: %s", strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
 }
