@@ -42,8 +42,17 @@ func (l *LocalRepo) SSHAddress() string {
 	h := strings.ReplaceAll(l.Repo.Host, "www.", "")
 	p := l.Repo.Path[1:]
 
-	if l.IsGithub() && strings.HasPrefix(p, "cloud104/") || strings.HasPrefix(p, "totvs-cloud/") || strings.HasPrefix(p, "tiagoangelototvs/") {
-		h = "github-totvs"
+	githubSpecialCases := []string{
+		"cloud104/",
+		"totvs-cloud/",
+		"tiagoangelototvs/",
+		"BugExtermination-Co/",
+	}
+	for _, prefix := range githubSpecialCases {
+		if l.IsGithub() && strings.HasPrefix(p, prefix) {
+			h = "github-totvs"
+			break
+		}
 	}
 
 	if l.IsGitlab() && strings.HasPrefix(p, "ascenty/") {
