@@ -2,7 +2,6 @@ package resources
 
 import (
 	"fmt"
-	log "log/slog"
 	"os"
 
 	"github.com/olekukonko/tablewriter"
@@ -11,14 +10,13 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
-func list(cmd *cobra.Command, args []string) {
+func list(cmd *cobra.Command, args []string) error {
 	resources := ""
 
 	if len(args) == 0 {
 		rd, err := kubectl.ListResourceDefinitions()
 		if err != nil {
-			log.Error(err.Error())
-			return
+			return err
 		}
 
 		rd = rd.FilterVerbs("list")
@@ -38,8 +36,7 @@ func list(cmd *cobra.Command, args []string) {
 	if owners {
 		ro, err := kubectl.ListResourcesOwners(resources, namespace, allNamespaces)
 		if err != nil {
-			log.Error(err.Error())
-			return
+			return err
 		}
 
 		table := tablewriter.NewWriter(os.Stdout)
@@ -67,16 +64,17 @@ func list(cmd *cobra.Command, args []string) {
 
 		table.Render()
 
-		return
+		return nil
 	}
 
 	results, err := kubectl.ListResources(resources, namespace, allNamespaces)
 	if err != nil {
-		log.Error(err.Error())
-		return
+		return err
 	}
 
 	for _, result := range results {
 		fmt.Println(result)
 	}
+
+	return nil
 }

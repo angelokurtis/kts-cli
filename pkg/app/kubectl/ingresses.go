@@ -12,7 +12,7 @@ import (
 func ListIngresses() ([]*Ingress, error) {
 	ext, err := newExtensions()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 
 	ingresses, err := ext.Ingresses("").List(context.TODO(), apis.ListOptions{})

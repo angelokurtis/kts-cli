@@ -19,7 +19,7 @@ func ListResourceDefinitions() (*ResourcesDefinitions, error) {
 
 	discvy, err := newDiscovery()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 
 	lists, err := discvy.ServerPreferredResources()
