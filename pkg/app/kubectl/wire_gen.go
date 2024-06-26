@@ -9,7 +9,6 @@ package kubectl
 import (
 	"github.com/angelokurtis/kts-cli/internal/kube"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 )
 
@@ -20,7 +19,7 @@ func newDiscovery() (discovery.DiscoveryInterface, error) {
 	if err != nil {
 		return nil, err
 	}
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	discoveryClient, err := kube.NewDiscoveryClient(config)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +31,7 @@ func newExtensions() (v1beta1.ExtensionsV1beta1Interface, error) {
 	if err != nil {
 		return nil, err
 	}
-	clientset, err := kubernetes.NewForConfig(config)
+	clientset, err := kube.NewClientset(config)
 	if err != nil {
 		return nil, err
 	}
