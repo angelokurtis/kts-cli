@@ -8,8 +8,6 @@ import (
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-
-	"github.com/angelokurtis/kts-cli/internal/kube"
 )
 
 var emptyChar int32 = 32
@@ -19,7 +17,12 @@ const ignoreEventsResource = true
 func ListResourceDefinitions() (*ResourcesDefinitions, error) {
 	resources := make([]*ResourceDefinition, 0)
 
-	lists, err := kube.GetDiscoveryClient().ServerPreferredResources()
+	discvy, err := newDiscovery()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	lists, err := discvy.ServerPreferredResources()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

@@ -7,12 +7,15 @@ import (
 	"github.com/pkg/errors"
 	extensions "k8s.io/api/extensions/v1beta1"
 	apis "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/angelokurtis/kts-cli/internal/kube"
 )
 
 func ListIngresses() ([]*Ingress, error) {
-	ingresses, err := kube.GetClientset().ExtensionsV1beta1().Ingresses("").List(context.TODO(), apis.ListOptions{})
+	ext, err := newExtensions()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	ingresses, err := ext.Ingresses("").List(context.TODO(), apis.ListOptions{})
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
