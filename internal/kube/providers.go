@@ -1,35 +1,27 @@
 package kube
 
 import (
-	"flag"
-	"path/filepath"
-
 	"github.com/pkg/errors"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	extensionsv1beta1 "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 )
 
 func NewRestConfig() (*rest.Config, error) {
-	var kubeconfig *string
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-	}
+	rules := clientcmd.NewDefaultClientConfigLoadingRules()
+	overrides := &clientcmd.ConfigOverrides{}
 
-	flag.Parse()
-
-	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	cfg, err := clientcmd.
+		NewNonInteractiveDeferredLoadingClientConfig(rules, overrides).
+		ClientConfig()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	return config, nil
+	return cfg, err
 }
 
 func NewExtensions(clientset *kubernetes.Clientset) extensionsv1beta1.ExtensionsV1beta1Interface {
