@@ -11,6 +11,7 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/digitalocean"
 	"github.com/angelokurtis/kts-cli/cmd/docker"
 	"github.com/angelokurtis/kts-cli/cmd/dockerhub"
+	"github.com/angelokurtis/kts-cli/cmd/files"
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
 	"github.com/angelokurtis/kts-cli/cmd/git"
 	golang "github.com/angelokurtis/kts-cli/cmd/go"
@@ -66,6 +67,7 @@ func init() {
 	cmd.AddCommand(aws.Command)
 	cmd.AddCommand(digitalocean.Command)
 	cmd.AddCommand(docker.Command)
+	cmd.AddCommand(files.Command)
 	cmd.AddCommand(dockerhub.Command)
 	cmd.AddCommand(gcp.Command)
 	cmd.AddCommand(git.Command)
