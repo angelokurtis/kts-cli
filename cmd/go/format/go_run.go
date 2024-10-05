@@ -143,3 +143,46 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 
 	return nil
 }
+
+func runUnconvert(ctx context.Context, workingDir string, fileArgs ...string) error {
+	// Define the shell script as a string
+	args := strings.Join(fileArgs, " ")
+	shellScript := fmt.Sprintf(`
+	#!/bin/bash
+
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
+	echo -e "${BLUE}unconvert -apply %s${NC}"
+	unconvert -apply %s
+	`, args, args)
+
+	// Create a new command to run the script
+	cmd := exec.Command("bash", "-c", shellScript)
+
+	// Capture the output and error
+	var stderr bytes.Buffer
+
+	cmd.Dir = workingDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = &stderr
+
+	// Run the command
+	err := cmd.Run()
+	start := time.Now()
+
+	if err != nil {
+		// Check if the error is of type *exec.ExitError
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) && exitError.ExitCode() != 0 {
+			return errors.New(strings.TrimSpace(stderr.String()))
+		}
+	}
+
+	elapsed := time.Since(start)
+	dirs := lo.Map(fileArgs, func(item string, index int) string { return filepath.Dir(item) })
+	slog.DebugContext(ctx, "Successfully ran unconvert", slog.Duration("duration", elapsed), slog.Any("paths", lo.Uniq(dirs)))
+
+	return nil
+}

@@ -132,6 +132,10 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		if err = runWsl(ctx, workingDir, pathArg); err != nil {
 			return err
 		}
+
+		if err = runUnconvert(ctx, workingDir, pathArg); err != nil {
+			return err
+		}
 	}
 
 	// Restore the formatted files back to their original locations

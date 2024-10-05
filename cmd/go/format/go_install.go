@@ -108,6 +108,39 @@ func installWsl() error {
 	return nil
 }
 
+func installUnconvert() error {
+	shellScript := `
+	#!/bin/bash
+	
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
+	# Check if unconvert is installed
+	if ! command -v unconvert &> /dev/null
+	then
+		echo -e "${BLUE}go install github.com/mdempsky/unconvert@latest${NC}"
+		go install github.com/mdempsky/unconvert@latest
+	fi
+	`
+
+	// Create a new command to run the script
+	cmd := exec.Command("bash", "-c", shellScript)
+
+	// Capture the output and error
+	var stderr bytes.Buffer
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = &stderr
+
+	// Run the command
+	if err := cmd.Run(); err != nil {
+		return errors.Errorf("failed to install unconvert: %s", strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
+}
+
 func installAll() error {
 	if err := installImportsReviser(); err != nil {
 		return err
@@ -118,6 +151,10 @@ func installAll() error {
 	}
 
 	if err := installWsl(); err != nil {
+		return err
+	}
+
+	if err := installUnconvert(); err != nil {
 		return err
 	}
 
