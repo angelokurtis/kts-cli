@@ -105,12 +105,12 @@ func (f Files) FilterByDiffs(diffs []string) (Files, error) {
 	result := make(Files, 0)
 
 	for _, file := range f {
-		relpath, err := file.RelativePath()
+		diff, err := file.Diff()
 		if err != nil {
 			return nil, err
 		}
 
-		if lo.Contains(diffs, relpath) {
+		if lo.Contains(diffs, diff) {
 			result = append(result, file)
 		}
 	}
@@ -167,10 +167,10 @@ func (f *File) RelativePath() (string, error) {
 }
 
 func (f *File) StatusSign() string {
-	switch f.Status {
-	case "M ":
+	switch strings.TrimSpace(f.Status) {
+	case "M", "MM":
 		return color.Yellow.Sprintf("~")
-	case "D ":
+	case "D":
 		return color.Red.Sprintf("-")
 	default:
 		return color.Green.Sprintf("+")
