@@ -3,13 +3,13 @@ package images
 import (
 	"context"
 	"fmt"
-	"github.com/andanhm/go-prettytime"
 	log "log/slog"
 	"os"
 	"sort"
 	"strings"
 	"time"
 
+	prettytime "github.com/andanhm/go-prettytime"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/olekukonko/tablewriter"
