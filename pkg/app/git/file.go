@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	survey "github.com/AlecAivazis/survey/v2"
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 )
@@ -16,12 +17,12 @@ type Files []*File
 func (f Files) SelectFiles() (Files, error) {
 	staged := f.StagedFiles()
 
-	defaults, err := staged.RelativePaths()
+	defaults, err := staged.Diffs()
 	if err != nil {
 		return nil, err
 	}
 
-	files, err := f.RelativePaths()
+	files, err := f.Diffs()
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +39,7 @@ func (f Files) SelectFiles() (Files, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	return f.FilterByRelativePaths(selects)
+	return f.FilterByDiffs(selects)
 }
 
 func (f Files) StagedFiles() Files {
@@ -68,6 +69,21 @@ func (f Files) RelativePaths() ([]string, error) {
 	return files, nil
 }
 
+func (f Files) Diffs() ([]string, error) {
+	files := make([]string, 0)
+
+	for _, file := range f {
+		relpath, err := file.Diff()
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, relpath)
+	}
+
+	return files, nil
+}
+
 func (f Files) FilterByRelativePaths(relpaths []string) (Files, error) {
 	result := make(Files, 0)
 
@@ -78,6 +94,23 @@ func (f Files) FilterByRelativePaths(relpaths []string) (Files, error) {
 		}
 
 		if lo.Contains(relpaths, relpath) {
+			result = append(result, file)
+		}
+	}
+
+	return result, nil
+}
+
+func (f Files) FilterByDiffs(diffs []string) (Files, error) {
+	result := make(Files, 0)
+
+	for _, file := range f {
+		relpath, err := file.RelativePath()
+		if err != nil {
+			return nil, err
+		}
+
+		if lo.Contains(diffs, relpath) {
 			result = append(result, file)
 		}
 	}
@@ -131,4 +164,24 @@ func (f *File) RelativePath() (string, error) {
 	}
 
 	return relpath, nil
+}
+
+func (f *File) StatusSign() string {
+	switch f.Status {
+	case "M ":
+		return color.Yellow.Sprintf("~")
+	case "D ":
+		return color.Red.Sprintf("-")
+	default:
+		return color.Green.Sprintf("+")
+	}
+}
+
+func (f *File) Diff() (string, error) {
+	relativePath, err := f.RelativePath()
+	if err != nil {
+		return "", err
+	}
+
+	return f.StatusSign() + " " + relativePath, nil
 }
