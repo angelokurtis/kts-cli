@@ -168,9 +168,9 @@ func (f *File) RelativePath() (string, error) {
 
 func (f *File) StatusSign() string {
 	switch strings.TrimSpace(f.Status) {
-	case "M", "MM":
+	case "AM", "M", "MM":
 		return color.Yellow.Sprintf("~")
-	case "D":
+	case "D", "AD":
 		return color.Red.Sprintf("-")
 	default:
 		return color.Green.Sprintf("+")
