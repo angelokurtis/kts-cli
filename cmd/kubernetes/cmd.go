@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"github.com/angelokurtis/kts-cli/cmd/kubernetes/daemonsets"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/certificates"
@@ -38,6 +39,7 @@ func init() {
 	Command.AddCommand(services.Command)
 	Command.AddCommand(labels.Command)
 	Command.AddCommand(nodes.Command)
+	Command.AddCommand(daemonsets.Command)
 	Command.AddCommand(deployments.Command)
 	Command.AddCommand(pods.Command)
 	Command.AddCommand(certificates.Command)

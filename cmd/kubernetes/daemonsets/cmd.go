@@ -10,8 +10,8 @@ var (
 	allNamespaces = false
 	namespace     = ""
 	Command       = &cobra.Command{
-		Use:   "deployments",
-		Short: "Utility functions to deal with Deployments",
+		Use:   "daemonsets",
+		Short: "Utility functions to deal with DaemonSets",
 		Run:   system.Help,
 	}
 )
