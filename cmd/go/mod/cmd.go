@@ -6,5 +6,5 @@ import (
 
 var Command = &cobra.Command{
 	Use: "upgrade",
-	Run: upgrade,
+	Run: wrapWithErrorHandler(upgrade),
 }
