@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
+	"github.com/sourcegraph/conc/pool"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/git"
@@ -119,23 +120,34 @@ func runFormat(cmd *cobra.Command, args []string) error {
 	}
 
 	// Run goimports-reviser, gofumpt, and wsl on the files
+	g := pool.New().WithErrors().WithFirstError().WithMaxGoroutines(10)
+
 	for _, relativeDirPath := range affectedFiles.RelativeDirPaths() {
 		pathArg := fmt.Sprintf("./%s/", relativeDirPath)
-		if err = runImportsReviser(ctx, workingDir, pathArg); err != nil {
-			return err
-		}
 
-		if err = runGofumpt(ctx, workingDir, pathArg); err != nil {
-			return err
-		}
+		g.Go(func() error {
+			if err = runImportsReviser(ctx, workingDir, pathArg); err != nil {
+				return err
+			}
 
-		if err = runWsl(ctx, workingDir, pathArg); err != nil {
-			return err
-		}
+			if err = runGofumpt(ctx, workingDir, pathArg); err != nil {
+				return err
+			}
 
-		if err = runUnconvert(ctx, workingDir, pathArg); err != nil {
-			return err
-		}
+			if err = runWsl(ctx, workingDir, pathArg); err != nil {
+				return err
+			}
+
+			if err = runUnconvert(ctx, workingDir, pathArg); err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
+
+	if err = g.Wait(); err != nil {
+		return err
 	}
 
 	// Restore the formatted files back to their original locations
