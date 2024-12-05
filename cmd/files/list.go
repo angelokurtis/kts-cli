@@ -36,8 +36,8 @@ func runListBySize(ctx context.Context, workingDir string) error {
 	BLUE='\033[0;34m'
 	NC='\033[0m' # No Color
 
-	echo -e "${BLUE}du -hs * | sort -h${NC}"
-	du -hs * | sort -h
+	echo -e "${BLUE}du -ah --max-depth=1 | sort -h${NC}"
+	du -ah --max-depth=1 | sort -h
 	`
 
 	// Create a new command to run the script
