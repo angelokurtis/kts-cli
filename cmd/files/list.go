@@ -1,13 +1,16 @@
 package files
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )
 
@@ -23,11 +26,11 @@ func list(_ *cobra.Command, args []string) {
 		}
 	}
 
-	err := runListBySize(ctx, dir)
+	_, err := runListBySize(ctx, dir)
 	check(err)
 }
 
-func runListBySize(ctx context.Context, workingDir string) error {
+func runListBySize(ctx context.Context, workingDir string) ([]string, error) {
 	// Define the shell script as a string
 	shellScript := `
 	#!/bin/bash
@@ -44,16 +47,35 @@ func runListBySize(ctx context.Context, workingDir string) error {
 	cmd := exec.Command("bash", "-c", shellScript)
 
 	// Capture the output and error
+	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 
 	cmd.Dir = workingDir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = &stderr
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdout)
+	cmd.Stderr = io.MultiWriter(os.Stdout, &stderr)
 
 	// Run the command
 	if err := cmd.Run(); err != nil {
-		return errors.Errorf("failed to list files by size: %s", strings.TrimSpace(stderr.String()))
+		return nil, errors.Errorf("failed to list files by size: %s", strings.TrimSpace(stderr.String()))
 	}
 
-	return nil
+	return convertStdout(ctx, stdout)
+}
+
+func convertStdout(ctx context.Context, stdout bytes.Buffer) ([]string, error) {
+	scanner := bufio.NewScanner(&stdout)
+	res := make([]string, 0)
+
+	for scanner.Scan() {
+		res = append(res, scanner.Text())
+	}
+	lo.Filter(res, func(item string, index int) bool {
+		return len(item) > 0
+	})
+
+	if err := scanner.Err(); err != nil {
+		return nil, errors.Errorf("error occurred while scanning stdout: %v", err)
+	}
+
+	return nil, nil
 }
