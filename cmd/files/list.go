@@ -7,8 +7,10 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
@@ -30,18 +32,15 @@ func list(_ *cobra.Command, args []string) {
 	check(err)
 }
 
-func runListBySize(ctx context.Context, workingDir string) ([]string, error) {
+func runListBySize(ctx context.Context, workingDir string) ([]*file, error) {
 	// Define the shell script as a string
 	shellScript := `
 	#!/bin/bash
-
-	# Define colors
-	BLUE='\033[0;34m'
-	NC='\033[0m' # No Color
-
-	echo -e "${BLUE}du -ah --max-depth=1 | sort -h${NC}"
+	set -e
 	du -ah --max-depth=1 | sort -h
 	`
+
+	color.Primary.Println("du -ah --max-depth=1 | sort -h")
 
 	// Create a new command to run the script
 	cmd := exec.Command("bash", "-c", shellScript)
@@ -59,23 +58,40 @@ func runListBySize(ctx context.Context, workingDir string) ([]string, error) {
 		return nil, errors.Errorf("failed to list files by size: %s", strings.TrimSpace(stderr.String()))
 	}
 
-	return convertStdout(ctx, stdout)
+	return parseOutput(ctx, stdout)
 }
 
-func convertStdout(ctx context.Context, stdout bytes.Buffer) ([]string, error) {
+func parseOutput(ctx context.Context, stdout bytes.Buffer) ([]*file, error) {
 	scanner := bufio.NewScanner(&stdout)
-	res := make([]string, 0)
+	lines := make([]string, 0)
 
 	for scanner.Scan() {
-		res = append(res, scanner.Text())
+		lines = append(lines, scanner.Text())
 	}
-	lo.Filter(res, func(item string, index int) bool {
-		return len(item) > 0
-	})
 
 	if err := scanner.Err(); err != nil {
-		return nil, errors.Errorf("error occurred while scanning stdout: %v", err)
+		return nil, errors.Errorf("failed to scan output: %v", err)
 	}
 
-	return nil, nil
+	re := regexp.MustCompile(`^(\S+)\s+(.+)$`)
+	files := lo.FilterMap(lines, func(line string, index int) (*file, bool) {
+		if len(line) < 1 {
+			return nil, false
+		}
+
+		matches := re.FindStringSubmatch(line)
+		if len(matches) != 3 {
+			return nil, false
+		}
+
+		return &file{raw: line, path: matches[2], size: matches[1]}, true
+	})
+
+	return files, nil
+}
+
+type file struct {
+	raw  string
+	path string
+	size string
 }
