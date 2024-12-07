@@ -9,12 +9,14 @@ import (
 )
 
 var Command = &cobra.Command{
-	Use: "files",
-	Run: system.Help,
+	Use:     "files",
+	Aliases: []string{"file"},
+	Run:     system.Help,
 }
 
 func init() {
-	Command.AddCommand(&cobra.Command{Use: "list", Run: list})
+	Command.AddCommand(&cobra.Command{Use: "list", Aliases: []string{"ls"}, Run: list})
+	Command.AddCommand(&cobra.Command{Use: "remove", Aliases: []string{"rm"}, Run: remove})
 }
 
 func check(err error) {
