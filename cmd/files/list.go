@@ -35,15 +35,17 @@ func list(_ *cobra.Command, args []string) {
 	check(err)
 }
 
-func runRemove(ctx context.Context, workingDir, s string) error {
+func runRemove(ctx context.Context, workingDir, path string) error {
+	escapedPath := strings.ReplaceAll(path, " ", "\\ ")
+
 	// Define the shell script as a string
 	shellScript := fmt.Sprintf(`
 	#!/bin/bash
 	set -e
 	rm -rf %s
-	`, s)
+	`, escapedPath)
 
-	color.Primary.Printf("rm -rf %s\n", s)
+	color.Primary.Printf("rm -rf %s\n", escapedPath)
 
 	// Create a new command to run the script
 	cmd := exec.Command("bash", "-c", shellScript)
