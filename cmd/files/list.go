@@ -43,7 +43,7 @@ func runRemove(ctx context.Context, workingDir, s string) error {
 	rm -rf %s
 	`, s)
 
-	color.Primary.Printf("rm -rf %s", s)
+	color.Primary.Printf("rm -rf %s\n", s)
 
 	// Create a new command to run the script
 	cmd := exec.Command("bash", "-c", shellScript)
@@ -71,7 +71,7 @@ func runListBySize(ctx context.Context, workingDir string) error {
 	du -ah --max-depth=1 | sort -h
 	`
 
-	color.Primary.Println("du -ah --max-depth=1 | sort -h")
+	color.Secondary.Println("du -ah --max-depth=1 | sort -h")
 
 	// Create a new command to run the script
 	cmd := exec.Command("bash", "-c", shellScript)
@@ -99,7 +99,7 @@ func runGetBySize(ctx context.Context, workingDir string) (files, error) {
 	du -ah --max-depth=1 | sort -h
 	`
 
-	color.Primary.Println("du -ah --max-depth=1 | sort -h")
+	color.Secondary.Println("du -ah --max-depth=1 | sort -h")
 
 	// Create a new command to run the script
 	cmd := exec.Command("bash", "-c", shellScript)
