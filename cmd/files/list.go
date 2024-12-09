@@ -36,16 +36,14 @@ func list(_ *cobra.Command, args []string) {
 }
 
 func runRemove(ctx context.Context, workingDir, path string) error {
-	escapedPath := strings.ReplaceAll(path, " ", "\\ ")
-
 	// Define the shell script as a string
 	shellScript := fmt.Sprintf(`
 	#!/bin/bash
 	set -e
-	rm -rf %s
-	`, escapedPath)
+	rm -rf "%s"
+	`, path)
 
-	color.Primary.Printf("rm -rf %s\n", escapedPath)
+	color.Primary.Println(fmt.Sprintf(`rm -rf "%s"`, path))
 
 	// Create a new command to run the script
 	cmd := exec.Command("bash", "-c", shellScript)
