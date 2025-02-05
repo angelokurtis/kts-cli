@@ -3,12 +3,15 @@ package yq
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func DeleteNode(yamlPath, pathExpression string) error {
-	_, err := bash.Run("yq delete -i " + yamlPath + " " + pathExpression)
+	cmd := fmt.Sprintf("yq e 'del(.%s)' -i %s", pathExpression, yamlPath)
+	_, err := bash.Run(cmd)
+
 	return err
 }
 
@@ -42,7 +45,9 @@ func ReadNodeValues(yamlPath, pathExpression string) ([]string, error) {
 }
 
 func ReadNodeValue(yamlPath, pathExpression string) (string, error) {
-	out, err := bash.Run("yq r " + yamlPath + " " + pathExpression)
+	cmd := fmt.Sprintf("yq e '.%s' %s", pathExpression, yamlPath)
+
+	out, err := bash.RunAndLogRead(cmd)
 	if err != nil {
 		return "", err
 	}

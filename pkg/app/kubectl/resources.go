@@ -262,7 +262,7 @@ func deleteGeneratedFields(manifestPath string, keepStatus bool) error {
 		return err
 	}
 
-	if err := yq.DeleteNode(manifestPath, "metadata.annotations[kubectl.kubernetes.io/last-applied-configuration]"); err != nil {
+	if err := yq.DeleteNode(manifestPath, `metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]`); err != nil {
 		return err
 	}
 
@@ -278,7 +278,7 @@ func deleteGeneratedFields(manifestPath string, keepStatus bool) error {
 		return err
 	}
 
-	if err := yq.DeleteNode(manifestPath, "metadata.annotations[cloud.google.com/neg]"); err != nil {
+	if err := yq.DeleteNode(manifestPath, `metadata.annotations["cloud.google.com/neg"]`); err != nil {
 		return err
 	}
 
@@ -305,7 +305,7 @@ func deleteGeneratedFields(manifestPath string, keepStatus bool) error {
 	}
 
 	if kind == "Deployment" {
-		if err := yq.DeleteNode(manifestPath, "metadata.annotations[deployment.kubernetes.io/revision]"); err != nil {
+		if err := yq.DeleteNode(manifestPath, `metadata.annotations["deployment.kubernetes.io/revision"]`); err != nil {
 			return err
 		}
 
