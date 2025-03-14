@@ -204,7 +204,8 @@ func saveResourceManifest(resource *resource, keepStatus, decodeSecrets bool) er
 			}
 		}
 
-		sec["data"] = strdata
+		sec["stringData"] = strdata
+		delete(sec, "data")
 
 		out, err = yamlv3.Marshal(&sec)
 		if err != nil {
