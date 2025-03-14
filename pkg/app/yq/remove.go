@@ -47,7 +47,7 @@ func ReadNodeValues(yamlPath, pathExpression string) ([]string, error) {
 func ReadNodeValue(yamlPath, pathExpression string) (string, error) {
 	cmd := fmt.Sprintf("yq e '.%s' %s", pathExpression, yamlPath)
 
-	out, err := bash.RunAndLogRead(cmd)
+	out, err := bash.Run(cmd)
 	if err != nil {
 		return "", err
 	}
