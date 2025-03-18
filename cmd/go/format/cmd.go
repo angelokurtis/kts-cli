@@ -138,10 +138,6 @@ func runFormat(cmd *cobra.Command, args []string) error {
 				return err
 			}
 
-			if err = runUnconvert(ctx, workingDir, pathArg); err != nil {
-				return err
-			}
-
 			return nil
 		})
 	}
