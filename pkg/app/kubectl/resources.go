@@ -18,7 +18,7 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
-func ListResourcesOwners(resources, namespace string, allNamespaces bool) ([]Item, error) {
+func ListResourcesOwners(resources, namespace string, includeNoOwners, allNamespaces bool) ([]Item, error) {
 	cmd := "kubectl get " + resources + " -o=json"
 	if allNamespaces {
 		cmd += " --all-namespaces"
@@ -51,7 +51,7 @@ func ListResourcesOwners(resources, namespace string, allNamespaces bool) ([]Ite
 
 	for _, item := range col.Items {
 		item.Dependents = counter[item.Metadata.UID]
-		if len(item.Metadata.OwnerReferences) == 0 && item.Dependents > 0 {
+		if len(item.Metadata.OwnerReferences) == 0 && (includeNoOwners || item.Dependents > 0) {
 			items = append(items, item)
 		}
 	}

@@ -33,8 +33,8 @@ func list(cmd *cobra.Command, args []string) error {
 		resources = args[0]
 	}
 
-	if owners {
-		ro, err := kubectl.ListResourcesOwners(resources, namespace, allNamespaces)
+	if owners || noOwners {
+		ro, err := kubectl.ListResourcesOwners(resources, namespace, noOwners, allNamespaces)
 		if err != nil {
 			return err
 		}

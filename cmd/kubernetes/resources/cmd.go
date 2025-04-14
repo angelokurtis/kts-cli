@@ -9,6 +9,7 @@ import (
 var (
 	allNamespaces = false
 	owners        = false
+	noOwners      = false
 	group         = ""
 	namespace     = ""
 	Command       = &cobra.Command{
@@ -20,10 +21,11 @@ var (
 
 func init() {
 	listCMD := &cobra.Command{Use: "list", Run: run(list)}
-	listCMD.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If present, list the requested object(s) across all namespaces. Namespace in current\ncontext is ignored even if specified with --namespace.")
-	listCMD.PersistentFlags().BoolVarP(&owners, "owners", "O", false, "If present, filter object(s) without owner.")
-	listCMD.PersistentFlags().StringVar(&group, "group", "", "")
-	listCMD.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "")
+	listCMD.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "List the requested object(s) across all namespaces, ignoring the current context's namespace.")
+	listCMD.PersistentFlags().BoolVarP(&owners, "owners", "O", false, "Filter and list only the object(s) that own other objects.")
+	listCMD.PersistentFlags().BoolVar(&noOwners, "no-owners", false, "Filter and list only the object(s) that do not have an owner.")
+	listCMD.PersistentFlags().StringVar(&group, "group", "", "Specify the API group of the resource(s) to list.")
+	listCMD.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Specify the namespace to list the resource(s) from.")
 	Command.AddCommand(listCMD)
 }
 
