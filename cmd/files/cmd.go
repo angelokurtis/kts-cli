@@ -30,6 +30,9 @@ func init() {
 	backupCommand := &cobra.Command{Use: "backup", Run: backup}
 	backupCommand.PersistentFlags().BoolVar(&rm, "rm", false, "Remove after decompression ends.")
 	Command.AddCommand(backupCommand)
+
+	joinCommand := &cobra.Command{Use: "join", Run: join}
+	Command.AddCommand(joinCommand)
 }
 
 func check(err error) {
