@@ -3,10 +3,15 @@ package gpg
 import (
 	"bufio"
 	"bytes"
-	"strings"
+	"regexp"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
+)
+
+var (
+	secRegex = regexp.MustCompile(`^sec\s+(\S+)`)
+	uidRegex = regexp.MustCompile(`^uid\s+\[.*?]\s+(.+)$`)
 )
 
 func SelectSecretKey() (*SecretKey, error) {
@@ -58,27 +63,25 @@ type Keys struct {
 }
 
 func NewKeys(out []byte) (*Keys, error) {
-	items := make([]*SecretKey, 0, 0)
-
+	items := make([]*SecretKey, 0)
 	var current *SecretKey
 
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "sec ") {
-			sec := strings.Fields(line)[1]
-			current = &SecretKey{Sec: sec}
+
+		if matches := secRegex.FindStringSubmatch(line); matches != nil {
+			current = &SecretKey{Sec: matches[1]}
 		}
 
-		if strings.HasPrefix(line, "uid ") && current != nil {
-			uid := strings.Fields(line)[2:]
-			current.UID = strings.Join(uid, " ")
+		if matches := uidRegex.FindStringSubmatch(line); matches != nil && current != nil {
+			current.UID = matches[1]
 			items = append(items, &SecretKey{Sec: current.Sec, UID: current.UID})
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return &Keys{Items: items}, nil
