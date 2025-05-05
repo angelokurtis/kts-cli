@@ -3,9 +3,11 @@ package gpg
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"regexp"
 
 	survey "github.com/AlecAivazis/survey/v2"
+	"github.com/gookit/color"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 )
@@ -110,7 +112,15 @@ func SelectSecretKey() (*SecretKey, error) {
 		return nil, nil
 	}
 
-	m := lo.KeyBy(keys, func(key *SecretKey) string { return key.KeyID })
+	m := lo.KeyBy(keys, func(sk *SecretKey) string {
+		uid, ok := lo.First(sk.Uids)
+		if !ok {
+			return sk.KeyID
+		}
+
+		return fmt.Sprintf("%s <%s> %s", uid.Name, uid.Email, color.Gray.Render(sk.KeyID))
+	})
+
 	var k string
 	prompt := &survey.Select{
 		Message: "Select the GnuPG key:",
