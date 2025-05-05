@@ -1,52 +1,33 @@
 package git
 
 import (
-	"strings"
+	"fmt"
+
+	"github.com/pkg/errors"
+	"github.com/samber/lo"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/gpg"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
 func ConfigureSecretKey(sk *gpg.SecretKey) error {
-	fields := strings.Fields(sk.UID)
-	i := len(fields) - 1
-
-	email := fields[i]
-	email = strings.Replace(email, "<", "", -1)
-	email = strings.Replace(email, ">", "", -1)
-
-	name := strings.Join(fields[:i], " ")
-
-	key := strings.Split(sk.Sec, "/")[1]
-
-	if wordCount(name) > 1 {
-		name = "'" + name + "'"
+	uid, ok := lo.First(sk.Uids)
+	if !ok {
+		return errors.New("")
 	}
 
-	_, err := bash.RunAndLogWrite("git config user.name " + name)
-	if err != nil {
-		return err
+	steps := []string{
+		fmt.Sprintf("git config user.name '%s'", uid.Name),
+		fmt.Sprintf("git config user.email '%s'", uid.Email),
+		"git config user.signingKey " + sk.KeyID,
+		"git config commit.gpgsign true",
 	}
 
-	_, err = bash.RunAndLogWrite("git config user.email " + email)
-	if err != nil {
-		return err
-	}
-
-	_, err = bash.RunAndLogWrite("git config user.signingKey " + key)
-	if err != nil {
-		return err
-	}
-
-	_, err = bash.RunAndLogWrite("git config commit.gpgsign true")
-	if err != nil {
-		return err
+	for _, cmd := range steps {
+		if _, err := bash.RunAndLogWrite(cmd); err != nil {
+			return err
+		}
 	}
 
 	return nil
-}
-
-func wordCount(s string) int {
-	words := strings.Fields(s)
-	return len(words)
 }
