@@ -16,6 +16,11 @@ sec   rsa2048/DEF0987654321CBA 2021-02-02 [SC]
       9876ZYXW5432VUTS9876RQPO5432NMKL9876JIHG
 uid           [ultimate] Jane Smith <jane@example.com>
 ssb   rsa2048/0FEDCBA987654321 2021-02-02 [E]
+
+sec   rsa2048/DEF0987654321CBA 2021-02-02 [SC]
+      9876ZYXW5432VUTS9876RQPO5432NMKL9876JIHG
+uid           [unknown] Jane Unknown <unknown@example.com>
+ssb   rsa2048/0FEDCBA987654321 2021-02-02 [E]
 `
 
 	keys, err := NewKeys([]byte(gpgOutput))
@@ -23,8 +28,8 @@ ssb   rsa2048/0FEDCBA987654321 2021-02-02 [E]
 		t.Fatalf("NewKeys() error = %v", err)
 	}
 
-	if keys == nil || len(keys.Items) != 2 {
-		t.Fatalf("expected 2 keys, got %d", len(keys.Items))
+	if keys == nil || len(keys.Items) != 3 {
+		t.Fatalf("expected 3 keys, got %d", len(keys.Items))
 	}
 
 	expected := []struct {
@@ -33,6 +38,7 @@ ssb   rsa2048/0FEDCBA987654321 2021-02-02 [E]
 	}{
 		{"rsa4096/ABC123456789DEF0", "John Doe <john@example.com>"},
 		{"rsa2048/DEF0987654321CBA", "Jane Smith <jane@example.com>"},
+		{"rsa2048/DEF0987654321CBA", "Jane Unknown <unknown@example.com>"},
 	}
 
 	for i, key := range keys.Items {
