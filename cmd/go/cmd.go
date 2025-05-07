@@ -22,4 +22,5 @@ func init() {
 	Command.AddCommand(mod.Command)
 	Command.AddCommand(versions.Command)
 	Command.AddCommand(&cobra.Command{Use: "lint", Run: lint})
+	Command.AddCommand(&cobra.Command{Use: "clean", Run: wrapWithErrorHandler(clean)})
 }
