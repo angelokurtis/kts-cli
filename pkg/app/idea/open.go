@@ -7,6 +7,13 @@ import (
 )
 
 func Open(path string) error {
-	_, err := bash.Run(fmt.Sprintf("nohup idea %s >/dev/null 2>&1 &", path))
+	scripts, err := listJetBrainsScripts()
+	if err != nil {
+		return err
+	}
+
+	script := chooseJetBrainsScript(scripts)
+	_, err = bash.Run(fmt.Sprintf("nohup %s %s >/dev/null 2>&1 &", script, path))
+
 	return err
 }
