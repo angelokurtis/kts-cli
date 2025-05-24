@@ -21,7 +21,7 @@ func ListChannels(filedir string) (Channels, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	channels := make(Channels, 0, 0)
+	channels := make(Channels, 0, len(playlist.Tracks))
 	for _, track := range playlist.Tracks {
 		channels = append(channels, &Channel{
 			filename: filedir,
@@ -38,7 +38,7 @@ func ListChannels(filedir string) (Channels, error) {
 }
 
 func (c Channels) tracks() []m3u.Track {
-	tracks := make([]m3u.Track, 0, 0)
+	tracks := make([]m3u.Track, 0, len(c))
 	for _, channel := range c {
 		tracks = append(tracks, *channel.Track)
 	}
