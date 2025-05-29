@@ -36,7 +36,7 @@ func manifests(cmd *cobra.Command, args []string) {
 		system.Exit(err)
 	}
 
-	err = kubectl.SaveResourcesManifests(results, status, decodeSecrets)
+	err = kubectl.SaveResourcesManifests(results, status, sanitize, decodeSecrets)
 	if err != nil {
 		system.Exit(err)
 	}

@@ -159,9 +159,9 @@ func SelectResources(resources, namespace string, allNamespaces bool) ([]*resour
 	return res, nil
 }
 
-func SaveResourcesManifests(resources []*resource, keepStatus, decodeSecrets bool) error {
+func SaveResourcesManifests(resources []*resource, keepStatus, sanitize, decodeSecrets bool) error {
 	for _, r := range resources {
-		err := saveResourceManifest(r, keepStatus, decodeSecrets)
+		err := saveResourceManifest(r, keepStatus, sanitize, decodeSecrets)
 		if err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ func SaveResourcesManifests(resources []*resource, keepStatus, decodeSecrets boo
 	return nil
 }
 
-func saveResourceManifest(resource *resource, keepStatus, decodeSecrets bool) error {
+func saveResourceManifest(resource *resource, keepStatus, sanitize, decodeSecrets bool) error {
 	cmd := "kubectl get " + resource.FullKindName + " " + resource.Name + " -o yaml"
 	if resource.Namespace != "" {
 		cmd = cmd + " -n " + resource.Namespace
@@ -237,8 +237,10 @@ func saveResourceManifest(resource *resource, keepStatus, decodeSecrets bool) er
 		return errors.WithStack(err)
 	}
 
-	if err := deleteGeneratedFields(yamlPath+"/"+yamlFile, keepStatus); err != nil {
-		return err
+	if sanitize {
+		if err := deleteGeneratedFields(yamlPath+"/"+yamlFile, keepStatus); err != nil {
+			return err
+		}
 	}
 
 	return nil

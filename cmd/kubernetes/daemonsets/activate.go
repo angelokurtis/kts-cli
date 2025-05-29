@@ -1,9 +1,10 @@
 package daemonsets
 
 import (
+	log "log/slog"
+
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 	"github.com/spf13/cobra"
-	log "log/slog"
 )
 
 func activate(cmd *cobra.Command, args []string) {

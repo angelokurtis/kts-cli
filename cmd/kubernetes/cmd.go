@@ -1,12 +1,12 @@
 package kubernetes
 
 import (
-	"github.com/angelokurtis/kts-cli/cmd/kubernetes/daemonsets"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/certificates"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/clusters"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/containers"
+	"github.com/angelokurtis/kts-cli/cmd/kubernetes/daemonsets"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/deployments"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/events"
 	"github.com/angelokurtis/kts-cli/cmd/kubernetes/ingresses"
@@ -19,6 +19,7 @@ import (
 )
 
 var (
+	sanitize      = true
 	status        = false
 	decodeSecrets = false
 	allNamespaces = false
@@ -46,10 +47,11 @@ func init() {
 	Command.AddCommand(resources.Command)
 
 	manifestsCommand := &cobra.Command{Use: "manifests", Run: manifests}
-	manifestsCommand.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If present, resources the requested object(s) across all namespaces. Namespace in current\ncontext is ignored even if specified with --namespace.")
-	manifestsCommand.PersistentFlags().StringVar(&group, "group", "", "")
-	manifestsCommand.PersistentFlags().BoolVar(&status, "status", false, "")
-	manifestsCommand.PersistentFlags().BoolVar(&decodeSecrets, "decode-secrets", false, "")
-	manifestsCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "")
+	manifestsCommand.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If set, retrieves the specified resources from all namespaces. Overrides any namespace set with --namespace.")
+	manifestsCommand.PersistentFlags().StringVar(&group, "group", "", "Filter the resources by API group (e.g., 'apps', 'batch'). Leave empty to include all groups.")
+	manifestsCommand.PersistentFlags().BoolVar(&status, "status", false, "Include status fields in the output YAML manifests, if available.")
+	manifestsCommand.PersistentFlags().BoolVar(&decodeSecrets, "decode-secrets", false, "If true, decodes Secret data fields from base64 to plain text in the output.")
+	manifestsCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Specify the namespace to query. Ignored if --all-namespaces is set.")
+	manifestsCommand.PersistentFlags().BoolVar(&sanitize, "sanitize", true, "Remove auto-generated fields from the output YAML (e.g., status, creationTimestamp, managedFields). This is useful for producing clean manifests suitable for version control or reuse.")
 	Command.AddCommand(manifestsCommand)
 }
