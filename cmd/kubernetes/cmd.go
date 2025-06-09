@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	sanitize      = true
+	sanitize      = false
 	status        = false
 	decodeSecrets = false
 	allNamespaces = false
@@ -52,6 +52,6 @@ func init() {
 	manifestsCommand.PersistentFlags().BoolVar(&status, "status", false, "Include status fields in the output YAML manifests, if available.")
 	manifestsCommand.PersistentFlags().BoolVar(&decodeSecrets, "decode-secrets", false, "If true, decodes Secret data fields from base64 to plain text in the output.")
 	manifestsCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Specify the namespace to query. Ignored if --all-namespaces is set.")
-	manifestsCommand.PersistentFlags().BoolVar(&sanitize, "sanitize", true, "Remove auto-generated fields from the output YAML (e.g., status, creationTimestamp, managedFields). This is useful for producing clean manifests suitable for version control or reuse.")
+	manifestsCommand.PersistentFlags().BoolVar(&sanitize, "sanitize", false, "Remove auto-generated fields from the output YAML (e.g., status, creationTimestamp, managedFields). This is useful for producing clean manifests suitable for version control or reuse.")
 	Command.AddCommand(manifestsCommand)
 }
