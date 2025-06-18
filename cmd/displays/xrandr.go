@@ -50,7 +50,7 @@ func disableDisplay(ctx context.Context, displayName string) error {
 	xrandr --output %s --off
 	`, displayName)
 
-	color.Primary.Printf("xrandr --output %s --off", displayName)
+	color.Primary.Printf("xrandr --output %s --off\n", displayName)
 
 	cmd := exec.Command("bash", "-c", script)
 
@@ -78,7 +78,7 @@ func enableDisplay(ctx context.Context, displayName string, width, height, xOffs
 	xrandr --output %s %s --mode %dx%d --pos %dx0 --rotate normal
 	`, displayName, primaryFlag, width, height, xOffset)
 
-	color.Primary.Printf("xrandr --output %s %s --mode %dx%d --pos %dx0 --rotate normal", displayName, primaryFlag, width, height, xOffset)
+	color.Primary.Printf("xrandr --output %s %s --mode %dx%d --pos %dx0 --rotate normal\n", displayName, primaryFlag, width, height, xOffset)
 
 	cmd := exec.Command("bash", "-c", script)
 
