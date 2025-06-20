@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	survey "github.com/AlecAivazis/survey/v2"
+	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/internal/system"
@@ -28,6 +29,10 @@ func selectMany(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	displays = lo.Filter(displays, func(item Display, index int) bool {
+		return item.Connected == true
+	})
 
 	selected, err := displays.SelectMany()
 	if err != nil {
