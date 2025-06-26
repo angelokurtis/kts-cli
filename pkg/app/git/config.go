@@ -21,6 +21,7 @@ func ConfigureSecretKey(sk *gpg.SecretKey) error {
 		fmt.Sprintf("git config user.email '%s'", uid.Email),
 		"git config user.signingKey " + sk.KeyID,
 		"git config commit.gpgsign true",
+		`echo "Hello" | gpg --clearsign`,
 	}
 
 	for _, cmd := range steps {
