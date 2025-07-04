@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/samber/lo"
@@ -21,7 +22,7 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
 )
 
-// kube conditions -A providerconfigusages.opentofu.upbound.io,workspaces.opentofu.upbound.io,storeconfigs.opentofu.upbound.io,providerconfigs.opentofu.upbound.io
+// kube conditions -A pods
 func conditions(cmd *cobra.Command, args []string) error {
 	resources := ""
 	if len(args) > 0 {
@@ -38,14 +39,23 @@ func conditions(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	grouped := lo.KeyBy(list.Items, func(u unstructured.Unstructured) schema.GroupVersionKind {
+	grouped := lo.GroupBy(list.Items, func(u unstructured.Unstructured) schema.GroupVersionKind {
 		return u.GroupVersionKind()
 	})
 
+	for _, unstructureds := range grouped {
+		printTable(unstructureds, mapper)
+		fmt.Println()
+	}
+
+	return nil
+}
+
+func printTable(unstructureds []unstructured.Unstructured, mapper meta.RESTMapper) {
 	cols := make(map[string]struct{})
 	var rows []map[string]string
 
-	for _, obj := range grouped {
+	for _, obj := range unstructureds {
 		row := map[string]string{}
 
 		if ns := obj.GetNamespace(); ns != "" {
@@ -59,12 +69,38 @@ func conditions(cmd *cobra.Command, args []string) error {
 		if conds, err := getStatusConditions(&obj); err == nil {
 			for _, cond := range conds {
 				cols[cond.Type] = struct{}{}
-				row[cond.Type] = cond.Reason
+
+				if len(cond.Reason) > 0 {
+					row[cond.Type] = cond.Reason
+				} else {
+					row[cond.Type] = string(cond.Status)
+				}
 			}
 		}
 
 		rows = append(rows, row)
 	}
+
+	// Build header in desired order: Namespace, Name, then the rest sorted
+	var headers []string
+	if _, ok := cols["Namespace"]; ok {
+		headers = append(headers, "Namespace")
+	}
+
+	if _, ok := cols["Name"]; ok {
+		headers = append(headers, "Name")
+	}
+
+	var otherCols []string
+
+	for col := range cols {
+		if col != "Namespace" && col != "Name" {
+			otherCols = append(otherCols, col)
+		}
+	}
+
+	sort.Strings(otherCols)
+	headers = append(headers, otherCols...)
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
@@ -72,8 +108,6 @@ func conditions(cmd *cobra.Command, args []string) error {
 	table.SetBorder(false)
 	table.SetHeaderLine(false)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-
-	headers := lo.Keys(cols)
 	table.SetHeader(headers)
 
 	for _, r := range rows {
@@ -86,8 +120,6 @@ func conditions(cmd *cobra.Command, args []string) error {
 	}
 
 	table.Render()
-
-	return nil
 }
 
 func newMapper() (meta.RESTMapper, error) {
@@ -129,10 +161,13 @@ func getFQN(u *unstructured.Unstructured, mapper meta.RESTMapper) string {
 	}
 
 	name := u.GetName()
-	resource := mapping.Resource // This gives plural + group
-	groupResource := fmt.Sprintf("%s.%s", resource.Resource, gvk.Group)
 
-	return fmt.Sprintf("%s/%s", groupResource, name)
+	resource := mapping.Resource.Resource // This gives plural + group
+	if len(gvk.Group) > 0 {
+		resource = fmt.Sprintf("%s.%s", resource, gvk.Group)
+	}
+
+	return fmt.Sprintf("%s/%s", resource, name)
 }
 
 func getStatusConditions(obj *unstructured.Unstructured) ([]metav1.Condition, error) {
