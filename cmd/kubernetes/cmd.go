@@ -54,4 +54,9 @@ func init() {
 	manifestsCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Specify the namespace to query. Ignored if --all-namespaces is set.")
 	manifestsCommand.PersistentFlags().BoolVar(&sanitize, "sanitize", false, "Remove auto-generated fields from the output YAML (e.g., status, creationTimestamp, managedFields). This is useful for producing clean manifests suitable for version control or reuse.")
 	Command.AddCommand(manifestsCommand)
+
+	conditionsCommand := &cobra.Command{Use: "conditions", RunE: conditions}
+	conditionsCommand.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If set, retrieves the specified resources from all namespaces. Overrides any namespace set with --namespace.")
+	conditionsCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Specify the namespace to query. Ignored if --all-namespaces is set.")
+	Command.AddCommand(conditionsCommand)
 }
