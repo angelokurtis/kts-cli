@@ -43,8 +43,26 @@ func conditions(cmd *cobra.Command, args []string) error {
 		return u.GroupVersionKind()
 	})
 
-	for _, unstructureds := range grouped {
-		printTable(unstructureds, mapper)
+	keys := make([]schema.GroupVersionKind, 0, len(grouped))
+	for k := range grouped {
+		keys = append(keys, k)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		a, b := keys[i], keys[j]
+		if a.Group != b.Group {
+			return a.Group < b.Group
+		}
+
+		if a.Version != b.Version {
+			return a.Version < b.Version
+		}
+
+		return a.Kind < b.Kind
+	})
+
+	for _, k := range keys {
+		printTable(grouped[k], mapper)
 		fmt.Println()
 	}
 
