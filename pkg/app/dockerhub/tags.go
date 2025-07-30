@@ -2,12 +2,11 @@ package dockerhub
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 func UnmarshalTags(data []byte) (Tags, error) {
@@ -22,10 +21,10 @@ func (r *Tags) Marshal() ([]byte, error) {
 }
 
 type Tags struct {
-	Count    int64       `json:"count"`
-	Next     interface{} `json:"next"`
-	Previous interface{} `json:"previous"`
-	Results  []*Tag      `json:"results"`
+	Count    int64  `json:"count"`
+	Next     string `json:"next"`
+	Previous string `json:"previous"`
+	Results  []*Tag `json:"results"`
 }
 
 type Tag struct {
@@ -70,31 +69,45 @@ func (c *Client) ListTags(repository string) ([]*Tag, int64, error) {
 		repository = "library/" + repository
 	}
 
-	url := baseURL + "/v2/repositories/" + repository + "/tags/?page_size=1000000&page=1"
-	method := "GET"
+	var (
+		allTags []*Tag
+		total   int64
+		url     = baseURL + "/v2/repositories/" + repository + "/tags/?page_size=100"
+	)
 
-	req, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return nil, 0, errors.WithStack(err)
+	for url != "" {
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to create HTTP request for URL %q: %w", url, err)
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+
+		res, err := c.client.Do(req)
+		if err != nil {
+			return nil, 0, fmt.Errorf("HTTP request to %q failed: %w", url, err)
+		}
+
+		body, err := io.ReadAll(res.Body)
+		_ = res.Body.Close()
+
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to read HTTP response body from %q: %w", url, err)
+		}
+
+		if res.StatusCode != http.StatusOK {
+			return nil, 0, fmt.Errorf("unexpected HTTP status from %q: %d - %s", url, res.StatusCode, string(body))
+		}
+
+		var tagsResp Tags
+		if err := json.Unmarshal(body, &tagsResp); err != nil {
+			return nil, 0, fmt.Errorf("failed to parse JSON response from %q: %w", url, err)
+		}
+
+		allTags = append(allTags, tagsResp.Results...)
+		total = tagsResp.Count
+		url = tagsResp.Next
 	}
 
-	req.Header.Add("Content-Type", "application/json")
-
-	res, err := c.client.Do(req)
-	if err != nil {
-		return nil, 0, errors.WithStack(err)
-	}
-	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, 0, errors.WithStack(err)
-	}
-
-	repositories, err := UnmarshalTags(body)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return repositories.Results, repositories.Count, nil
+	return allTags, total, nil
 }
