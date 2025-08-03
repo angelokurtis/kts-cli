@@ -2,35 +2,29 @@ package tags
 
 import (
 	"fmt"
-	log "log/slog"
+	log "log"
 	"os"
 	"runtime"
 	"sort"
 	"strings"
 	"time"
 
+	mastermindssemver "github.com/Masterminds/semver"
 	prettytime "github.com/andanhm/go-prettytime"
 	"github.com/gotidy/ptr"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
-var (
-	brazil  *time.Location
-	printer *message.Printer
-)
+var brazil *time.Location
 
 func init() {
 	loc, err := time.LoadLocation("America/Sao_Paulo")
 	if err != nil {
-		log.Error(err.Error())
-		return
+		log.Fatal(err.Error())
 	}
 
 	brazil = loc
-	printer = message.NewPrinter(language.BrazilianPortuguese)
 }
 
 func list(cmd *cobra.Command, args []string) {
@@ -39,44 +33,45 @@ func list(cmd *cobra.Command, args []string) {
 
 	tags, total, err := dockerhub.ListTags(repo)
 	if err != nil {
+		log.Fatal(err.Error())
 		return
 	}
 
-	arch := runtime.GOARCH
-	_ = arch
-	imgMap := make(map[string]*Image, 0)
+	// Build map of unique images by digest
+	imgMap := map[string]*Image{}
 
 	for _, tag := range tags {
 		for _, image := range tag.Images {
-			img := imgMap[image.Digest]
-			if img == nil {
-				img = new(Image)
+			img, exists := imgMap[image.Digest]
+			if !exists {
+				img = &Image{
+					Pushed:       image.LastPushed,
+					Size:         image.Size,
+					Architecture: image.Architecture,
+					Digest:       image.Digest,
+				}
+				imgMap[image.Digest] = img
 			}
 
-			img.Pushed = image.LastPushed
-			img.Size = image.Size
-			img.Architecture = image.Architecture
-			img.Digest = image.Digest
 			img.Add(&Tag{Name: tag.Name, Updated: tag.LastUpdated})
-			imgMap[image.Digest] = img
 		}
 	}
 
-	images := make([]*Image, 0, len(imgMap))
+	// Filter and collect images matching current architecture
+	var images []*Image
 
-	for _, image := range imgMap {
-		if image.Architecture == runtime.GOARCH {
-			images = append(images, image)
+	for _, img := range imgMap {
+		if img.Architecture == runtime.GOARCH {
+			images = append(images, img)
 		}
 	}
 
+	// Sort images by last pushed date (descending)
 	sort.Slice(images, func(i, j int) bool {
-		t1 := ptr.To(images[i].Pushed)
-		t2 := ptr.To(images[j].Pushed)
-
-		return t1.After(t2)
+		return ptr.To(images[i].Pushed).After(ptr.To(images[j].Pushed))
 	})
 
+	// Setup output table
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.SetColumnSeparator("")
@@ -84,10 +79,36 @@ func list(cmd *cobra.Command, args []string) {
 	table.SetHeaderLine(false)
 	table.SetColWidth(100)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-
 	table.SetHeader([]string{"IMAGE", "TAG", "DIGEST", "SIZE", "UPDATED"})
 
+	// Constraint to filter versions (e.g. semver ^1.0.0)
+	var constraint *mastermindssemver.Constraints
+	if len(semver) > 0 {
+		constraint, err = mastermindssemver.NewConstraint(semver)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}
+
+	// Populate table with filtered and formatted image data
 	for _, img := range images {
+		// All tags must satisfy constraint
+		valid := true
+
+		if constraint != nil {
+			for _, tag := range img.TagNames() {
+				v, err := mastermindssemver.NewVersion(tag)
+				if err != nil || !constraint.Check(v) {
+					valid = false
+					break
+				}
+			}
+		}
+
+		if !valid {
+			continue
+		}
+
 		var updated string
 
 		if img.Pushed != nil {
@@ -95,18 +116,24 @@ func list(cmd *cobra.Command, args []string) {
 			updated = fmt.Sprintf("%s (%s)", t.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(t))
 		}
 
-		table.Append([]string{repo, strings.Join(img.TagNames(), ", "), img.Digest, ByteCount(img.Size), updated})
+		table.Append([]string{
+			repo,
+			strings.Join(img.TagNames(), ", "),
+			img.Digest,
+			ByteCount(img.Size),
+			updated,
+		})
 	}
 
 	table.Render()
 
-	link := fmt.Sprintf("https://hub.docker.com/%s?tab=tags", func() string {
-		if strings.Contains(repo, "/") {
-			return "r/" + repo
-		} else {
-			return "_/" + repo
-		}
-	}())
+	// Print Docker Hub link for tags
+	prefix := "_/"
+	if strings.Contains(repo, "/") {
+		prefix = "r/"
+	}
+
+	link := fmt.Sprintf("https://hub.docker.com/%s%s?tab=tags", prefix, repo)
 	fmt.Printf("\nfound %d on %s\n", total, link)
 }
 
