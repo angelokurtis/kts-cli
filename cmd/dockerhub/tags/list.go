@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "log"
 	"os"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -17,6 +18,8 @@ import (
 )
 
 var brazil *time.Location
+
+var semanticVersionRegex = regexp.MustCompile(`\d+\.\d+\.\d+`)
 
 func init() {
 	loc, err := time.LoadLocation("America/Sao_Paulo")
@@ -97,7 +100,9 @@ func list(cmd *cobra.Command, args []string) {
 
 		if constraint != nil {
 			for _, tag := range img.TagNames() {
-				v, err := mastermindssemver.NewVersion(tag)
+				version := semanticVersionRegex.FindString(tag)
+
+				v, err := mastermindssemver.NewVersion(version)
 				if err != nil || !constraint.Check(v) {
 					valid = false
 					break
