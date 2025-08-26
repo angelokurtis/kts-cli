@@ -111,8 +111,8 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 	BLUE='\033[0;34m'
 	NC='\033[0m' # No Color
 
-	echo -e "${BLUE}wsl -force-err-cuddling -allow-cuddle-declarations -fix %s${NC}"
-	wsl -force-err-cuddling -allow-cuddle-declarations -fix %s
+	echo -e "${BLUE}wsl -fix %s${NC}"
+	wsl -fix %s
 	`, args, args)
 
 	// Create a new command to run the script with the arguments
