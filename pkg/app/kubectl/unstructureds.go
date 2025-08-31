@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -22,8 +23,14 @@ func ListUnstructureds(resources, namespace string, allNamespaces bool) (*unstru
 		return nil, err
 	}
 
+	// Be defensive in case kubectl prints headers/noise before JSON
+	idx := strings.IndexByte(string(out), '{')
+	if idx == -1 {
+		return nil, fmt.Errorf("no JSON object found in kubectl output")
+	}
+
 	var raw runtime.RawExtension
-	raw.Raw = out
+	raw.Raw = out[idx:]
 
 	var list unstructured.UnstructuredList
 	if err := json.NewDecoder(bytes.NewReader(raw.Raw)).Decode(&list); err != nil {
