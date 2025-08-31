@@ -12,7 +12,9 @@ import (
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/gookit/color"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 	yamlv3 "gopkg.in/yaml.v3"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/yq"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
@@ -77,7 +79,7 @@ func ListResources(resources, namespace string, allNamespaces bool) ([]string, e
 		return nil, errors.WithStack(err)
 	}
 
-	res := make([]string, 0, 0)
+	res := make([]string, 0)
 	for scanner.Scan() {
 		res = append(res, scanner.Text())
 	}
@@ -86,64 +88,25 @@ func ListResources(resources, namespace string, allNamespaces bool) ([]string, e
 }
 
 func SelectResources(resources, namespace string, allNamespaces bool) ([]*resource, error) {
-	cmd := "kubectl get " + resources + " -o=json"
-	if allNamespaces {
-		cmd = cmd + " --all-namespaces"
-	} else if namespace != "" {
-		cmd = cmd + " -n " + namespace
-	}
-
-	out, err := bash.RunAndLogRead(cmd)
+	list, err := ListUnstructureds(resources, namespace, allNamespaces)
 	if err != nil {
 		return nil, err
 	}
 
-	var col *collection
-	if err := json.Unmarshal(out, &col); err != nil {
-		return nil, errors.WithStack(err)
+	mapper, err := newMapper()
+	if err != nil {
+		return nil, err
 	}
 
-	links := make(map[string]*resource, 0)
-
-	var options []string
-
-	for _, item := range col.Items {
-		split := strings.Split(item.APIVersion, "/")
-
-		var fullKindName, group string
-
-		if len(split) <= 1 {
-			group = ""
-			fullKindName = item.Kind
-		} else {
-			group = split[0]
-			fullKindName = item.Kind + "." + group
-		}
-
-		r := &resource{
-			Name:         item.Metadata.Name,
-			FullKindName: fullKindName,
-			Kind:         item.Kind,
-			Group:        group,
-			Namespace:    item.Metadata.Namespace,
-		}
-		key := ""
-
-		if allNamespaces {
-			key = key + r.Namespace + "/"
-		}
-
-		key = key + r.FullKindName + "/" + r.Name
-		links[key] = r
-
-		options = append(options, key)
-	}
+	m := lo.KeyBy(list.Items, func(item unstructured.Unstructured) string {
+		return getFQN(&item, mapper)
+	})
 
 	var selects []string
 
 	prompt := &survey.MultiSelect{
 		Message: "Select the resource:",
-		Options: options,
+		Options: lo.Keys(m),
 	}
 
 	err = survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true))
@@ -153,7 +116,14 @@ func SelectResources(resources, namespace string, allNamespaces bool) ([]*resour
 
 	res := make([]*resource, 0, len(selects))
 	for _, s := range selects {
-		res = append(res, links[s])
+		u := m[s]
+		res = append(res, &resource{
+			Name:               u.GetName(),
+			FullyQualifiedName: s,
+			Kind:               u.GetKind(),
+			Group:              u.GroupVersionKind().Group,
+			Namespace:          u.GetNamespace(),
+		})
 	}
 
 	return res, nil
@@ -171,7 +141,7 @@ func SaveResourcesManifests(resources []*resource, keepStatus, sanitize, decodeS
 }
 
 func saveResourceManifest(resource *resource, keepStatus, sanitize, decodeSecrets bool) error {
-	cmd := "kubectl get " + resource.FullKindName + " " + resource.Name + " -o yaml"
+	cmd := "kubectl get " + resource.FullyQualifiedName + " -o yaml"
 	if resource.Namespace != "" {
 		cmd = cmd + " -n " + resource.Namespace
 	}
@@ -182,14 +152,14 @@ func saveResourceManifest(resource *resource, keepStatus, sanitize, decodeSecret
 	}
 
 	if resource.Kind == "Secret" && resource.Group == "" && decodeSecrets {
-		sec := make(map[string]interface{}, 0)
+		sec := make(map[string]interface{})
 
 		err = yamlv3.Unmarshal(out, &sec)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
-		strdata := make(map[string]string, 0)
+		strdata := make(map[string]string)
 
 		if data := sec["data"]; data != nil {
 			if kv, ok := data.(map[string]interface{}); ok {
@@ -332,11 +302,11 @@ func deleteGeneratedFields(manifestPath string, keepStatus bool) error {
 }
 
 type resource struct {
-	Name         string
-	FullKindName string
-	Kind         string
-	Group        string
-	Namespace    string
+	Name               string
+	FullyQualifiedName string
+	Kind               string
+	Group              string
+	Namespace          string
 }
 
 func newResource(l string) (*resource, error) {
@@ -345,33 +315,33 @@ func newResource(l string) (*resource, error) {
 
 	if size == 8 {
 		return &resource{
-			Name:         splitted[7],
-			Kind:         splitted[6],
-			Group:        splitted[2],
-			FullKindName: splitted[6] + "." + splitted[2],
-			Namespace:    splitted[5],
+			Name:               splitted[7],
+			Kind:               splitted[6],
+			Group:              splitted[2],
+			FullyQualifiedName: splitted[6] + "." + splitted[2],
+			Namespace:          splitted[5],
 		}, nil
 	} else if size == 7 {
 		return &resource{
-			Name:         splitted[6],
-			FullKindName: splitted[5],
-			Kind:         splitted[5],
-			Namespace:    splitted[4],
+			Name:               splitted[6],
+			FullyQualifiedName: splitted[5],
+			Kind:               splitted[5],
+			Namespace:          splitted[4],
 		}, nil
 	} else if size == 6 {
 		return &resource{
-			Name:         splitted[5],
-			Kind:         splitted[4],
-			Group:        splitted[2],
-			FullKindName: splitted[4] + "." + splitted[2],
-			Namespace:    "",
+			Name:               splitted[5],
+			Kind:               splitted[4],
+			Group:              splitted[2],
+			FullyQualifiedName: splitted[4] + "." + splitted[2],
+			Namespace:          "",
 		}, nil
 	} else if size == 5 {
 		return &resource{
-			Name:         splitted[4],
-			FullKindName: splitted[3],
-			Kind:         splitted[3],
-			Namespace:    "",
+			Name:               splitted[4],
+			FullyQualifiedName: splitted[3],
+			Kind:               splitted[3],
+			Namespace:          "",
 		}, nil
 	}
 
