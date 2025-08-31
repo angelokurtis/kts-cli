@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/gookit/color"
@@ -116,12 +117,24 @@ func SelectResources(resources, namespace string, allNamespaces bool) ([]*resour
 	res := make([]*resource, 0, len(selects))
 	for _, s := range selects {
 		u := m[s]
+
+		gvk := u.GroupVersionKind()
+
+		// Use RESTMapper to find the resource
+		mapping, err := mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+		if err != nil {
+			log.Fatalf("Failed to get REST mapping: %w", err)
+		}
+
+		kind := mapping.Resource.Resource // This gives plural + group
+		if len(gvk.Group) > 0 {
+			kind = fmt.Sprintf("%s.%s", kind, gvk.Group)
+		}
+
 		res = append(res, &resource{
-			Name:               u.GetName(),
-			FullyQualifiedName: s,
-			Kind:               u.GetKind(),
-			Group:              u.GroupVersionKind().Group,
-			Namespace:          u.GetNamespace(),
+			Name:      u.GetName(),
+			Namespace: u.GetNamespace(),
+			Kind:      kind,
 		})
 	}
 
@@ -140,7 +153,7 @@ func SaveResourcesManifests(resources []*resource, keepStatus, sanitize, decodeS
 }
 
 func saveResourceManifest(resource *resource, keepStatus, sanitize, decodeSecrets bool) error {
-	cmd := "kubectl get " + resource.FullyQualifiedName + " -o yaml"
+	cmd := "kubectl get " + resource.Kind + "/" + resource.Name + " -o yaml"
 	if resource.Namespace != "" {
 		cmd = cmd + " -n " + resource.Namespace
 	}
@@ -150,7 +163,7 @@ func saveResourceManifest(resource *resource, keepStatus, sanitize, decodeSecret
 		return err
 	}
 
-	if resource.Kind == "Secret" && resource.Group == "" && decodeSecrets {
+	if resource.Kind == "secrets" && decodeSecrets {
 		sec := make(map[string]interface{})
 
 		err = yamlv3.Unmarshal(out, &sec)
@@ -185,12 +198,8 @@ func saveResourceManifest(resource *resource, keepStatus, sanitize, decodeSecret
 	yamlFile := resource.Name + ".yaml"
 
 	yamlPath := ""
-	if resource.Namespace != "" && resource.Group != "" {
-		yamlPath = fmt.Sprintf("./manifests/%s/%s.%s", resource.Namespace, resource.Kind, resource.Group)
-	} else if resource.Namespace != "" && resource.Group == "" {
+	if resource.Namespace != "" {
 		yamlPath = fmt.Sprintf("./manifests/%s/%s", resource.Namespace, resource.Kind)
-	} else if resource.Namespace == "" && resource.Group != "" {
-		yamlPath = fmt.Sprintf("./manifests/%s.%s", resource.Kind, resource.Group)
 	} else {
 		yamlPath = fmt.Sprintf("./manifests/%s", resource.Kind)
 	}
@@ -301,11 +310,9 @@ func deleteGeneratedFields(manifestPath string, keepStatus bool) error {
 }
 
 type resource struct {
-	Name               string
-	FullyQualifiedName string
-	Kind               string
-	Group              string
-	Namespace          string
+	Name      string
+	Namespace string
+	Kind      string
 }
 
 type collection struct {
