@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strings"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/gookit/color"
@@ -307,45 +306,6 @@ type resource struct {
 	Kind               string
 	Group              string
 	Namespace          string
-}
-
-func newResource(l string) (*resource, error) {
-	splitted := strings.Split(l, "/")
-	size := len(splitted)
-
-	if size == 8 {
-		return &resource{
-			Name:               splitted[7],
-			Kind:               splitted[6],
-			Group:              splitted[2],
-			FullyQualifiedName: splitted[6] + "." + splitted[2],
-			Namespace:          splitted[5],
-		}, nil
-	} else if size == 7 {
-		return &resource{
-			Name:               splitted[6],
-			FullyQualifiedName: splitted[5],
-			Kind:               splitted[5],
-			Namespace:          splitted[4],
-		}, nil
-	} else if size == 6 {
-		return &resource{
-			Name:               splitted[5],
-			Kind:               splitted[4],
-			Group:              splitted[2],
-			FullyQualifiedName: splitted[4] + "." + splitted[2],
-			Namespace:          "",
-		}, nil
-	} else if size == 5 {
-		return &resource{
-			Name:               splitted[4],
-			FullyQualifiedName: splitted[3],
-			Kind:               splitted[3],
-			Namespace:          "",
-		}, nil
-	}
-
-	return nil, errors.New("unrecognized selfLink format: " + l)
 }
 
 type collection struct {
