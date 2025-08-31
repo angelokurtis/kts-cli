@@ -19,13 +19,14 @@ import (
 )
 
 var (
-	sanitize      = false
-	status        = false
-	decodeSecrets = false
-	allNamespaces = false
-	group         = ""
-	namespace     = ""
-	Command       = &cobra.Command{
+	sanitize         = false
+	status           = false
+	decodeSecrets    = false
+	groupByNamespace = true
+	allNamespaces    = false
+	group            = ""
+	namespace        = ""
+	Command          = &cobra.Command{
 		Use:   "kube",
 		Short: "Kubernetes container-orchestration utilities",
 		Run:   system.Help,
@@ -51,6 +52,7 @@ func init() {
 	manifestsCommand.PersistentFlags().StringVar(&group, "group", "", "Filter the resources by API group (e.g., 'apps', 'batch'). Leave empty to include all groups.")
 	manifestsCommand.PersistentFlags().BoolVar(&status, "status", false, "Include status fields in the output YAML manifests, if available.")
 	manifestsCommand.PersistentFlags().BoolVar(&decodeSecrets, "decode-secrets", false, "If true, decodes Secret data fields from base64 to plain text in the output.")
+	manifestsCommand.PersistentFlags().BoolVar(&groupByNamespace, "group-by-namespace", true, "Group the output by namespace. If set, resources are grouped under their namespace; if unset, all resources are listed together.")
 	manifestsCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Specify the namespace to query. Ignored if --all-namespaces is set.")
 	manifestsCommand.PersistentFlags().BoolVar(&sanitize, "sanitize", false, "Remove auto-generated fields from the output YAML (e.g., status, creationTimestamp, managedFields). This is useful for producing clean manifests suitable for version control or reuse.")
 	Command.AddCommand(manifestsCommand)

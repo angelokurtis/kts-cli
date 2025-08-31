@@ -141,9 +141,9 @@ func SelectResources(resources, namespace string, allNamespaces bool) ([]*resour
 	return res, nil
 }
 
-func SaveResourcesManifests(resources []*resource, keepStatus, sanitize, decodeSecrets bool) error {
+func SaveResourcesManifests(resources []*resource, keepStatus, sanitize, decodeSecrets, groupByNamespace bool) error {
 	for _, r := range resources {
-		err := saveResourceManifest(r, keepStatus, sanitize, decodeSecrets)
+		err := saveResourceManifest(r, keepStatus, sanitize, decodeSecrets, groupByNamespace)
 		if err != nil {
 			return err
 		}
@@ -152,7 +152,7 @@ func SaveResourcesManifests(resources []*resource, keepStatus, sanitize, decodeS
 	return nil
 }
 
-func saveResourceManifest(resource *resource, keepStatus, sanitize, decodeSecrets bool) error {
+func saveResourceManifest(resource *resource, keepStatus, sanitize, decodeSecrets, groupByNamespace bool) error {
 	cmd := "kubectl get " + resource.Kind + "/" + resource.Name + " -o yaml"
 	if resource.Namespace != "" {
 		cmd = cmd + " -n " + resource.Namespace
@@ -198,7 +198,7 @@ func saveResourceManifest(resource *resource, keepStatus, sanitize, decodeSecret
 	yamlFile := resource.Name + ".yaml"
 
 	yamlPath := ""
-	if resource.Namespace != "" {
+	if resource.Namespace != "" && groupByNamespace {
 		yamlPath = fmt.Sprintf("./manifests/%s/%s", resource.Namespace, resource.Kind)
 	} else {
 		yamlPath = fmt.Sprintf("./manifests/%s", resource.Kind)
