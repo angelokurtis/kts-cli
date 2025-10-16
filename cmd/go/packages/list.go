@@ -26,7 +26,13 @@ func packages(_ *cobra.Command, args []string) {
 		pkg, err := golang.DescribePackage(ydir)
 		check(err)
 
-		imports := pkg.InternalImports()
+		var imports []string
+		if internal {
+			imports = pkg.InternalImports()
+		} else {
+			imports = pkg.AllImports()
+		}
+
 		if len(imports) > 0 {
 			current := func() gotree.Tree {
 				if ydir != dir {

@@ -62,6 +62,22 @@ func (p *Package) InternalImports() []string {
 	return i
 }
 
+func (p *Package) AllImports() []string {
+	imports := make([]string, len(p.Imports))
+
+	for i, imp := range p.Imports {
+		if strings.HasPrefix(imp, p.Module.Path) && !strings.HasPrefix(imp, p.ImportPath) {
+			imports[i] = strings.ReplaceAll(imp, p.Module.Path, ".")
+		} else {
+			imports[i] = imp
+		}
+	}
+
+	sort.Strings(imports)
+
+	return imports
+}
+
 func (p *Package) ImportsOf(dep string) []string {
 	i := make([]string, 0)
 
