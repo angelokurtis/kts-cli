@@ -2,11 +2,11 @@ package packages
 
 import (
 	"fmt"
-	log "log/slog"
 
 	"github.com/disiqueira/gotree"
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slog"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/golang"
 )
@@ -18,43 +18,40 @@ func packages(_ *cobra.Command, args []string) {
 	}
 
 	dirs, err := golang.ListDirectories(dir)
-	check(err)
+	if err != nil {
+		slog.Error("failed to list directories", "error", err)
+		return
+	}
 
 	root := gotree.New(color.BgGray.Text(dir))
 
-	for _, ydir := range dirs {
-		pkg, err := golang.DescribePackage(ydir)
-		check(err)
-
-		var imports []string
-		if internal {
-			imports = pkg.InternalImports()
-		} else {
-			imports = pkg.AllImports()
+	for _, subdir := range dirs {
+		pkg, err := golang.DescribePackage(subdir)
+		if err != nil {
+			slog.Error("failed to describe package", "dir", subdir, "error", err)
+			continue
 		}
 
-		if len(imports) > 0 {
-			current := func() gotree.Tree {
-				if ydir != dir {
-					return root.Add(color.BgGray.Text(ydir))
-				}
+		imports := pkg.AllImports()
+		if internal {
+			imports = pkg.InternalImports()
+		}
 
-				return root
-			}()
-			for _, imp := range imports {
-				current.Add(imp)
-			}
+		if len(imports) == 0 {
+			continue
+		}
+
+		node := root
+		if subdir != dir {
+			node = root.Add(color.BgGray.Text(subdir))
+		}
+
+		for _, imp := range imports {
+			node.Add(imp)
 		}
 	}
 
 	fmt.Println(root.Print())
-}
-
-func check(err error) {
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
 }
 
 type NodeData struct {
