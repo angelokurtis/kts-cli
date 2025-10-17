@@ -1,16 +1,16 @@
 package golang
 
 import (
-	"bufio"
+	"bytes"
 	"context"
 	"fmt"
-	"go/format"
-	"go/parser"
-	"go/token"
+	"io"
 	"log/slog"
 	"os"
+	"os/exec"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	intlformat "github.com/angelokurtis/kts-cli/cmd/go/format"
@@ -41,7 +41,7 @@ func clean(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, path := range files.RelativeFilePaths() {
-		if err := removeComments(path); err != nil {
+		if err := removeComments(wd, path); err != nil {
 			return err
 		}
 
@@ -51,41 +51,62 @@ func clean(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func removeComments(path string) error {
-	src, err := os.ReadFile(path)
-	if err != nil {
-		return err
+func removeComments(wd, path string) error {
+	// Define the shell script as a string
+	shellScript := `
+	#!/bin/bash
+	
+	set -e
+	
+	# Get the directory from the argument
+	dir="$1"
+	
+	# Recursively find all .go files in the specified directory
+	find "$dir" -type f -name "*.go" | while read -r file; do
+		# Create a temp file
+		tmp_file="${file}.tmp"
+	
+		# Remove comments and empty lines
+		# - Reads whole file (-0777)
+		# - Removes block comments /* ... */ safely
+		# - Removes // comments only when outside of string literals
+		# - Removes blank lines
+		perl -0777 -pe '
+			# --- Remove /* ... */ comments ---
+			s{/\*.*?\*/}{}gs;
+	
+			# --- Remove // comments safely ---
+			# This regex walks through each line, skipping // if it’s inside a quoted string.
+			s{
+				("(?:\\.|[^"\\])*") |  # Capture strings like "http://..." so we skip them
+				(//[^\n]*)             # Capture actual line comments
+			}{
+				defined $1 ? $1 : ""   # Keep strings, remove comments
+			}egmx;
+	
+			# --- Remove blank lines ---
+			s/^\s*\n//mg;
+		' "$file" > "$tmp_file"
+	
+		# Replace original file
+		mv "$tmp_file" "$file"
+	done
+	`
+
+	// Create a new command to run the script
+	cmd := exec.Command("bash", "-c", shellScript, path)
+
+	// Capture the output and error
+	var stderr bytes.Buffer
+
+	cmd.Dir = wd
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = io.MultiWriter(os.Stdout, &stderr)
+
+	// Run the command
+	if err := cmd.Run(); err != nil {
+		return errors.Errorf("failed to remove file/dir: %s", strings.TrimSpace(stderr.String()))
 	}
 
-	fset := token.NewFileSet()
-
-	file, err := parser.ParseFile(fset, "", src, parser.ParseComments)
-	if err != nil {
-		return err
-	}
-
-	file.Comments = nil
-
-	var buf strings.Builder
-	if err := format.Node(&buf, fset, file); err != nil {
-		return err
-	}
-
-	cleaned := removeEmptyLines(buf.String())
-
-	return os.WriteFile(path, []byte(cleaned), 0o644)
-}
-
-func removeEmptyLines(s string) string {
-	var result strings.Builder
-
-	scanner := bufio.NewScanner(strings.NewReader(s))
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.TrimSpace(line) != "" {
-			result.WriteString(line + "\n")
-		}
-	}
-
-	return result.String()
+	return nil
 }
