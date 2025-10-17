@@ -53,13 +53,13 @@ func clean(cmd *cobra.Command, args []string) error {
 
 func removeComments(wd, path string) error {
 	// Define the shell script as a string
-	shellScript := `
+	shellScript := fmt.Sprintf(`
 	#!/bin/bash
 	
 	set -e
 	
 	# Get the directory from the argument
-	dir="$1"
+	dir=%q
 	
 	# Recursively find all .go files in the specified directory
 	find "$dir" -type f -name "*.go" | while read -r file; do
@@ -91,10 +91,10 @@ func removeComments(wd, path string) error {
 		# Replace original file
 		mv "$tmp_file" "$file"
 	done
-	`
+	`, path)
 
 	// Create a new command to run the script
-	cmd := exec.Command("bash", "-c", shellScript, path)
+	cmd := exec.Command("bash", "-c", shellScript)
 
 	// Capture the output and error
 	var stderr bytes.Buffer
