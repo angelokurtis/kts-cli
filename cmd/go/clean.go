@@ -40,12 +40,21 @@ func clean(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	var cleanedPaths []string
+
 	for _, path := range files.RelativeFilePaths() {
 		if err := removeComments(wd, path); err != nil {
 			return err
 		}
 
-		slog.InfoContext(ctx, "Removed comments", slog.String("file", path))
+		cleanedPaths = append(cleanedPaths, path)
+	}
+
+	if len(cleanedPaths) > 0 {
+		slog.InfoContext(ctx, "Comments removed from files",
+			"count", len(cleanedPaths),
+			"files", strings.Join(cleanedPaths, ","),
+		)
 	}
 
 	return nil
