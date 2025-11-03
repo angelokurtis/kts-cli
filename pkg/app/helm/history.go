@@ -55,14 +55,14 @@ func (r Revisions) SelectMany() (Revisions, error) {
 		Options: numbers,
 	}
 
-	var selects []int64
+	var selects []string
 
 	err := survey.AskOne(prompt, &selects, survey.WithPageSize(10))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	return r.Get(selects...), nil
+	return GetRevisions(r, selects...), nil
 }
 
 func (r Revisions) Numbers() []string {
@@ -74,11 +74,18 @@ func (r Revisions) Numbers() []string {
 	return numbers
 }
 
-func (r Revisions) Get(numbers ...int64) []*Revision {
+func GetRevisions[T ~int64 | ~string](r Revisions, numbers ...T) []*Revision {
 	revisions := make([]*Revision, 0, len(numbers))
-	for _, number := range numbers {
+	for _, n := range numbers {
 		for _, revision := range r {
-			if revision.Number == number {
+			var match bool
+			switch v := any(n).(type) {
+			case int64:
+				match = revision.Number == v
+			case string:
+				match = fmt.Sprintf("%d", revision.Number) == v
+			}
+			if match {
 				revisions = append(revisions, revision)
 			}
 		}

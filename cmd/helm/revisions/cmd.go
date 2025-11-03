@@ -55,7 +55,7 @@ func revisions(cmd *cobra.Command, args []string) {
 		history, err = history.SelectMany()
 		dieOnErr(err)
 	} else {
-		history = history.Get(releaseRevisions...)
+		history = helm.GetRevisions(history, releaseRevisions...)
 	}
 
 	chartMetadata, chartValues := getChartMetadata(release)
