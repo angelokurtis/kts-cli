@@ -12,6 +12,7 @@ import (
 
 	"github.com/buger/jsonparser"
 	"github.com/itchyny/json2yaml"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/helm"
@@ -20,9 +21,11 @@ import (
 )
 
 var (
-	allNamespaces = false
-	namespace     = ""
-	Command       = &cobra.Command{Use: "revisions", Run: revisions}
+	allNamespaces    = false
+	namespace        = ""
+	helmRelease      = ""
+	releaseRevisions []int64
+	Command          = &cobra.Command{Use: "revisions", Run: revisions}
 )
 
 // kts helm revisions
@@ -35,16 +38,25 @@ func revisions(cmd *cobra.Command, args []string) {
 	releases, err := helm.ListReleases(opt...)
 	dieOnErr(err)
 
-	release, err := releases.SelectOne()
-	dieOnErr(err)
+	var release *helm.Release
+	if helmRelease != "" {
+		release = releases.Get(helmRelease)
+	} else {
+		release, err = releases.SelectOne()
+		dieOnErr(err)
+	}
 
 	opt = append(opt, helm.OnNamespace(release.Namespace))
 
 	history, err := helm.GetHistory(release.Name, opt...)
 	dieOnErr(err)
 
-	history, err = history.SelectMany()
-	dieOnErr(err)
+	if len(releaseRevisions) == 0 {
+		history, err = history.SelectMany()
+		dieOnErr(err)
+	} else {
+		history = history.Get(releaseRevisions...)
+	}
 
 	chartMetadata, chartValues := getChartMetadata(release)
 	saveChart(release, chartMetadata, chartValues)
@@ -80,8 +92,12 @@ func revisions(cmd *cobra.Command, args []string) {
 }
 
 func getChartMetadata(release *helm.Release) ([]byte, []byte) {
-	secretVal, err := kubectl.GetSecretKeyValue(&kubectl.KeyRef{Name: fmt.Sprintf("sh.helm.release.v1.%s.v1", release.Name), Key: "release"}, release.Namespace)
+	secretVal, err := kubectl.GetSecretKeyValue(&kubectl.KeyRef{Name: fmt.Sprintf("sh.helm.release.v1.%s.v%s", release.Name, release.Revision), Key: "release"}, release.Namespace)
 	dieOnErr(err)
+
+	if secretVal == "" {
+		dieOnErr(errors.New("helm secret value is empty"))
+	}
 
 	compressed, err := b64.StdEncoding.DecodeString(secretVal)
 	dieOnErr(err)
@@ -125,6 +141,8 @@ func saveChart(release *helm.Release, metadata, values []byte) {
 func init() {
 	Command.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Set the namespace for a current request")
 	Command.PersistentFlags().BoolVarP(&allNamespaces, "all-namespaces", "A", false, "If present, resources the requested object(s) across all namespaces. Namespace in current\ncontext is ignored even if specified with --namespace.")
+	Command.PersistentFlags().StringVarP(&helmRelease, "release", "r", "", "Specify the Helm release name")
+	Command.PersistentFlags().Int64SliceVar(&releaseRevisions, "revisions", nil, "Specify one or more Helm release revision numbers")
 }
 
 func dieOnErr(err error) {
