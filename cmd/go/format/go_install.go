@@ -86,8 +86,8 @@ func installWsl() error {
 	# Check if wsl is installed
 	if ! command -v wsl &> /dev/null
 	then
-		echo -e "${BLUE}go install github.com/bombsimon/wsl/v5/cmd...@latest${NC}"
-		go install github.com/bombsimon/wsl/v5/cmd...@latest
+		echo -e "${BLUE}go install github.com/bombsimon/wsl/v5/cmd/wsl@latest${NC}"
+		go install github.com/bombsimon/wsl/v5/cmd/wsl@latest
 	fi
 	`
 
