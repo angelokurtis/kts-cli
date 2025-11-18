@@ -1,13 +1,16 @@
 package kubectl
 
 import (
+	"log/slog"
 	"sort"
 	"strconv"
 	"strings"
 
 	survey "github.com/AlecAivazis/survey/v2"
+	"github.com/lmittmann/tint"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
 )
 
 var emptyChar int32 = 32
@@ -24,7 +27,11 @@ func ListResourceDefinitions() (*ResourcesDefinitions, error) {
 
 	lists, err := discvy.ServerPreferredResources()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		if !discovery.IsGroupDiscoveryFailedError(err) {
+			return nil, errors.WithStack(err)
+		}
+
+		slog.Warn("partial discovery", tint.Err(err))
 	}
 
 	for _, list := range lists {
