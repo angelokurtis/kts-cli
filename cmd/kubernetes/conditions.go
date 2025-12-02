@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-
 	"github.com/olekukonko/tablewriter"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
@@ -20,6 +19,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/kubectl"
+	"github.com/andanhm/go-prettytime"
 )
 
 // kube conditions -A pods
@@ -70,58 +70,106 @@ func conditions(cmd *cobra.Command, args []string) error {
 }
 
 func printTable(unstructureds []unstructured.Unstructured, mapper meta.RESTMapper) {
+	var colOrder []string
+
 	cols := make(map[string]struct{})
+
 	var rows []map[string]string
 
-	for _, obj := range unstructureds {
-		row := map[string]string{}
+	lastCol := "Last Transition"
+	firstCols := []string{"Namespace", "Name"}
 
+	for _, obj := range unstructureds {
+		row := make(map[string]string)
+
+		// Add Namespace if available
 		if ns := obj.GetNamespace(); ns != "" {
-			cols["Namespace"] = struct{}{}
+			if _, ok := cols["Namespace"]; !ok {
+				cols["Namespace"] = struct{}{}
+
+				colOrder = append(colOrder, "Namespace")
+			}
+
 			row["Namespace"] = ns
 		}
 
-		cols["Name"] = struct{}{}
+		// Always add Name
+		if _, ok := cols["Name"]; !ok {
+			cols["Name"] = struct{}{}
+
+			colOrder = append(colOrder, "Name")
+		}
+
 		row["Name"] = getFQN(&obj, mapper)
+
+		// Conditions
+		var lastTransitionTime metav1.Time
 
 		if conds, err := getStatusConditions(&obj); err == nil {
 			for _, cond := range conds {
-				cols[cond.Type] = struct{}{}
+				if _, ok := cols[cond.Type]; !ok {
+					cols[cond.Type] = struct{}{}
+					colOrder = append(colOrder, cond.Type)
+				}
 
 				if len(cond.Reason) > 0 {
 					row[cond.Type] = cond.Reason
 				} else {
 					row[cond.Type] = string(cond.Status)
 				}
+
+				if cond.LastTransitionTime.After(lastTransitionTime.Time) {
+					lastTransitionTime = cond.LastTransitionTime
+				}
 			}
+		}
+
+		if !lastTransitionTime.IsZero() {
+			if _, ok := cols[lastCol]; !ok {
+				cols[lastCol] = struct{}{}
+				colOrder = append(colOrder, lastCol)
+			}
+
+			row[lastCol] = fmt.Sprintf("%s (%s)", lastTransitionTime.Time.Format("02/01/2006 15:04"), prettytime.Format(lastTransitionTime.Time))
 		}
 
 		rows = append(rows, row)
 	}
 
-	// Build header in desired order: Namespace, Name, then the rest sorted
+	// Build final headers
 	var headers []string
-	if _, ok := cols["Namespace"]; ok {
-		headers = append(headers, "Namespace")
-	}
 
-	if _, ok := cols["Name"]; ok {
-		headers = append(headers, "Name")
-	}
+	otherCols := make([]string, 0)
 
-	var otherCols []string
-
-	for col := range cols {
-		if col != "Namespace" && col != "Name" {
-			otherCols = append(otherCols, col)
+	for _, col := range colOrder {
+		if col == "Namespace" || col == "Name" || col == lastCol {
+			continue
 		}
+
+		otherCols = append(otherCols, col)
 	}
 
 	sort.Strings(otherCols)
+
+	// Add "Namespace" and "Name" first if present
+	for _, col := range firstCols {
+		if _, ok := cols[col]; ok {
+			headers = append(headers, col)
+		}
+	}
+
+	// Add all other sorted condition columns
 	headers = append(headers, otherCols...)
 
+	// Add "LastTransitionTime" last if present
+	if _, ok := cols[lastCol]; ok {
+		headers = append(headers, lastCol)
+	}
+
+	// Render the table
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetColWidth(50)
 	table.SetColumnSeparator("")
 	table.SetBorder(false)
 	table.SetHeaderLine(false)
