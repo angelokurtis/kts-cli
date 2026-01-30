@@ -26,4 +26,10 @@ func init() {
 		}
 		return nil
 	}})
+	Command.AddCommand(&cobra.Command{Use: "sort", Run: sort, Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return errors.New("requires a YAML files path as argument")
+		}
+		return nil
+	}})
 }
