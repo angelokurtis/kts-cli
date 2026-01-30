@@ -6,12 +6,19 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
 )
 
 const base = "~/wrkspc/"
+
+var (
+	githubHostRegex   = regexp.MustCompile(`^([a-zA-Z0-9-]+\.)?github\.com$`)
+	gitlabHostRegex   = regexp.MustCompile(`^([a-zA-Z0-9-]+\.)?gitlab\.com$`)
+	codebergHostRegex = regexp.MustCompile(`^([a-zA-Z0-9-]+\.)?codeberg\.org$`)
+)
 
 type LocalRepo struct {
 	Repo *url.URL
@@ -27,11 +34,15 @@ func NewLocalDir(repo string) (*LocalRepo, error) {
 }
 
 func (l *LocalRepo) IsGithub() bool {
-	return strings.Contains(l.Repo.Host, "github.com")
+	return githubHostRegex.MatchString(l.Repo.Host)
 }
 
 func (l *LocalRepo) IsGitlab() bool {
-	return strings.Contains(l.Repo.Host, "gitlab.com")
+	return gitlabHostRegex.MatchString(l.Repo.Host)
+}
+
+func (l *LocalRepo) IsCodeberg() bool {
+	return codebergHostRegex.MatchString(l.Repo.Host)
 }
 
 func (l *LocalRepo) IsGoogleOpenSource() bool {
@@ -42,24 +53,50 @@ func (l *LocalRepo) SSHAddress() string {
 	h := strings.ReplaceAll(l.Repo.Host, "www.", "")
 	p := l.Repo.Path[1:]
 
-	githubSpecialCases := []string{
+	switch {
+	case isTotvsGithubRepo(l.Repo):
+		h = "github-totvs"
+
+	case isTotvsGitlabRepo(l.Repo):
+		h = "gitlab-totvs"
+
+	case l.IsGithub():
+		h = "github-personal"
+
+	case l.IsCodeberg():
+		h = "codeberg-personal"
+	}
+
+	return fmt.Sprintf("git@%s:%s.git", h, p)
+}
+
+func isTotvsGithubRepo(repo *url.URL) bool {
+	if !githubHostRegex.MatchString(repo.Host) {
+		return false
+	}
+
+	path := strings.TrimPrefix(repo.Path, "/")
+	prefixes := []string{
 		"cloud104/",
 		"totvs-cloud/",
 		"tiagoangelototvs/",
 		"BugExtermination-Co/",
 	}
-	for _, prefix := range githubSpecialCases {
-		if l.IsGithub() && strings.HasPrefix(p, prefix) {
-			h = "github-totvs"
-			break
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(path, prefix) {
+			return true
 		}
 	}
+	return false
+}
 
-	if l.IsGitlab() && strings.HasPrefix(p, "ascenty/") {
-		h = "gitlab-totvs"
+func isTotvsGitlabRepo(repo *url.URL) bool {
+	if !gitlabHostRegex.MatchString(repo.Host) {
+		return false
 	}
 
-	return fmt.Sprintf("git@%s:%s.git", h, p)
+	path := strings.TrimPrefix(repo.Path, "/")
+	return strings.HasPrefix(path, "ascenty/")
 }
 
 func (l *LocalRepo) Exist() bool {

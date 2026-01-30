@@ -23,7 +23,7 @@ func Clone(repo string) error {
 
 	path := dir.Path()
 
-	if dir.IsGithub() || dir.IsGitlab() {
+	if dir.IsGithub() || dir.IsGitlab() || dir.IsCodeberg() {
 		repo = dir.SSHAddress()
 	}
 
