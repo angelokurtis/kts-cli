@@ -7,13 +7,14 @@ import (
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )
 
 func join(_ *cobra.Command, args []string) {
 	wd := must(os.Getwd())
 	paths := must(listAll(wd))
-	paths = must(choose(paths))
+	paths = must(choose(wd, paths))
 
 	if err := write(paths); err != nil {
 		panic(err)
@@ -42,22 +43,32 @@ func listAll(root string) ([]string, error) {
 	return paths, nil
 }
 
-func choose(paths []string) ([]string, error) {
+func choose(root string, paths []string) ([]string, error) {
 	if len(paths) == 0 {
 		return paths, nil
 	}
 
+	options := lo.Map(paths, func(p string, _ int) string {
+		return lo.Must(filepath.Rel(root, p))
+	})
+
+	index := lo.SliceToMap(paths, func(p string) (string, string) {
+		return lo.Must(filepath.Rel(root, p)), p
+	})
+
 	prompt := &survey.MultiSelect{
 		Message: "Select the files to join:",
-		Options: paths,
+		Options: options,
 	}
-	var selects []string
 
+	var selects []string
 	if err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true)); err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	return selects, nil
+	return lo.Map(selects, func(rel string, _ int) string {
+		return index[rel]
+	}), nil
 }
 
 func write(paths []string) error {
