@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
+	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )
@@ -14,6 +16,7 @@ import (
 func join(_ *cobra.Command, args []string) {
 	wd := must(os.Getwd())
 	paths := must(listAll(wd))
+	paths = must(filterIgnored(wd, paths))
 	paths = must(choose(wd, paths))
 
 	if err := write(paths); err != nil {
@@ -69,6 +72,40 @@ func choose(root string, paths []string) ([]string, error) {
 	return lo.Map(selects, func(rel string, _ int) string {
 		return index[rel]
 	}), nil
+}
+
+func filterIgnored(root string, paths []string) ([]string, error) {
+	gitignorePath := filepath.Join(root, ".gitignore")
+
+	var ig *ignore.GitIgnore
+
+	if _, err := os.Stat(gitignorePath); err == nil {
+		compiled, err := ignore.CompileIgnoreFile(gitignorePath)
+		if err != nil {
+			return nil, err
+		}
+
+		ig = compiled
+	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	filtered := lo.Filter(paths, func(p string, _ int) bool {
+		rel := filepath.ToSlash(lo.Must(filepath.Rel(root, p)))
+
+		// Always ignore .git directory
+		if rel == ".git" || strings.HasPrefix(rel, ".git/") {
+			return false
+		}
+
+		if ig != nil && ig.MatchesPath(rel) {
+			return false
+		}
+
+		return true
+	})
+
+	return filtered, nil
 }
 
 func write(paths []string) error {
