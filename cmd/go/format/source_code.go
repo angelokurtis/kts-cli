@@ -3,6 +3,7 @@ package format
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/samber/lo"
@@ -15,15 +16,34 @@ type SourceCodes []*SourceCode
 func NewSourceCodes(currentDir string, packages golang.Packages) (SourceCodes, error) {
 	sources := make(SourceCodes, 0)
 
+	absCurrentDir, err := filepath.Abs(currentDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve absolute path for %q: %w", currentDir, err)
+	}
+
 	for _, pkg := range packages {
-		rel, err := filepath.Rel(currentDir, pkg.Dir)
+		rel, err := filepath.Rel(absCurrentDir, pkg.Dir)
 		if err != nil {
-			return nil, fmt.Errorf("failed to compute relative path from %q to %q: %w", currentDir, pkg.Dir, err)
+			return nil, fmt.Errorf("failed to compute relative path from %q to %q: %w", absCurrentDir, pkg.Dir, err)
 		}
 
 		files := append(pkg.GoFiles, pkg.TestGoFiles...)
 
 		for _, file := range files {
+			absFile, err := filepath.Abs(file)
+			if err != nil {
+				return nil, fmt.Errorf("failed to resolve absolute path for file %q: %w", file, err)
+			}
+
+			relToCurrent, err := filepath.Rel(absCurrentDir, absFile)
+			if err != nil {
+				continue
+			}
+
+			if strings.HasPrefix(relToCurrent, "..") {
+				continue
+			}
+
 			sources = append(sources, &SourceCode{
 				FileName:     file,
 				FileDir:      pkg.Dir,
