@@ -18,18 +18,12 @@ func NewSourceCodes(currentDir string, packages golang.Packages) (SourceCodes, e
 	for _, pkg := range packages {
 		rel, err := filepath.Rel(currentDir, pkg.Dir)
 		if err != nil {
-			return nil, fmt.Errorf(": %w", err)
+			return nil, fmt.Errorf("failed to compute relative path from %q to %q: %w", currentDir, pkg.Dir, err)
 		}
 
-		for _, file := range pkg.GoFiles {
-			sources = append(sources, &SourceCode{
-				FileName:     file,
-				FileDir:      pkg.Dir,
-				RelativePath: rel,
-			})
-		}
+		files := append(pkg.GoFiles, pkg.TestGoFiles...)
 
-		for _, file := range pkg.TestGoFiles {
+		for _, file := range files {
 			sources = append(sources, &SourceCode{
 				FileName:     file,
 				FileDir:      pkg.Dir,
