@@ -65,7 +65,7 @@ func choose(root string, paths []string) ([]string, error) {
 	}
 
 	var selects []string
-	if err := survey.AskOne(prompt, &selects, survey.WithPageSize(10), survey.WithKeepFilter(true)); err != nil {
+	if err := survey.AskOne(prompt, &selects, survey.WithPageSize(20), survey.WithKeepFilter(true)); err != nil {
 		return nil, errors.WithStack(err)
 	}
 

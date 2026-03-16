@@ -15,6 +15,7 @@ import (
 
 func UnmarshalPackage(data []byte) (Package, error) {
 	var r Package
+
 	err := json.Unmarshal(data, &r)
 
 	return r, err
@@ -122,7 +123,7 @@ func (p Packages) Usages(dep string) Packages {
 }
 
 func DescribePackage(dir string) (*Package, error) {
-	j, err := bash.Run(fmt.Sprintf("cd %s && go list -json", dir))
+	j, err := bash.Run(fmt.Sprintf("cd %s && go list -test -json", dir))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func DescribePackage(dir string) (*Package, error) {
 }
 
 func ListPackages(dir string) (Packages, error) {
-	cmd := "cd " + dir + ` && go list -json ./... | jq -s .`
+	cmd := "cd " + dir + ` && go list -test -json ./... | jq -s .`
 	color.Primary.Println(cmd)
 
 	j, err := exec.Command("bash", "-c", cmd).Output()
