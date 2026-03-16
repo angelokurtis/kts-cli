@@ -26,28 +26,30 @@ func packages(_ *cobra.Command, args []string) {
 	root := gotree.New(color.BgGray.Text(dir))
 
 	for _, subdir := range dirs {
-		pkg, err := golang.DescribePackage(subdir)
+		pkgs, err := golang.DescribePackages(subdir)
 		if err != nil {
 			slog.Error("failed to describe package", "dir", subdir, "error", err)
 			continue
 		}
 
-		imports := pkg.AllImports()
-		if internal {
-			imports = pkg.InternalImports()
-		}
+		for _, pkg := range pkgs {
+			imports := pkg.AllImports()
+			if internal {
+				imports = pkg.InternalImports()
+			}
 
-		if len(imports) == 0 {
-			continue
-		}
+			if len(imports) == 0 {
+				continue
+			}
 
-		node := root
-		if subdir != dir {
-			node = root.Add(color.BgGray.Text(subdir))
-		}
+			node := root
+			if subdir != dir {
+				node = root.Add(color.BgGray.Text(subdir))
+			}
 
-		for _, imp := range imports {
-			node.Add(imp)
+			for _, imp := range imports {
+				node.Add(imp)
+			}
 		}
 	}
 

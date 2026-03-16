@@ -13,12 +13,15 @@ import (
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
-func UnmarshalPackage(data []byte) (Package, error) {
-	var r Package
+func UnmarshalPackage(data []byte) ([]*Package, error) {
+	var r []*Package
 
 	err := json.Unmarshal(data, &r)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal package")
+	}
 
-	return r, err
+	return r, nil
 }
 
 type Package struct {
@@ -122,18 +125,22 @@ func (p Packages) Usages(dep string) Packages {
 	return owners
 }
 
-func DescribePackage(dir string) (*Package, error) {
-	j, err := bash.Run(fmt.Sprintf("cd %s && go list -test -json", dir))
+func DescribePackages(dir string) ([]*Package, error) {
+	j, err := bash.RunAndLogRead(fmt.Sprintf("cd %s && go list -test -json | jq -s .", dir))
 	if err != nil {
 		return nil, err
 	}
 
-	pkg, err := UnmarshalPackage(j)
+	pkgs, err := UnmarshalPackage(j)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	return &pkg, nil
+	if len(pkgs) == 0 {
+		return nil, fmt.Errorf("no packages returned by go list")
+	}
+
+	return pkgs, nil
 }
 
 func ListPackages(dir string) (Packages, error) {
