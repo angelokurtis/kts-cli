@@ -23,10 +23,19 @@ func packages(_ *cobra.Command, args []string) {
 		return
 	}
 
+	var opts []golang.DescribePackagesOption
+	if tests {
+		opts = append(opts, golang.WithTests())
+	}
+
+	if len(tags) > 0 {
+		opts = append(opts, golang.WithTags(tags...))
+	}
+
 	root := gotree.New(color.BgGray.Text(dir))
 
 	for _, subdir := range dirs {
-		pkgs, err := golang.DescribePackages(subdir)
+		pkgs, err := golang.DescribePackages(subdir, opts...)
 		if err != nil {
 			slog.Error("failed to describe package", "dir", subdir, "error", err)
 			continue

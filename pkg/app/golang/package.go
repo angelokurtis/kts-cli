@@ -125,8 +125,44 @@ func (p Packages) Usages(dep string) Packages {
 	return owners
 }
 
-func DescribePackages(dir string) ([]*Package, error) {
-	j, err := bash.RunAndLogRead(fmt.Sprintf("cd %s && go list -test -json | jq -s .", dir))
+type describePackagesOptions struct {
+	includeTests bool
+	tags         []string
+}
+
+type DescribePackagesOption func(*describePackagesOptions)
+
+func WithTests() DescribePackagesOption {
+	return func(o *describePackagesOptions) {
+		o.includeTests = true
+	}
+}
+
+func WithTags(tags ...string) DescribePackagesOption {
+	return func(o *describePackagesOptions) {
+		o.tags = append(o.tags, tags...)
+	}
+}
+
+func DescribePackages(dir string, opts ...DescribePackagesOption) ([]*Package, error) {
+	o := describePackagesOptions{}
+	for _, opt := range opts {
+		opt(&o)
+	}
+
+	args := []string{"go", "list"}
+	if o.includeTests {
+		args = append(args, "-test")
+	}
+
+	if len(o.tags) > 0 {
+		args = append(args, fmt.Sprintf(`-tags="%s"`, strings.Join(o.tags, " ")))
+	}
+
+	args = append(args, "-json")
+	cmd := fmt.Sprintf("cd %s && %s | jq -s .", dir, strings.Join(args, " "))
+
+	j, err := bash.RunAndLogRead(cmd)
 	if err != nil {
 		return nil, err
 	}
