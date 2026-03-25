@@ -15,6 +15,7 @@ import (
 	"github.com/angelokurtis/kts-cli/cmd/files"
 	"github.com/angelokurtis/kts-cli/cmd/gcp"
 	"github.com/angelokurtis/kts-cli/cmd/git"
+	"github.com/angelokurtis/kts-cli/cmd/github"
 	golang "github.com/angelokurtis/kts-cli/cmd/go"
 	"github.com/angelokurtis/kts-cli/cmd/helm"
 	"github.com/angelokurtis/kts-cli/cmd/ifood"
@@ -73,6 +74,7 @@ func init() {
 	cmd.AddCommand(dockerhub.Command)
 	cmd.AddCommand(gcp.Command)
 	cmd.AddCommand(git.Command)
+	cmd.AddCommand(github.Command)
 	cmd.AddCommand(golang.Command)
 	cmd.AddCommand(helm.Command)
 	cmd.AddCommand(ifood.Command)
