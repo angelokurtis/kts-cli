@@ -15,6 +15,7 @@ require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/enescakir/emoji v1.0.0
 	github.com/google/go-cmp v0.7.0
+	github.com/google/go-github/v84 v84.0.0
 	github.com/google/wire v0.7.0
 	github.com/gookit/color v1.6.0
 	github.com/gotidy/ptr v1.4.0
@@ -88,7 +89,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/google/gnostic-models v0.7.0 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.7 // indirect
