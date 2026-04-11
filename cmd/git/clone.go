@@ -22,7 +22,7 @@ func clone(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	if !dir.Exist() {
+	if !dir.Exist() || force {
 		slog.InfoContext(ctx, "Cloning repository", slog.String("repo", repo))
 
 		err = git.Clone(repo)

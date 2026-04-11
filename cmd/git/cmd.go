@@ -11,6 +11,7 @@ import (
 
 var (
 	open    = false
+	force   = false
 	Command = &cobra.Command{
 		Use:   "git",
 		Short: "git version-control utilities",
@@ -24,6 +25,7 @@ func init() {
 
 	cloneCommand := &cobra.Command{Use: "clone", Run: clone}
 	cloneCommand.PersistentFlags().BoolVar(&open, "open", false, "")
+	cloneCommand.PersistentFlags().BoolVar(&force, "force", false, "")
 	Command.AddCommand(cloneCommand)
 	Command.AddCommand(commits.Command)
 	Command.AddCommand(branch.Command)
