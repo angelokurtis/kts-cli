@@ -87,10 +87,13 @@ func removeComments(wd, path string) error {
 			# --- Remove // comments safely ---
 			# This regex walks through each line, skipping // if it’s inside a quoted string.
 			s{
-				("(?:\\.|[^"\\])*") |  # Capture strings like "http://..." so we skip them
-				(//[^\n]*)             # Capture actual line comments
+				("(?:\\.|[^"\\])*") |     # string literals
+				(^\s*//go:[^\n]*) |       # Go directives (preserve)
+				(//[^\n]*)                # normal comments
 			}{
-				defined $1 ? $1 : ""   # Keep strings, remove comments
+				defined $1 ? $1 :
+				defined $2 ? $2 :
+				""
 			}egmx;
 	
 			# --- Remove blank lines ---
