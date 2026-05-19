@@ -1,6 +1,7 @@
 package files
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -116,17 +117,44 @@ func write(paths []string) error {
 	defer f.Close()
 
 	for _, path := range paths {
-		if _, err := fmt.Fprintf(f, "# %s\n", path); err != nil {
+		dir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+
+		relPath, err := filepath.Rel(dir, path)
+		if err != nil {
+			relPath = path
+		}
+
+		if _, err := fmt.Fprintf(f, "# %s\n", relPath); err != nil {
 			return fmt.Errorf("failed to write path header for %s: %w", path, err)
 		}
 
-		content, err := os.ReadFile(path)
+		in, err := os.Open(path)
 		if err != nil {
+			return fmt.Errorf("failed to open file %s: %w", path, err)
+		}
+
+		scanner := bufio.NewScanner(in)
+		lineNo := 1
+
+		for scanner.Scan() {
+			if _, err := fmt.Fprintf(f, "%d: %s\n", lineNo, scanner.Text()); err != nil {
+				in.Close()
+				return fmt.Errorf("failed to write numbered line for %s: %w", path, err)
+			}
+
+			lineNo++
+		}
+
+		if err := scanner.Err(); err != nil {
+			in.Close()
 			return fmt.Errorf("failed to read file %s: %w", path, err)
 		}
 
-		if _, err := f.Write(content); err != nil {
-			return fmt.Errorf("failed to write content for %s: %w", path, err)
+		if err := in.Close(); err != nil {
+			return fmt.Errorf("failed to close file %s: %w", path, err)
 		}
 
 		if _, err := f.Write([]byte("\n")); err != nil {
