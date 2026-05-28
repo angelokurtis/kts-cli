@@ -19,7 +19,7 @@ import (
 
 var brazil *time.Location
 
-var semanticVersionRegex = regexp.MustCompile(`\d+\.\d+\.\d+`)
+var semanticVersionRegex = regexp.MustCompile(`\d+(?:\.\d+){0,2}`)
 
 func init() {
 	loc, err := time.LoadLocation("America/Sao_Paulo")
@@ -100,7 +100,10 @@ func list(cmd *cobra.Command, args []string) {
 
 		if constraint != nil {
 			for _, tag := range img.TagNames() {
-				version := semanticVersionRegex.FindString(tag)
+				version, ok := convertToSemVer(tag)
+				if !ok {
+					continue
+				}
 
 				v, err := mastermindssemver.NewVersion(version)
 				if err != nil || !constraint.Check(v) {
@@ -185,4 +188,19 @@ func (i *Image) TagNames() []string {
 type Tag struct {
 	Name    string
 	Updated time.Time
+}
+
+func convertToSemVer(s string) (string, bool) {
+	match := semanticVersionRegex.FindString(s)
+	if match == "" {
+		return "", false
+	}
+
+	parts := strings.Split(match, ".")
+
+	for len(parts) < 3 {
+		parts = append(parts, "0")
+	}
+
+	return strings.Join(parts[:3], "."), true
 }
