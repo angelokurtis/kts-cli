@@ -95,21 +95,27 @@ func list(cmd *cobra.Command, args []string) {
 
 	// Populate table with filtered and formatted image data
 	for _, img := range images {
-		// All tags must satisfy constraint
-		valid := true
+		if constraint == nil {
+			continue
+		}
 
-		if constraint != nil {
-			for _, tag := range img.TagNames() {
-				version, ok := convertToSemVer(tag)
-				if !ok {
-					continue
-				}
+		// At least one tag must satisfy the constraint.
+		valid := false
 
-				v, err := mastermindssemver.NewVersion(version)
-				if err != nil || !constraint.Check(v) {
-					valid = false
-					break
-				}
+		for _, tag := range img.TagNames() {
+			version, ok := convertToSemVer(tag)
+			if !ok {
+				continue
+			}
+
+			v, err := mastermindssemver.NewVersion(version)
+			if err != nil {
+				continue
+			}
+
+			if constraint.Check(v) {
+				valid = true
+				break
 			}
 		}
 
