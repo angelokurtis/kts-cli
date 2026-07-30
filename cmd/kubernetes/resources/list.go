@@ -48,17 +48,16 @@ func list(cmd *cobra.Command, args []string) error {
 		table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 
 		if allNamespaces {
-			table.SetHeader([]string{"NAMESPACE", "Kind", "Name", "Dependents"})
+			table.SetHeader([]string{"NAMESPACE", "Name", "Dependents"})
 		} else {
-			table.SetHeader([]string{"Kind", "Name", "Dependents"})
+			table.SetHeader([]string{"Name", "Dependents"})
 		}
 
 		for _, item := range ro {
-			m := item.Metadata
 			if allNamespaces {
-				table.Append([]string{m.Namespace, item.Kind, m.Name, fmt.Sprintf("%d", item.Dependents)})
+				table.Append([]string{item.Namespace, item.Name, fmt.Sprintf("%d", item.Dependents)})
 			} else {
-				table.Append([]string{item.Kind, m.Name, fmt.Sprintf("%d", item.Dependents)})
+				table.Append([]string{item.Name, fmt.Sprintf("%d", item.Dependents)})
 			}
 		}
 

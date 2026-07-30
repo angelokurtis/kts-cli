@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -15,50 +14,54 @@ import (
 	"github.com/samber/lo"
 	yamlv3 "gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/angelokurtis/kts-cli/pkg/app/yq"
 	"github.com/angelokurtis/kts-cli/pkg/bash"
 )
 
-func ListResourcesOwners(resources, namespace string, includeNoOwners, allNamespaces bool) ([]Item, error) {
-	cmd := "kubectl get " + resources + " -o=json"
-	if allNamespaces {
-		cmd += " --all-namespaces"
-	} else if namespace != "" {
-		cmd = cmd + " -n " + namespace
-	}
-
-	out, err := bash.RunAndLogRead(cmd)
+func ListResourcesOwners(resources, namespace string, includeNoOwners, allNamespaces bool) ([]*ResourceOwner, error) {
+	list, err := ListUnstructureds(resources, namespace, allNamespaces)
 	if err != nil {
 		return nil, err
 	}
 
-	var col *collection
-	if err := json.Unmarshal(out, &col); err != nil {
-		return nil, errors.WithStack(err)
+	counter := make(map[types.UID]int)
+	for _, item := range list.Items {
+		counter[item.GetUID()] = 0
 	}
 
-	counter := make(map[string]int)
-	for _, item := range col.Items {
-		counter[item.Metadata.UID] = 0
-	}
-
-	for _, item := range col.Items {
-		for _, owner := range item.Metadata.OwnerReferences {
+	for _, item := range list.Items {
+		for _, owner := range item.GetOwnerReferences() {
 			counter[owner.UID]++
 		}
 	}
 
-	items := make([]Item, 0)
+	mapper, err := newMapper()
+	if err != nil {
+		return nil, err
+	}
 
-	for _, item := range col.Items {
-		item.Dependents = counter[item.Metadata.UID]
-		if len(item.Metadata.OwnerReferences) == 0 && (includeNoOwners || item.Dependents > 0) {
-			items = append(items, item)
+	items := make([]*ResourceOwner, 0)
+
+	for _, item := range list.Items {
+		dependents := counter[item.GetUID()]
+		if len(item.GetOwnerReferences()) == 0 && (includeNoOwners || dependents > 0) {
+			items = append(items, &ResourceOwner{
+				Name:       getFQN(&item, mapper),
+				Namespace:  item.GetNamespace(),
+				Dependents: dependents,
+			})
 		}
 	}
 
 	return items, nil
+}
+
+type ResourceOwner struct {
+	Name       string
+	Namespace  string
+	Dependents int
 }
 
 func ListResources(resources, namespace string, allNamespaces bool) ([]string, error) {
