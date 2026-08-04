@@ -91,52 +91,69 @@ func list(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-	}
 
-	// Populate table with filtered and formatted image data
-	for _, img := range images {
-		if constraint == nil {
-			continue
-		}
-
-		// At least one tag must satisfy the constraint.
-		valid := false
-
-		for _, tag := range img.TagNames() {
-			version, ok := convertToSemVer(tag)
-			if !ok {
+		// Populate table with filtered and formatted image data
+		for _, img := range images {
+			if constraint == nil {
 				continue
 			}
 
-			v, err := mastermindssemver.NewVersion(version)
-			if err != nil {
+			// At least one tag must satisfy the constraint.
+			valid := false
+
+			for _, tag := range img.TagNames() {
+				version, ok := convertToSemVer(tag)
+				if !ok {
+					continue
+				}
+
+				v, err := mastermindssemver.NewVersion(version)
+				if err != nil {
+					continue
+				}
+
+				if constraint.Check(v) {
+					valid = true
+					break
+				}
+			}
+
+			if !valid {
 				continue
 			}
 
-			if constraint.Check(v) {
-				valid = true
-				break
+			var updated string
+
+			if img.Pushed != nil {
+				t := *img.Pushed
+				updated = fmt.Sprintf("%s (%s)", t.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(t))
 			}
+
+			table.Append([]string{
+				repo,
+				strings.Join(img.TagNames(), ", "),
+				img.Digest,
+				ByteCount(img.Size),
+				updated,
+			})
 		}
+	} else {
+		for _, img := range images {
+			var updated string
 
-		if !valid {
-			continue
+			if img.Pushed != nil {
+				t := *img.Pushed
+				updated = fmt.Sprintf("%s (%s)", t.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(t))
+			}
+
+			table.Append([]string{
+				repo,
+				strings.Join(img.TagNames(), ", "),
+				img.Digest,
+				ByteCount(img.Size),
+				updated,
+			})
 		}
-
-		var updated string
-
-		if img.Pushed != nil {
-			t := *img.Pushed
-			updated = fmt.Sprintf("%s (%s)", t.In(brazil).Format("02/01/2006 15:04"), prettytime.Format(t))
-		}
-
-		table.Append([]string{
-			repo,
-			strings.Join(img.TagNames(), ", "),
-			img.Digest,
-			ByteCount(img.Size),
-			updated,
-		})
 	}
 
 	table.Render()
