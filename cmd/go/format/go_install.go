@@ -109,16 +109,22 @@ func installWsl() error {
 }
 
 func installAll() error {
-	if err := installImportsReviser(); err != nil {
-		return err
+	if !disableImportsReviser {
+		if err := installImportsReviser(); err != nil {
+			return err
+		}
 	}
 
-	if err := installGofumpt(); err != nil {
-		return err
+	if !disableGofumpt {
+		if err := installGofumpt(); err != nil {
+			return err
+		}
 	}
 
-	if err := installWsl(); err != nil {
-		return err
+	if !disableWsl {
+		if err := installWsl(); err != nil {
+			return err
+		}
 	}
 
 	return nil

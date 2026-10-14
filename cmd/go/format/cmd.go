@@ -17,6 +17,10 @@ import (
 var (
 	filterUpdated = false
 	all           = false
+
+	disableImportsReviser = false
+	disableGofumpt        = false
+	disableWsl            = false
 )
 
 var Command = &cobra.Command{
@@ -27,6 +31,25 @@ var Command = &cobra.Command{
 func init() {
 	Command.PersistentFlags().BoolVarP(&filterUpdated, "updated", "u", false, "")
 	Command.PersistentFlags().BoolVar(&all, "all", false, "")
+
+	Command.PersistentFlags().BoolVar(
+		&disableImportsReviser,
+		"disable-imports-reviser",
+		false,
+		"Disable imports-reviser formatting",
+	)
+	Command.PersistentFlags().BoolVar(
+		&disableGofumpt,
+		"disable-gofumpt",
+		false,
+		"Disable gofumpt formatting",
+	)
+	Command.PersistentFlags().BoolVar(
+		&disableWsl,
+		"disable-wsl",
+		false,
+		"Disable wsl formatting",
+	)
 }
 
 func runFormat(cmd *cobra.Command, args []string) error {
@@ -39,20 +62,17 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
+	if disableImportsReviser && disableGofumpt && disableWsl {
+		slog.InfoContext(ctx, "All formatters are disabled; nothing to do")
+		return nil
+	}
+
 	if err = installAll(); err != nil {
 		return err
 	}
 
 	if all {
-		if err = runImportsReviser(ctx, workingDir, "./..."); err != nil {
-			return err
-		}
-
-		if err = runGofumpt(ctx, workingDir, "."); err != nil {
-			return err
-		}
-
-		if err = runWsl(ctx, workingDir, "./..."); err != nil {
+		if err = formatAll(ctx, workingDir); err != nil {
 			return err
 		}
 
@@ -126,19 +146,7 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		pathArg := fmt.Sprintf("./%s/", relativeDirPath)
 
 		g.Go(func() error {
-			if err = runImportsReviser(ctx, workingDir, pathArg); err != nil {
-				return err
-			}
-
-			if err = runGofumpt(ctx, workingDir, pathArg); err != nil {
-				return err
-			}
-
-			if err = runWsl(ctx, workingDir, pathArg); err != nil {
-				return err
-			}
-
-			return nil
+			return formatPath(ctx, workingDir, pathArg)
 		})
 	}
 
@@ -152,6 +160,50 @@ func runFormat(cmd *cobra.Command, args []string) error {
 	}
 
 	slog.InfoContext(ctx, "Format run completed successfully")
+
+	return nil
+}
+
+func formatAll(ctx context.Context, workingDir string) error {
+	if !disableImportsReviser {
+		if err := runImportsReviser(ctx, workingDir, "./..."); err != nil {
+			return fmt.Errorf("imports-reviser failed: %w", err)
+		}
+	}
+
+	if !disableGofumpt {
+		if err := runGofumpt(ctx, workingDir, "."); err != nil {
+			return fmt.Errorf("gofumpt failed: %w", err)
+		}
+	}
+
+	if !disableWsl {
+		if err := runWsl(ctx, workingDir, "./..."); err != nil {
+			return fmt.Errorf("wsl failed: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func formatPath(ctx context.Context, workingDir, pathArg string) error {
+	if !disableImportsReviser {
+		if err := runImportsReviser(ctx, workingDir, pathArg); err != nil {
+			return fmt.Errorf("imports-reviser failed for %s: %w", pathArg, err)
+		}
+	}
+
+	if !disableGofumpt {
+		if err := runGofumpt(ctx, workingDir, pathArg); err != nil {
+			return fmt.Errorf("gofumpt failed for %s: %w", pathArg, err)
+		}
+	}
+
+	if !disableWsl {
+		if err := runWsl(ctx, workingDir, pathArg); err != nil {
+			return fmt.Errorf("wsl failed for %s: %w", pathArg, err)
+		}
+	}
 
 	return nil
 }
