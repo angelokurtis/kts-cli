@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 
 	"github.com/sourcegraph/conc/pool"
 	"github.com/spf13/cobra"
@@ -21,6 +22,8 @@ var (
 	disableImportsReviser = false
 	disableGofumpt        = false
 	disableWsl            = false
+	enableGoreorder       = false
+	enableFuncorder       = false
 )
 
 var Command = &cobra.Command{
@@ -50,6 +53,18 @@ func init() {
 		false,
 		"Disable wsl formatting",
 	)
+	Command.PersistentFlags().BoolVar(
+		&enableGoreorder,
+		"enable-goreorder",
+		false,
+		"Enable goreorder formatting",
+	)
+	Command.PersistentFlags().BoolVar(
+		&enableFuncorder,
+		"enable-funcorder",
+		false,
+		"Enable funcorder linting",
+	)
 }
 
 func runFormat(cmd *cobra.Command, args []string) (retErr error) {
@@ -62,7 +77,11 @@ func runFormat(cmd *cobra.Command, args []string) (retErr error) {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
-	if disableImportsReviser && disableGofumpt && disableWsl {
+	if disableImportsReviser &&
+		disableGofumpt &&
+		disableWsl &&
+		!enableGoreorder &&
+		!enableFuncorder {
 		slog.InfoContext(ctx, "All formatters are disabled; nothing to do")
 		return nil
 	}
@@ -196,6 +215,47 @@ func formatAll(ctx context.Context, workingDir string) error {
 		}
 	}
 
+	if enableFuncorder {
+		if err := runFuncorder(ctx, workingDir, "./..."); err != nil {
+			return fmt.Errorf("funcorder failed: %w", err)
+		}
+	}
+
+	if enableGoreorder {
+		dirs := make(map[string]struct{})
+
+		err := filepath.WalkDir(workingDir, func(path string, entry os.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return walkErr
+			}
+
+			if entry.IsDir() {
+				if entry.Name() == ".git" || entry.Name() == "vendor" {
+					return filepath.SkipDir
+				}
+
+				return nil
+			}
+
+			if filepath.Ext(path) != ".go" {
+				return nil
+			}
+
+			dirs[filepath.Dir(path)] = struct{}{}
+
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("failed to find Go directories: %w", err)
+		}
+
+		for dir := range dirs {
+			if err := runGoreorder(ctx, workingDir, dir); err != nil {
+				return fmt.Errorf("goreorder failed for %s: %w", dir, err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -215,6 +275,18 @@ func formatPath(ctx context.Context, workingDir, pathArg string) error {
 	if !disableWsl {
 		if err := runWsl(ctx, workingDir, pathArg); err != nil {
 			return fmt.Errorf("wsl failed for %s: %w", pathArg, err)
+		}
+	}
+
+	if enableFuncorder {
+		if err := runFuncorder(ctx, workingDir, pathArg); err != nil {
+			return fmt.Errorf("funcorder failed for %s: %w", pathArg, err)
+		}
+	}
+
+	if enableGoreorder {
+		if err := runGoreorder(ctx, workingDir, pathArg); err != nil {
+			return fmt.Errorf("goreorder failed for %s: %w", pathArg, err)
 		}
 	}
 

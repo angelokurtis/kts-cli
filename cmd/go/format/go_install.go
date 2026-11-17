@@ -108,6 +108,74 @@ func installWsl() error {
 	return nil
 }
 
+func installGoreorder() error {
+	shellScript := `
+	#!/bin/bash
+	set -e
+
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
+	# Check if goreorder is installed
+	if ! command -v goreorder &> /dev/null
+	then
+		echo -e "${BLUE}go install github.com/metal3d/goreorder/cmd/goreorder@latest${NC}"
+		go install github.com/metal3d/goreorder/cmd/goreorder@latest
+	fi
+	`
+
+	// Create a new command to run the script
+	cmd := exec.Command("bash", "-c", shellScript)
+
+	// Capture the output and error
+	var stderr bytes.Buffer
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = &stderr
+
+	// Run the command
+	if err := cmd.Run(); err != nil {
+		return errors.Errorf("failed to install goreorder: %s", strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
+}
+
+func installFuncorder() error {
+	shellScript := `
+	#!/bin/bash
+	set -e
+
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
+	# Check if funcorder is installed
+	if ! command -v funcorder &> /dev/null
+	then
+		echo -e "${BLUE}go install github.com/manuelarte/funcorder@latest${NC}"
+		go install github.com/manuelarte/funcorder@latest
+	fi
+	`
+
+	// Create a new command to run the script
+	cmd := exec.Command("bash", "-c", shellScript)
+
+	// Capture the output and error
+	var stderr bytes.Buffer
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = &stderr
+
+	// Run the command
+	if err := cmd.Run(); err != nil {
+		return errors.Errorf("failed to install funcorder: %s", strings.TrimSpace(stderr.String()))
+	}
+
+	return nil
+}
+
 func installAll() error {
 	if !disableImportsReviser {
 		if err := installImportsReviser(); err != nil {
@@ -123,6 +191,18 @@ func installAll() error {
 
 	if !disableWsl {
 		if err := installWsl(); err != nil {
+			return err
+		}
+	}
+
+	if enableGoreorder {
+		if err := installGoreorder(); err != nil {
+			return err
+		}
+	}
+
+	if enableFuncorder {
+		if err := installFuncorder(); err != nil {
 			return err
 		}
 	}

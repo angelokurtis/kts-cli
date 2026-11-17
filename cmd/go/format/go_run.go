@@ -54,6 +54,7 @@ func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...strin
 	if err != nil {
 		// Check if the error is of type *exec.ExitError
 		var exitError *exec.ExitError
+
 		if errors.As(err, &exitError) && exitError.ExitCode() != 0 {
 			return errors.New(strings.TrimSpace(stderr.String()))
 		}
@@ -103,6 +104,7 @@ func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) erro
 	if err != nil {
 		// Check if the error is of type *exec.ExitError
 		var exitError *exec.ExitError
+
 		if errors.As(err, &exitError) && exitError.ExitCode() != 0 {
 			return errors.New(strings.TrimSpace(stderr.String()))
 		}
@@ -159,6 +161,7 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 	if err != nil {
 		// Check if the error is of type *exec.ExitError
 		var exitError *exec.ExitError
+
 		if errors.As(err, &exitError) && exitError.ExitCode() != 0 && exitError.ExitCode() != 3 {
 			return errors.New(strings.TrimSpace(stderr.String()))
 		}
@@ -167,6 +170,100 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 	elapsed := time.Since(start)
 	dirs := lo.Map(fileArgs, func(item string, index int) string { return filepath.Dir(item) })
 	slog.DebugContext(ctx, "Successfully ran wsl", slog.Duration("duration", elapsed), slog.Any("paths", lo.Uniq(dirs)))
+
+	return nil
+}
+
+func runFuncorder(ctx context.Context, workingDir string, fileArgs ...string) error {
+	// Define the shell script as a string
+	args := []string{
+		"-constructor=true",
+		"-struct-method=true",
+		"-alphabetical=true",
+		"-function=true",
+	}
+	args = append(args, fileArgs...)
+	argsStr := strings.Join(args, " ")
+
+	shellScript := fmt.Sprintf(`
+	#!/bin/bash
+
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
+	echo -e "${BLUE}funcorder %s${NC}"
+	funcorder %s
+	`, argsStr, argsStr)
+
+	// Create a new command to run the script
+	cmd := exec.CommandContext(ctx, "bash", "-c", shellScript)
+
+	// Capture the output and error
+	var stderr bytes.Buffer
+
+	cmd.Dir = workingDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = &stderr
+
+	// Run the command
+	start := time.Now()
+
+	err := cmd.Run()
+	if err != nil {
+		return errors.Wrap(err, strings.TrimSpace(stderr.String()))
+	}
+
+	elapsed := time.Since(start)
+	dirs := lo.Map(fileArgs, func(item string, index int) string { return filepath.Dir(item) })
+	slog.DebugContext(ctx, "Successfully ran funcorder", slog.Duration("duration", elapsed), slog.Any("paths", lo.Uniq(dirs)))
+
+	return nil
+}
+
+func runGoreorder(ctx context.Context, workingDir string, fileArgs ...string) error {
+	// Define the shell script as a string
+	args := []string{
+		"reorder",
+		"--write",
+		"--reorder-types",
+		"--format", "gofmt",
+	}
+	args = append(args, fileArgs...)
+	argsStr := strings.Join(args, " ")
+
+	shellScript := fmt.Sprintf(`
+	#!/bin/bash
+
+	# Define colors
+	BLUE='\033[0;34m'
+	NC='\033[0m' # No Color
+
+	echo -e "${BLUE}goreorder %s${NC}"
+	goreorder %s
+	`, argsStr, argsStr)
+
+	// Create a new command to run the script
+	cmd := exec.CommandContext(ctx, "bash", "-c", shellScript)
+
+	// Capture the output and error
+	var stderr bytes.Buffer
+
+	cmd.Dir = workingDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = &stderr
+
+	// Run the command
+	start := time.Now()
+
+	err := cmd.Run()
+	if err != nil {
+		return errors.Wrap(err, strings.TrimSpace(stderr.String()))
+	}
+
+	elapsed := time.Since(start)
+	dirs := lo.Map(fileArgs, func(item string, index int) string { return filepath.Dir(item) })
+	slog.DebugContext(ctx, "Successfully ran goreorder", slog.Duration("duration", elapsed), slog.Any("paths", lo.Uniq(dirs)))
 
 	return nil
 }
