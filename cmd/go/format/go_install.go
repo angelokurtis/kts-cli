@@ -142,7 +142,7 @@ func installGoreorder() error {
 	return nil
 }
 
-func installFuncorder() error {
+func installCallorder() error {
 	shellScript := `
 	#!/bin/bash
 	set -e
@@ -151,11 +151,11 @@ func installFuncorder() error {
 	BLUE='\033[0;34m'
 	NC='\033[0m' # No Color
 
-	# Check if funcorder is installed
-	if ! command -v funcorder &> /dev/null
+	# Check if callorder is installed
+	if ! command -v callorder &> /dev/null
 	then
-		echo -e "${BLUE}go install github.com/manuelarte/funcorder@latest${NC}"
-		go install github.com/manuelarte/funcorder@latest
+		echo -e "${BLUE}go install github.com/tho/callorder/cmd/callorder@latest${NC}"
+		go install github.com/tho/callorder/cmd/callorder@latest
 	fi
 	`
 
@@ -170,7 +170,7 @@ func installFuncorder() error {
 
 	// Run the command
 	if err := cmd.Run(); err != nil {
-		return errors.Errorf("failed to install funcorder: %s", strings.TrimSpace(stderr.String()))
+		return errors.Errorf("failed to install callorder: %s", strings.TrimSpace(stderr.String()))
 	}
 
 	return nil
@@ -201,8 +201,8 @@ func installAll() error {
 		}
 	}
 
-	if enableFuncorder {
-		if err := installFuncorder(); err != nil {
+	if enableCallorder {
+		if err := installCallorder(); err != nil {
 			return err
 		}
 	}

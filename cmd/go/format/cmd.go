@@ -23,7 +23,7 @@ var (
 	disableGofumpt        = false
 	disableWsl            = false
 	enableGoreorder       = false
-	enableFuncorder       = false
+	enableCallorder       = false
 )
 
 var Command = &cobra.Command{
@@ -60,10 +60,10 @@ func init() {
 		"Enable goreorder formatting",
 	)
 	Command.PersistentFlags().BoolVar(
-		&enableFuncorder,
-		"enable-funcorder",
+		&enableCallorder,
+		"enable-callorder",
 		false,
-		"Enable funcorder linting",
+		"Enable callorder automatic function ordering",
 	)
 }
 
@@ -81,7 +81,7 @@ func runFormat(cmd *cobra.Command, args []string) (retErr error) {
 		disableGofumpt &&
 		disableWsl &&
 		!enableGoreorder &&
-		!enableFuncorder {
+		!enableCallorder {
 		slog.InfoContext(ctx, "All formatters are disabled; nothing to do")
 		return nil
 	}
@@ -215,9 +215,9 @@ func formatAll(ctx context.Context, workingDir string) error {
 		}
 	}
 
-	if enableFuncorder {
-		if err := runFuncorder(ctx, workingDir, "./..."); err != nil {
-			return fmt.Errorf("funcorder failed: %w", err)
+	if enableCallorder {
+		if err := runCallorder(ctx, workingDir, "./..."); err != nil {
+			return fmt.Errorf("callorder failed: %w", err)
 		}
 	}
 
@@ -278,9 +278,9 @@ func formatPath(ctx context.Context, workingDir, pathArg string) error {
 		}
 	}
 
-	if enableFuncorder {
-		if err := runFuncorder(ctx, workingDir, pathArg); err != nil {
-			return fmt.Errorf("funcorder failed for %s: %w", pathArg, err)
+	if enableCallorder {
+		if err := runCallorder(ctx, workingDir, pathArg); err != nil {
+			return fmt.Errorf("callorder failed for %s: %w", pathArg, err)
 		}
 	}
 

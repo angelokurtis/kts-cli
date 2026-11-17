@@ -174,12 +174,13 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 	return nil
 }
 
-func runFuncorder(ctx context.Context, workingDir string, fileArgs ...string) error {
+func runCallorder(ctx context.Context, workingDir string, fileArgs ...string) error {
 	// Define the shell script as a string
 	args := []string{
+		"-fix",
+		"-init-first",
 		"-constructor=true",
 		"-struct-method=true",
-		"-alphabetical=true",
 		"-function=true",
 	}
 	args = append(args, fileArgs...)
@@ -192,8 +193,8 @@ func runFuncorder(ctx context.Context, workingDir string, fileArgs ...string) er
 	BLUE='\033[0;34m'
 	NC='\033[0m' # No Color
 
-	echo -e "${BLUE}funcorder %s${NC}"
-	funcorder %s
+	echo -e "${BLUE}callorder %s${NC}"
+	callorder %s
 	`, argsStr, argsStr)
 
 	// Create a new command to run the script
@@ -216,18 +217,29 @@ func runFuncorder(ctx context.Context, workingDir string, fileArgs ...string) er
 
 	elapsed := time.Since(start)
 	dirs := lo.Map(fileArgs, func(item string, index int) string { return filepath.Dir(item) })
-	slog.DebugContext(ctx, "Successfully ran funcorder", slog.Duration("duration", elapsed), slog.Any("paths", lo.Uniq(dirs)))
+	slog.DebugContext(ctx, "Successfully ran callorder", slog.Duration("duration", elapsed), slog.Any("paths", lo.Uniq(dirs)))
 
 	return nil
 }
 
 func runGoreorder(ctx context.Context, workingDir string, fileArgs ...string) error {
+	order := []string{
+		"const",
+		"var",
+		"init",
+		"main",
+		"interface",
+		"type",
+		"func",
+	}
+
 	// Define the shell script as a string
 	args := []string{
 		"reorder",
 		"--write",
 		"--reorder-types",
 		"--format", "gofmt",
+		"--order", strings.Join(order, ","),
 	}
 	args = append(args, fileArgs...)
 	argsStr := strings.Join(args, " ")
