@@ -2,11 +2,11 @@ package format
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/sourcegraph/conc/pool"
 	"github.com/spf13/cobra"
 
@@ -52,7 +52,7 @@ func init() {
 	)
 }
 
-func runFormat(cmd *cobra.Command, args []string) error {
+func runFormat(cmd *cobra.Command, args []string) (retErr error) {
 	// Create a new context
 	ctx := context.Background()
 
@@ -106,9 +106,7 @@ func runFormat(cmd *cobra.Command, args []string) error {
 
 		selectedFiles = srcCodes.FilterByRelativeFilePaths(relativePaths)
 	} else {
-		for _, srcCode := range srcCodes {
-			selectedFiles = append(selectedFiles, srcCode)
-		}
+		selectedFiles = append(selectedFiles, srcCodes...)
 	}
 
 	// Check if there are any source codes to process; return an error if none are found
@@ -122,9 +120,17 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to select multiple source files: %w", err)
 	}
 
+	if len(selectedFiles) == 0 {
+		return errors.New("no source files selected for formatting")
+	}
+
 	selectedDirs := selectedFiles.RelativeDirPaths()
 
 	affectedFiles := srcCodes.FilterByRelativeDirPaths(selectedDirs)
+
+	if len(affectedFiles) == 0 {
+		return errors.New("no affected source files found")
+	}
 
 	// Create a temporary directory for backing up files before formatting and ensure that it is cleaned up after the operation
 	tempDir, cleanup, err := createTemporaryDirectory(ctx)
@@ -139,6 +145,18 @@ func runFormat(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to backup affected files to the temporary directory: %w", err)
 	}
 
+	// Always restore unselected files, including when formatting fails.
+	// Use a fresh context so cancellation of the formatting operation
+	// does not prevent restoration.
+	defer func() {
+		restoreCtx := context.Background()
+
+		if err = Restore(restoreCtx, affectedFiles, selectedFiles, tempDir); err != nil {
+			restoreErr := fmt.Errorf("failed to restore unselected files from backup: %w", err)
+			retErr = errors.Join(retErr, restoreErr)
+		}
+	}()
+
 	// Run goimports-reviser, gofumpt, and wsl on the files
 	g := pool.New().WithErrors().WithFirstError().WithMaxGoroutines(10)
 
@@ -152,11 +170,6 @@ func runFormat(cmd *cobra.Command, args []string) error {
 
 	if err = g.Wait(); err != nil {
 		return err
-	}
-
-	// Restore the formatted files back to their original locations
-	if err = Restore(ctx, affectedFiles, selectedFiles, tempDir); err != nil {
-		return fmt.Errorf("failed to restore affected files from the temporary directory: %w", err)
 	}
 
 	slog.InfoContext(ctx, "Format run completed successfully")
