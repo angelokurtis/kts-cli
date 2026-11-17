@@ -17,7 +17,15 @@ import (
 
 func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...string) error {
 	// Define the shell script as a string
-	args := strings.Join(fileArgs, " ")
+	args := []string{
+		"-set-alias",
+		"-use-cache",
+		"-rm-unused",
+		"-format",
+	}
+	args = append(args, fileArgs...)
+	argsStr := strings.Join(args, " ")
+
 	shellScript := fmt.Sprintf(`
 	#!/bin/bash
 
@@ -25,9 +33,9 @@ func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...strin
 	BLUE='\033[0;34m'
 	NC='\033[0m' # No Color
 
-	echo -e "${BLUE}goimports-reviser -set-alias -use-cache -rm-unused -format %s${NC}"
-	goimports-reviser -set-alias -use-cache -rm-unused -format %s
-	`, args, args)
+	echo -e "${BLUE}goimports-reviser %s${NC}"
+	goimports-reviser %s
+	`, argsStr, argsStr)
 
 	// Create a new command to run the script
 	cmd := exec.Command("bash", "-c", shellScript)
@@ -60,7 +68,13 @@ func runImportsReviser(ctx context.Context, workingDir string, fileArgs ...strin
 
 func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) error {
 	// Define the shell script as a string
-	args := strings.Join(fileArgs, " ")
+	args := []string{
+		"-w",
+		"-extra",
+	}
+	args = append(args, fileArgs...)
+	argsStr := strings.Join(args, " ")
+
 	shellScript := fmt.Sprintf(`
 	#!/bin/bash
 
@@ -68,9 +82,9 @@ func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) erro
 	BLUE='\033[0;34m'
 	NC='\033[0m' # No Color
 
-	echo -e "${BLUE}gofumpt -w -extra %s${NC}"
-	gofumpt -w -extra %s
-	`, args, args)
+	echo -e "${BLUE}gofumpt %s${NC}"
+	gofumpt %s
+	`, argsStr, argsStr)
 
 	// Create a new command to run the script
 	cmd := exec.Command("bash", "-c", shellScript)
@@ -103,7 +117,20 @@ func runGofumpt(ctx context.Context, workingDir string, fileArgs ...string) erro
 
 func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 	// Define the shell script as a string
-	args := strings.Join(fileArgs, " ")
+	enabled := []string{
+		"after-block",
+		"after-decl",
+		"cuddle-group",
+	}
+
+	args := []string{
+		"--default", "default",
+		"--enable", strings.Join(enabled, ","),
+		"--fix",
+	}
+	args = append(args, fileArgs...)
+	argsStr := strings.Join(args, " ")
+
 	shellScript := fmt.Sprintf(`
 	#!/bin/bash
 
@@ -111,9 +138,9 @@ func runWsl(ctx context.Context, workingDir string, fileArgs ...string) error {
 	BLUE='\033[0;34m'
 	NC='\033[0m' # No Color
 
-	echo -e "${BLUE}wsl -fix %s${NC}"
-	wsl -fix %s
-	`, args, args)
+	echo -e "${BLUE}wsl %s${NC}"
+	wsl %s
+	`, argsStr, argsStr)
 
 	// Create a new command to run the script with the arguments
 	cmd := exec.Command("bash", "-c", shellScript)
