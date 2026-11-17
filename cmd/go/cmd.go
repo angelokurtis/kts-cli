@@ -22,5 +22,12 @@ func init() {
 	Command.AddCommand(mod.Command)
 	Command.AddCommand(versions.Command)
 	Command.AddCommand(&cobra.Command{Use: "lint", Run: lint})
-	Command.AddCommand(&cobra.Command{Use: "clean", Run: wrapWithErrorHandler(clean)})
+	// comment
+	cleanCmd := &cobra.Command{
+		Use:   "clean",
+		Short: "Remove comments from selected Go files",
+		Run:   wrapWithErrorHandler(clean),
+	}
+	cleanCmd.Flags().BoolP("updated", "u", false, "Only select files with uncommitted Git changes")
+	Command.AddCommand(cleanCmd)
 }

@@ -2,7 +2,6 @@ package golang
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -14,15 +13,21 @@ import (
 	"github.com/spf13/cobra"
 
 	intlformat "github.com/angelokurtis/kts-cli/cmd/go/format"
+	"github.com/angelokurtis/kts-cli/pkg/app/git"
 	"github.com/angelokurtis/kts-cli/pkg/app/golang"
 )
 
 func clean(cmd *cobra.Command, args []string) error {
-	ctx := context.Background()
+	ctx := cmd.Context()
 
 	wd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("getting current directory: %w", err)
+	}
+
+	updated, err := cmd.Flags().GetBool("updated")
+	if err != nil {
+		return fmt.Errorf("getting updated flag: %w", err)
 	}
 
 	pkgs, err := golang.ListPackages(wd)
@@ -35,7 +40,27 @@ func clean(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("loading source code: %w", err)
 	}
 
-	files, err := source.SelectMany()
+	files := source
+
+	if updated {
+		uncommittedFiles, err := git.UncommittedFiles()
+		if err != nil {
+			return fmt.Errorf("retrieving uncommitted files: %w", err)
+		}
+
+		relativePaths, err := uncommittedFiles.RelativePaths()
+		if err != nil {
+			return fmt.Errorf("getting uncommitted file paths: %w", err)
+		}
+
+		files = source.FilterByRelativeFilePaths(relativePaths)
+	}
+
+	if len(files) == 0 {
+		return errors.New("no source files found to clean")
+	}
+
+	files, err = files.SelectMany()
 	if err != nil {
 		return err
 	}
